@@ -22,6 +22,7 @@ defmodule Blank.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:bcrypt_elixir, "~> 3.0"},
       {:phoenix_live_view, "~> 1.0.0"},
       {:flop, "~> 0.26"},
       {:flop_phoenix, "~> 0.23"},
