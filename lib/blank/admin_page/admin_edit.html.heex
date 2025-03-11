@@ -1,0 +1,22 @@
+<div>
+  <.header>
+    {Phoenix.Naming.humanize(@name)} {@item_name}
+    <:subtitle>Use this form to create an {@name}.</:subtitle>
+  </.header>
+
+  <.simple_form
+    for={@form}
+    as={:item_params}
+    id={"#{@name}-form"}
+    :let={f}
+    phx-change="validate"
+    phx-submit="save"
+  >
+    <.field_form :for={{field, field_def} <- @fields} field={f[field]} definition={field_def}
+    schema={@schema} repo={@repo} />
+    <:actions>
+      <% {action, actioning} = @form_btn %>
+      <.button phx-disable-with={"#{actioning} #{@name}..."} class="w-full">{action} {@name}</.button>
+    </:actions>
+  </.simple_form>
+</div>

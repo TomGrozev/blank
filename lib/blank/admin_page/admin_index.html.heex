@@ -1,0 +1,89 @@
+<.header>
+  {Phoenix.Naming.humanize(@plural_name)}
+  <:actions>
+    <div class="space-x-4">
+    <.link patch={"#{@active_link.url}/new"}>
+      <.button>
+        <.icon name="hero-plus" class="h-5 w-5 mr-2" />
+        New {@name}
+      </.button>
+    </.link>
+    <.link patch={"#{@active_link.url}/import"}>
+      <.button secondary>
+        <.icon name="hero-arrow-up-tray" class="h-5 w-5 mr-2" />
+        Import {@plural_name}
+      </.button>
+    </.link>
+    <.link patch={"#{@active_link.url}/export"}>
+      <.button secondary>
+        <.icon name="hero-arrow-down-tray" class="h-5 w-5 mr-2" />
+        Export {@plural_name}
+      </.button>
+    </.link>
+    </div>
+  </:actions>
+</.header>
+
+<.page_table
+  id={"#{@name}-table"}
+  rows={@streams.items}
+  meta={@meta}
+  path={@active_link.url}
+  row_click={fn {_id, item} -> JS.navigate("#{@active_link.url}/#{item.id}") end}
+>
+  <:col :for={{field, field_def} <- @fields} :let={{_, item}} label={field_def.label}>
+    <.field_display id={Map.fetch!(item, @primary_key)} definition={field_def} value={Map.get(item, field)} schema={@schema} />
+  </:col>
+  <:action :let={{_id, item}}>
+    <div class="sr-only">
+      <.link navigate={"#{@active_link.url}/#{item.id}"}>Show</.link>
+    </div>
+    <.link patch={"#{@active_link.url}/#{item.id}/edit"} class="hover:text-zinc-400"><.icon name="hero-pencil" class="w-5 h-5" /></.link>
+  </:action>
+  <:action :let={{id, item}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: item.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+      class="text-rose-500 hover:text-rose-400"
+    >
+      <.icon name="hero-trash" class="w-5 h-5" />
+    </.link>
+  </:action>
+</.page_table>
+
+<.modal
+  :if={@live_action == :import}
+  id="import-modal"
+  show
+  wide
+  on_cancel={JS.patch(@active_link.url)}
+>
+  <.live_component
+    module={Blank.Components.ImportComponent}
+    id={:import}
+    name={@name}
+    plural_name={@plural_name}
+    fields={@modal_fields}
+    repo={@repo}
+    schema={@schema}
+    patch={@active_link.url}
+  />
+</.modal>
+<.modal
+  :if={@live_action == :export}
+  id="export-modal"
+  show
+  wide
+  on_cancel={JS.patch(@active_link.url)}
+>
+  <.live_component
+    module={Blank.Components.ExportComponent}
+    id={:export}
+    name={@name}
+    plural_name={@plural_name}
+    fields={@modal_fields}
+    repo={@repo}
+    schema={@schema}
+    patch={@active_link.url}
+  />
+</.modal>
