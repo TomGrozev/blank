@@ -113,22 +113,19 @@ defmodule Blank.Schema.Validator do
     end
   end
 
+  @fields [
+    Blank.Fields.BelongsTo,
+    Blank.Fields.Boolean,
+    Blank.Fields.DateTime,
+    Blank.Fields.HasMany,
+    Blank.Fields.Password,
+    Blank.Fields.QRCode,
+    Blank.Fields.Text
+  ]
   defp field_schemas do
-    case :application.get_key(:blank, :modules) do
-      {:ok, list} ->
-        list
-        |> Enum.map(&Module.split/1)
-        |> Stream.filter(fn
-          ["Blank", "Fields", _] -> true
-          _ -> false
-        end)
-        |> Stream.map(&Module.concat/1)
-        |> Enum.map(&apply(&1, :__schema__, []))
-        |> Enum.concat()
-
-      _ ->
-        []
-    end
+    @fields
+    |> Stream.map(&apply(&1, :__schema__, []))
+    |> Enum.concat()
   end
 
   def validate_field!(schema, opts) do
