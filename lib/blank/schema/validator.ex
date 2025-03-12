@@ -107,7 +107,7 @@ defmodule Blank.Schema.Validator do
       {:error, err} ->
         raise Blank.Errors.InvalidConfigError.from_nimble(err,
                 caller: caller,
-                module: __MODULE__,
+                module: Blank.Schema,
                 usage: "@derive"
               )
     end
@@ -137,7 +137,7 @@ defmodule Blank.Schema.Validator do
 
       {:error, err} ->
         raise Blank.Errors.InvalidConfigError.from_nimble(err,
-                module: __MODULE__,
+                module: Blank.Schema,
                 caller: caller,
                 usage: "@derive"
               )
