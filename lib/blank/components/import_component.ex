@@ -212,7 +212,6 @@ defmodule Blank.Components.ImportComponent do
 
       sample_rows =
         apply_mapping(sample_rows(socket.assigns.csv_rows), mappers)
-        |> dbg()
 
       {:noreply,
        socket

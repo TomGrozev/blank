@@ -9,7 +9,8 @@ defmodule Blank.Field do
             readonly: false,
             display_field: nil,
             select: nil,
-            children: []
+            children: [],
+            path: "/"
 
   @type t :: %__MODULE__{
           key: atom(),
@@ -22,7 +23,8 @@ defmodule Blank.Field do
           readonly: boolean(),
           display_field: atom() | nil,
           select: struct() | nil,
-          children: Keyword.t() | nil
+          children: Keyword.t() | nil,
+          path: String.t()
         }
 
   @callback validate_field!(opts :: Keyword.t()) :: Keyword.t()
@@ -42,7 +44,7 @@ defmodule Blank.Field do
 
       @impl Blank.Field
       def validate_field!(opts) do
-        Blank.Schema.Validator.validate_field!(@schema, opts)
+        Blank.Schema.Validator.validate_field!(@schema, unquote(__MODULE__), opts)
       end
     end
   end

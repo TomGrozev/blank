@@ -1,20 +1,23 @@
 defmodule Blank.Utils.QRCode do
   @spec svg(String.t()) :: String.t()
-  def svg(code) do
-    generate(code)
+  def svg(code, path \\ "/") do
+    generate(code, path)
     |> EQRCode.svg()
   end
 
   @spec png(String.t()) :: String.t()
-  def png(code) do
-    generate(code)
+  def png(code, path \\ "/") do
+    generate(code, path)
     |> EQRCode.png()
   end
 
-  defp generate(code) do
+  defp generate(code, path) do
     base_url = get_base_url()
 
-    URI.append_query(URI.parse(base_url), URI.encode_query(%{"code" => code}))
+    base_url
+    |> Path.join(path)
+    |> URI.parse()
+    |> URI.append_query(URI.encode_query(%{"code" => code}))
     |> URI.to_string()
     |> EQRCode.encode()
   end

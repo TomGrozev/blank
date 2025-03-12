@@ -128,7 +128,7 @@ defmodule Blank.Schema.Validator do
     |> Enum.concat()
   end
 
-  def validate_field!(schema, opts) do
+  def validate_field!(schema, caller, opts) do
     field_schema = Keyword.merge(@field_schema, schema)
 
     case NimbleOptions.validate(opts, field_schema) do
@@ -138,6 +138,7 @@ defmodule Blank.Schema.Validator do
       {:error, err} ->
         raise Blank.Errors.InvalidConfigError.from_nimble(err,
                 module: __MODULE__,
+                caller: caller,
                 usage: "@derive"
               )
     end

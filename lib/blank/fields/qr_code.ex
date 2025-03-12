@@ -1,12 +1,21 @@
 defmodule Blank.Fields.QRCode do
-  use Blank.Field
+  @schema [
+    path: [
+      type: :string,
+      doc: "The path from the base url for the code to be applied to"
+    ]
+  ]
+
+  use Blank.Field, schema: @schema
 
   @impl Phoenix.LiveComponent
   def update(%{value: value} = assigns, socket) do
+    path = Map.get(assigns.definition, :path, "/")
+
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:qr_code, Blank.Utils.QRCode.svg(value))}
+     |> assign(:qr_code, Blank.Utils.QRCode.svg(value, path))}
   end
 
   def update(assigns, socket) do
