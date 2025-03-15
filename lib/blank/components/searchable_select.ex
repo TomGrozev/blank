@@ -153,6 +153,8 @@ defmodule Blank.Components.SearchableSelect do
   end
 
   @doc false
+  def value_mapper(nil, _definition), do: nil
+
   def value_mapper(item, definition) do
     label =
       Map.get(

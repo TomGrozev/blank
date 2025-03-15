@@ -49,8 +49,12 @@ defmodule Blank.Context do
 
               {field, def}
           end)
-          |> Enum.filter(fn {_, def} -> Keyword.get(def, :searchable, true) end)
+          |> Enum.filter(fn {_, def} -> Map.get(def, :searchable, true) end)
       end
+
+    if Enum.empty?(searchable_fields) do
+      raise ArgumentError, "no searchable fields for #{field_def.key}"
+    end
 
     conditions = search_conditions(searchable_fields, "%#{search_query}%", select)
     where(query, ^conditions)
@@ -64,7 +68,7 @@ defmodule Blank.Context do
     dynamic(^search_condition(field, query, select) or ^search_conditions(tail, query, select))
   end
 
-  defp search_condition({_name, %{select: select}}, query, _select) do
+  defp search_condition({_name, %{select: select}}, query, _select) when not is_nil(select) do
     dynamic(ilike(^select, ^query))
   end
 
@@ -77,7 +81,7 @@ defmodule Blank.Context do
   end
 
   defp search_condition({name, def}, query, _select) do
-    display_field = Map.get(def, :display_field, name)
+    display_field = Map.get(def, :display_field) || name
 
     dynamic([c], ilike(field(c, ^display_field), ^query))
   end
