@@ -234,22 +234,24 @@ defmodule Blank.Components.ImportComponent do
         apply_mapping(socket.assigns.csv_rows, mappers)
         |> Stream.map(fn row ->
           Enum.reduce(socket.assigns.fields, %{}, fn {k, def}, acc ->
-            field = Ecto.Changeset.get_field(changeset, k)
+            if field = Ecto.Changeset.get_field(changeset, k) do
+              children_strings =
+                Map.new(
+                  Keyword.keys(def.children),
+                  &{Atom.to_string(&1), &1}
+                )
 
-            children_strings =
-              Map.new(
-                Keyword.keys(def.children),
-                &{Atom.to_string(&1), &1}
-              )
+              order =
+                Ecto.Changeset.get_field(changeset, order_key(k))
+                |> String.split(", ")
+                |> Stream.map(&Map.get(children_strings, &1))
+                |> Enum.reject(&is_nil/1)
 
-            order =
-              Ecto.Changeset.get_field(changeset, order_key(k))
-              |> String.split(", ")
-              |> Stream.map(&Map.get(children_strings, &1))
-              |> Enum.reject(&is_nil/1)
-
-            val = Map.fetch!(row, field) |> Enum.map(&map_values(&1, order))
-            Map.put(acc, k, val)
+              val = Map.fetch!(row, field) |> Enum.map(&map_values(&1, order))
+              Map.put(acc, k, val)
+            else
+              acc
+            end
           end)
         end)
         |> Enum.reject(&(map_size(&1) == 0))
@@ -261,7 +263,7 @@ defmodule Blank.Components.ImportComponent do
           {:noreply,
            socket
            |> put_flash(:info, "Imported #{count} rows")
-           |> push_patch(socket.assigns.patch)}
+           |> push_patch(to: socket.assigns.patch)}
 
         count ->
           {:noreply,
