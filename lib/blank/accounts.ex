@@ -74,9 +74,9 @@ defmodule Blank.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
-  def register_admin(attrs) do
+  def register_admin(attrs, opts \\ []) do
     %Admin{}
-    |> Admin.registration_changeset(attrs)
+    |> Admin.registration_changeset(attrs, opts)
     |> repo().insert()
   end
 

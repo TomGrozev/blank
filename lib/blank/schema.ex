@@ -289,6 +289,13 @@ defimpl Blank.Schema, for: Any do
     ]
   end
 
+  defp default_for_field(:__id__) do
+    [
+      label: "Arango ID",
+      readonly: true
+    ]
+  end
+
   defp default_for_field(_), do: []
 
   defp schema_fields(struct) do

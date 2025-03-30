@@ -39,7 +39,7 @@ defmodule Blank.Context do
       case Blank.Schema.impl_for(schema_struct) do
         nil ->
           fields
-          |> Stream.reject(&(schema.__schema__(:type, &1) in [:utc_datetime, :id]))
+          |> Stream.reject(&(schema.__schema__(:type, &1) in [:utc_datetime, :id, :__id__]))
           |> Enum.map(&{&1, nil})
 
         _ ->
