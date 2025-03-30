@@ -21,17 +21,17 @@ defmodule Blank.Exporters.QRCode do
   def process(item, fields) do
     code_fields =
       fields
-      |> Stream.filter(fn {_, %{module: mod}} ->
+      |> Enum.filter(fn {_, %{module: mod}} ->
         mod == Blank.Fields.QRCode
       end)
-      |> Enum.map(&elem(&1, 0))
 
-    for field <- code_fields do
+    for {field, def} <- code_fields do
       code = Map.get(item, field)
+      code_path = Map.get(def, :path, "/")
 
       path = Path.join(Atom.to_string(field), "#{code}.png") |> String.to_charlist()
 
-      content = QRCode.png(code)
+      content = QRCode.png(code, code_path)
       {path, content}
     end
   end
