@@ -467,14 +467,7 @@ defmodule Blank.Components do
 
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
-  def page_table(%{meta: meta, path: path} = assigns) do
-    assigns =
-      assigns
-      |> assign(
-        :page_link_helper,
-        Flop.Phoenix.Pagination.build_page_link_helper(meta, path)
-      )
-
+  def page_table(assigns) do
     ~H"""
     <.filter_form
       :if={not Enum.empty?(@filter_fields)}
@@ -484,6 +477,7 @@ defmodule Blank.Components do
     />
     <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
       <Flop.Phoenix.table
+        id={@id}
         items={@rows}
         meta={@meta}
         path={@path}
@@ -529,26 +523,23 @@ defmodule Blank.Components do
       </Flop.Phoenix.table>
     </div>
     <div class="flex items-center justify-between border-t border-gray-400 px-4 py-3 sm:px-6">
-      <div class="flex flex-1 justify-between sm:hidden">
-        <.pagination_link
-          disabled={!@meta.has_previous_page?}
-          disabled_class="text-gray-400 select-none hover:bg-gray-900 active:text-gray-400"
-          page={@meta.previous_page}
-          path={@page_link_helper.(@meta.previous_page)}
-          class="relative inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 leading-6 active:text-white/80"
-        >
-          Previous
-        </.pagination_link>
-        <.pagination_link
-          disabled={!@meta.has_next_page?}
-          disabled_class="text-gray-700 select-none hover:border-gray-500 hover:text-gray-500"
-          page={@meta.next_page}
-          path={@page_link_helper.(@meta.next_page)}
-          class="relative inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 leading-6 active:text-white/80"
-        >
-          Next
-        </.pagination_link>
-      </div>
+      <Flop.Phoenix.pagination
+        meta={@meta}
+        path={@path}
+        page_links={:none}
+        opts={[
+          wrapper_attrs: [class: "flex flex-1 justify-between sm:hidden"],
+          disabled_class: "!text-gray-400 select-none hover:bg-gray-900",
+          next_link_attrs: [
+            class:
+              "relative inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 leading-6 active:text-white/80"
+          ],
+          previous_link_attrs: [
+            class:
+              "relative inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 leading-6 active:text-white/80"
+          ]
+        ]}
+      />
       <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
           <p class="text-sm text-gray-200">
@@ -563,10 +554,10 @@ defmodule Blank.Components do
                 selected={val == @meta.page_size}
                 phx-click={
                   JS.navigate(
-                    Flop.Phoenix.Pagination.build_page_link_helper(
-                      Map.update!(@meta, :flop, &Map.put(&1, :page_size, val)),
-                      @path
-                    ).(1)
+                    Flop.Phoenix.build_path(
+                      @path,
+                      Map.put(@meta.flop, :page_size, val)
+                    )
                   )
                 }
               >
@@ -579,165 +570,47 @@ defmodule Blank.Components do
         </div>
         <div>
           <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-            <.pagination_link
-              disabled={!@meta.has_previous_page?}
-              disabled_class="!text-gray-400 select-none hover:bg-gray-800"
-              page={@meta.previous_page}
-              path={@page_link_helper.(@meta.previous_page)}
-              class="relative inline-flex items-center rounded-l-md border border-gray-700 bg-gray-800 px-2 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700 focus:z-20"
-            >
-              <span class="sr-only">Previous</span>
-              <.icon name="hero-chevron-left-mini" class="h-5 w-5" />
-            </.pagination_link>
-            <.page_links meta={@meta} page_link_helper={@page_link_helper} />
-            <.pagination_link
-              disabled={!@meta.has_next_page?}
-              disabled_class="!text-gray-400 select-none hover:bg-gray-800"
-              page={@meta.next_page}
-              path={@page_link_helper.(@meta.next_page)}
-              class="relative inline-flex items-center rounded-r-md border border-gray-700 bg-gray-800 px-2 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700 focus:z-20"
-            >
-              <span class="sr-only">Next</span>
-              <.icon name="hero-chevron-right-mini" class="h-5 w-5" />
-            </.pagination_link>
           </nav>
+
+          <Flop.Phoenix.pagination
+            meta={@meta}
+            path={@path}
+            opts={[
+              wrapper_attrs: [class: "isolate inline-flex -space-x-px rounded-md shadow-sm"],
+              current_link_attrs: [
+                class:
+                  "relative z-10 inline-flex items-center border border-indigo-500 bg-indigo-900/50 px-4 py-2 text-sm font-medium text-white focus:z-20",
+                aria: [current: "page"]
+              ],
+              disabled_class: "!text-gray-400 select-none hover:bg-gray-800",
+              next_link_attrs: [
+                class:
+                  "order-3 relative inline-flex items-center rounded-r-md border border-gray-700 bg-gray-800 px-2 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700 focus:z-20"
+              ],
+              previous_link_attrs: [
+                class:
+                  "order-1 relative inline-flex items-center rounded-l-md border border-gray-700 bg-gray-800 px-2 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700 focus:z-20"
+              ],
+              next_link_content:
+                {:safe,
+                 "<span class=\"sr-only\">Next</span><div class=\"flex items-center justify-center w-5 h-5\">&rsaquo;</div>"},
+              previous_link_content:
+                {:safe,
+                 "<span class=\"sr-only\">Previous</span><div class=\"flex items-center justify-center w-5 h-5\">&lsaquo;</div>"},
+              pagination_list_attrs: [class: "order-2 flex"],
+              ellipsis_attrs: [
+                class:
+                  "relative inline-flex items-center border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700 focus:z-20"
+              ],
+              pagination_link_attrs: [
+                class:
+                  "relative inline-flex items-center border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700 focus:z-20"
+              ]
+            ]}
+          />
         </div>
       </div>
     </div>
-    """
-  end
-
-  attr :meta, Flop.Meta, required: true
-  attr :page_link_helper, :any, required: true
-
-  defp page_links(%{meta: meta} = assigns) do
-    max_pages =
-      Flop.Phoenix.Pagination.max_pages({:ellipsis, 3}, assigns.meta.total_pages)
-
-    range =
-      first..last//_ =
-      get_page_range(
-        meta.current_page,
-        max_pages,
-        meta.total_pages
-      )
-
-    assigns = assign(assigns, first: first, last: last, range: range)
-
-    ~H"""
-    <.pagination_link
-      :if={@first > 1}
-      page={1}
-      path={@page_link_helper.(1)}
-      {attrs_for_link(1, @meta)}
-    >
-      1
-    </.pagination_link>
-
-    <span
-      :if={@first > 2}
-      class="relative inline-flex items-center border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-200"
-    >
-      ...
-    </span>
-
-    <.pagination_link
-      :for={page <- @range}
-      page={page}
-      path={@page_link_helper.(page)}
-      {attrs_for_link(page, @meta)}
-    >
-      {page}
-    </.pagination_link>
-
-    <span
-      :if={@last < @meta.total_pages - 1}
-      class="relative inline-flex items-center border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-200"
-    >
-      ...
-    </span>
-
-    <.pagination_link
-      :if={@last < @meta.total_pages}
-      page={@meta.total_pages}
-      path={@page_link_helper.(@meta.total_pages)}
-      {attrs_for_link(@meta.total_pages, @meta)}
-    >
-      {@meta.total_pages}
-    </.pagination_link>
-    """
-  end
-
-  defp get_page_range(_, _, 0), do: 1..1//1
-
-  defp get_page_range(current_page, max_pages, total_pages) do
-    Flop.Phoenix.Pagination.get_page_link_range(
-      current_page,
-      max_pages,
-      total_pages
-    )
-  end
-
-  defp attrs_for_link(page, %{current_page: page}),
-    do: [
-      class:
-        "relative z-10 inline-flex items-center border border-indigo-500 bg-indigo-900/50 px-4 py-2 text-sm font-medium text-white focus:z-20",
-      aria: [current: "page"]
-    ]
-
-  defp attrs_for_link(_, _),
-    do: [
-      class:
-        "relative inline-flex items-center border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700 focus:z-20"
-    ]
-
-  attr :path, :string
-  attr :on_paginate, JS, default: nil
-  attr :event, :string
-  attr :target, :string
-  attr :page, :integer, required: true
-  attr :disabled, :boolean, default: false
-  attr :disabled_class, :string
-  attr :rest, :global
-  slot :inner_block
-
-  defp pagination_link(%{disabled: true, disabled_class: disabled_class} = assigns) do
-    rest =
-      Map.update(assigns.rest, :class, disabled_class, fn class ->
-        [class, disabled_class]
-      end)
-
-    assigns = assign(assigns, :rest, rest)
-
-    ~H"""
-    <span {@rest} class={@disabled_class}>
-      {render_slot(@inner_block)}
-    </span>
-    """
-  end
-
-  defp pagination_link(%{event: event} = assigns) when is_binary(event) do
-    ~H"""
-    <.link phx-click={@event} phx-target={@target} phx-value-page={@page} {@rest}>
-      {render_slot(@inner_block)}
-    </.link>
-    """
-  end
-
-  defp pagination_link(%{on_paginate: nil, path: path} = assigns)
-       when is_binary(path) do
-    ~H"""
-    <.link patch={@path} {@rest}>
-      {render_slot(@inner_block)}
-    </.link>
-    """
-  end
-
-  defp pagination_link(%{} = assigns) do
-    ~H"""
-    <.link patch={@path} phx-click={@on_paginate} phx-target={@target} phx-value-page={@page} {@rest}>
-      {render_slot(@inner_block)}
-    </.link>
     """
   end
 
