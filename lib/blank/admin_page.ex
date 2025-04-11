@@ -268,6 +268,12 @@ defmodule Blank.AdminPage do
     end)
   end
 
+  @search_field [
+    search: [
+      label: "Search...",
+      op: :ilike
+    ]
+  ]
   defp apply_action(socket, action, params) when action in [:index, :import, :export] do
     admin_page = socket.view
     %{repo: repo, schema: schema} = socket.assigns
@@ -283,12 +289,23 @@ defmodule Blank.AdminPage do
           get_field_definitions(struct(schema), admin_page.config(:edit_fields))
       end
 
+    search = !Map.has_key?(params, "filters") or 
+      Map.get(params, "filters", []) |> Enum.any?(fn {_, v} -> v["field"] == "search" end) |> dbg()
+    
+    filter_fields = 
+      if search do
+        @search_field
+      else
+        advanced_search(fields)
+      end
+
     case Context.paginate_schema(repo, schema, params, fields) do
       {:ok, {items, meta}} ->
         socket
         |> assign(:meta, meta)
         |> assign(:item, nil)
         |> assign(:fields, fields)
+        |> assign(:filter_fields, filter_fields)
         |> assign(:modal_fields, modal_fields)
         |> stream(:items, items, reset: true)
 
@@ -334,6 +351,51 @@ defmodule Blank.AdminPage do
     {:noreply, stream_delete(socket, :items, item)}
   end
 
+  def handle_event("update-filter", params, socket) do
+    params = Map.delete(params, "_target")
+
+    query_url =
+      Phoenix.VerifiedRoutes.unverified_path(
+        socket,
+        socket.router,
+        socket.assigns.active_link.url,
+        params
+      )
+
+    {:noreply, push_patch(socket, to: query_url)}
+  end
+
+  def handle_event("toggle-search", _params, socket) do
+    filter_fields =
+      if Keyword.has_key?(socket.assigns.filter_fields, :search) do
+        advanced_search(socket.assigns.fields)
+      else
+        @search_field
+      end
+    
+    {:noreply, assign(socket, :filter_fields, filter_fields)}
+  end
+
+  defp advanced_search(fields) do
+    fields
+    |> Stream.filter(fn {_, def} -> def.searchable end)
+    |> Enum.map(fn
+      {name, %{filter_key: key, label: label}} ->
+        {key,
+        [
+          label: label,
+          op: :ilike_and
+        ]}
+
+      {name, %{label: label}} ->
+        {name,
+        [
+          label: label,
+          op: :ilike_and
+        ]}
+    end)
+  end
+
   defp save_item(socket, :edit, params) do
     case Context.update(socket.assigns.repo, socket.assigns.item, params) do
       {:ok, _item} ->
@@ -366,7 +428,7 @@ defmodule Blank.AdminPage do
     end
   end
 
-  @decode_fields [Blank.Fields.BelongsTo]
+  @decode_fields [Blank.Fields.BelongsTo, Blank.Fields.Location]
   defp decode(value, fields) do
     fields
     |> Stream.filter(&(elem(&1, 1).module in @decode_fields))
@@ -382,7 +444,7 @@ defmodule Blank.AdminPage do
     end)
   end
 
-  defp decode_value(value) do
+  defp decode_value(value) when is_binary(value) do
     case Phoenix.json_library().decode(value) do
       {:ok, value} ->
         value
@@ -391,4 +453,6 @@ defmodule Blank.AdminPage do
         value
     end
   end
+
+  defp decode_value(value) when is_map(value), do: value
 end

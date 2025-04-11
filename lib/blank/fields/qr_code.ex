@@ -23,6 +23,15 @@ defmodule Blank.Fields.QRCode do
   end
 
   @impl Blank.Field
+  def render_list(assigns) do
+    ~H"""
+    <div>
+      <span>{@value}</span>
+    </div>
+    """
+  end
+
+  @impl Blank.Field
   def render_display(assigns) do
     ~H"""
     <div>

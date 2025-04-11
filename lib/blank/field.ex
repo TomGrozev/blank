@@ -1,5 +1,6 @@
 defmodule Blank.Field do
   defstruct key: nil,
+            filter_key: nil,
             module: Blank.Fields.Text,
             label: nil,
             placeholder: nil,
@@ -10,10 +11,12 @@ defmodule Blank.Field do
             display_field: nil,
             select: nil,
             children: [],
-            path: "/"
+            path: "/",
+            address_fun: nil
 
   @type t :: %__MODULE__{
           key: atom(),
+          filter_key: atom(),
           module: module(),
           label: String.t() | nil,
           placeholder: String.t() | nil,
@@ -24,11 +27,13 @@ defmodule Blank.Field do
           display_field: atom() | nil,
           select: struct() | nil,
           children: Keyword.t() | nil,
-          path: String.t()
+          path: String.t(),
+          address_fun: fun() | nil
         }
 
   @callback validate_field!(opts :: Keyword.t()) :: Keyword.t()
   @callback render_display(assigns :: map()) :: %Phoenix.LiveView.Rendered{}
+  @callback render_list(assigns :: map()) :: %Phoenix.LiveView.Rendered{}
   @callback render_form(assigns :: map()) :: %Phoenix.LiveView.Rendered{}
 
   defmacro __using__(opts) do
@@ -52,6 +57,14 @@ defmodule Blank.Field do
   defmacro __before_compile__(_env) do
     quote do
       @impl Phoenix.LiveComponent
+      def render(%{type: :list} = assigns) do
+        if function_exported?(__MODULE__, :render_list, 1) do
+          apply(__MODULE__, :render_list, [assigns])
+        else
+          render_display(assigns)
+        end
+      end
+
       def render(%{type: :display} = assigns) do
         render_display(assigns)
       end

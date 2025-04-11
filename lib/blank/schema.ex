@@ -96,7 +96,7 @@ defimpl Blank.Schema, for: Any do
   end
 
   defp get_flop_opts(module, caller, struct, options) do
-    {searchable, sortable} =
+    {searchable, sortable, adapter_opts} =
       Keyword.get(options, :fields, [])
       |> get_filterable_fields()
 
@@ -104,7 +104,8 @@ defimpl Blank.Schema, for: Any do
       Keyword.fetch!(options, :flop_opts)
       |> Keyword.merge(
         filterable: searchable,
-        sortable: sortable
+        sortable: sortable,
+        adapter_opts: adapter_opts
       )
 
     adapter = Keyword.fetch!(flop_opts, :adapter)
@@ -214,15 +215,60 @@ defimpl Blank.Schema, for: Any do
     end
   end
 
-  defp get_filterable_fields([]), do: {[], []}
+  defp get_filterable_fields([]), do: {[], [], []}
 
   defp get_filterable_fields(fields) do
-    Enum.reduce(fields, {[], []}, fn {name, value}, {acc_search, acc_sort} ->
-      searchable = Keyword.get(value, :searchable, false)
-      sortable = Keyword.get(value, :sortable, false)
+    {searchable, sortable, join_opts} = 
+      Enum.reduce(fields, {[], [], []}, fn {name, value}, {acc_search, acc_sort, j_opts} ->
+        searchable = Keyword.get(value, :searchable, false)
+        sortable = Keyword.get(value, :sortable, false)
 
-      {maybe_add(acc_search, searchable, name), maybe_add(acc_sort, sortable, name)}
-    end)
+        {search_name, j_opts} =
+          searchable_field_and_opts(
+            name,
+            searchable ||
+              sortable,
+            value,
+            j_opts
+          )
+
+        {maybe_add(acc_search, searchable, search_name), maybe_add(acc_sort, sortable, search_name),
+        j_opts}
+      end)
+
+    adapter_opts = [
+      join_fields: join_opts,
+      compound_fields: [
+        search: searchable
+      ]
+    ]
+
+    {[:search | searchable], sortable, adapter_opts}
+  end
+
+  defp joined_name(name, def) do
+    if display = Keyword.get(def, :display_field) do
+      String.to_atom("#{name}_#{display}")
+    else
+      name
+    end
+  end
+
+  defp searchable_field_and_opts(name, false, _value, j_opts), do: {name, j_opts}
+
+  defp searchable_field_and_opts(name, true, value, j_opts) do
+    if display = Keyword.get(value, :display_field) do
+      join_name = joined_name(name, value)
+
+      {join_name,
+       Keyword.put(j_opts, join_name,
+         binding: name,
+         field: display,
+         ecto_type: :string
+       )}
+    else
+      {name, j_opts}
+    end
   end
 
   defp maybe_add(acc, true, val), do: [val | acc]
@@ -253,8 +299,11 @@ defimpl Blank.Schema, for: Any do
   end
 
   defp static_field_def(field_defs, field) do
+    def = Keyword.get(field_defs, field, [])
+
     default_for_field(field)
-    |> Keyword.merge(Keyword.get(field_defs, field, []))
+    |> Keyword.merge(def)
+    |> Keyword.put_new(:filter_key, joined_name(field, def))
   end
 
   @doc false

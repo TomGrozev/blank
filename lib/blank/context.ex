@@ -97,7 +97,8 @@ defmodule Blank.Context do
   defp list_query(schema, fields) do
     assocs = get_associations(fields, schema)
 
-    from(item in schema)
+    from(item in schema, as: :item)
+    |> maybe_join(assocs)
     |> maybe_preload(assocs)
   end
 
@@ -121,6 +122,44 @@ defmodule Blank.Context do
     fields
     |> Stream.map(fn {field, def} -> {schema.__schema__(:association, field), def} end)
     |> Enum.reject(fn {assoc, _} -> is_nil(assoc) end)
+  end
+
+  defp maybe_join(query, []), do: query
+
+  defp maybe_join(query, assocs) do
+    Enum.reduce(assocs, query, fn {assoc, field_def}, acc ->
+      %{queryable: queryable, owner_key: owner_key, related_key: related_key} =
+        assoc
+
+      case field_def do
+        %{key: field, select: select, display_field: display_field} when not is_nil(select) ->
+          preload_query =
+            from(queryable)
+            |> select_merge(^%{display_field => select})
+
+          acc
+          |> join(
+            :left_lateral,
+            [item: i],
+            a in ^subquery(preload_query),
+            as: ^field,
+            on: field(i, ^owner_key) == field(a, ^related_key)
+          )
+
+        %{key: field} ->
+          acc
+      end
+    end)
+  end
+
+  def get_primary_key(%{__struct__: struct}) when is_atom(struct),
+    do: get_primary_key(struct)
+
+  def get_primary_key(module) when is_atom(module) do
+    case module.__schema__(:primary_key) do
+      [id] -> id
+      _ -> raise ArgumentError, "No primary key for #{module}"
+    end
   end
 
   defp maybe_preload(query, []), do: query

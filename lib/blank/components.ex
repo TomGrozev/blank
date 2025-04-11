@@ -428,12 +428,10 @@ defmodule Blank.Components do
     assigns = assign(assigns, form: Phoenix.Component.to_form(meta), meta: nil)
 
     ~H"""
-    <.form for={@form} id={@id} phx-target={@target} phx-change={@on_change} phx-submit={@on_change}>
+    <.form class="mt-4 mb-6 flex flex-wrap space-x-4" for={@form} id={@id} phx-target={@target} phx-change={@on_change} phx-submit={@on_change}>
       <Flop.Phoenix.filter_fields :let={i} form={@form} fields={@fields}>
-        <.input field={i.field} label={i.label} type={i.type} phx-debounce={120} {i.rest} />
+        <.input field={i.field} label={i.label} placeholder={i.label} type="search" phx-debounce={120} {i.rest} />
       </Flop.Phoenix.filter_fields>
-
-      <button class="button" name="reset">reset</button>
     </.form>
     """
   end
@@ -462,7 +460,7 @@ defmodule Blank.Components do
   )
 
   slot :col, required: true do
-    attr(:label, :string)
+    attr(:field_def, :map, required: true)
   end
 
   slot(:action, doc: "the slot for showing user actions in the last table column")
@@ -500,7 +498,8 @@ defmodule Blank.Components do
           :let={row}
           :for={{col, i} <- Enum.with_index(@col)}
           col_class="relative p-0 hover:cursor-pointer"
-          {col}
+          label={col.field_def.label}
+          field={col.field_def.filter_key}
         >
           <div class="block py-4 pr-6">
             <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-gray-800 sm:rounded-l-xl" />
@@ -748,6 +747,34 @@ defmodule Blank.Components do
     """
   end
 
+  def input(%{type: "search"} = assigns) do
+    ~H"""
+    <div class="relative flex-1 min-w-64 mt-2">
+      <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+        <.icon name="hero-magnifying-glass" class="w-5 h-5 text-gray-500 dark:text-gray-400"></.icon>
+      </div>
+      <input
+        type="text"
+        name={@name}
+        id={@id}
+        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+        class={[
+          "block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset sm:text-sm sm:leading-6 pl-10",
+          "dark:bg-white/5 focus:ring-2 focus:ring-inset",
+          @disabled &&
+            "disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-white/10 disabled:text-gray-500 dark:disabled:text-gray-100 disabled:ring-gray-200 dark:disabled:ring-white/5",
+          @errors == [] &&
+            "text-gray-900 dark:text-white ring-gray-300 dark:ring-white/10 focus:ring-indigo-600 dark:focus:ring-indigo-500 placeholder:text-gray-400",
+          @errors != [] && "text-red-900 ring-red-300 placeholder:text-red-300 focus:ring-red-500"
+        ]}
+        disabled={@disabled}
+        {@rest}
+      />
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </div>
+    """
+  end
+
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
@@ -836,6 +863,27 @@ defmodule Blank.Components do
         </div>
       </div>
     </.form>
+    """
+  end
+
+  @doc """
+  Renders the list display of a field
+  """
+  attr :definition, :list, required: true, doc: "the field definition"
+  attr :value, :any, required: true, doc: "the value of the field"
+  attr :id, :any, required: true, doc: "the id value"
+  attr :schema, :atom, doc: "the schema to use"
+
+  def field_list(assigns) do
+    ~H"""
+    <.live_component
+      id={"field_#{@definition.key}_#{@id}"}
+      module={@definition.module}
+      type={:list}
+      definition={@definition}
+      schema={@schema}
+      value={@value}
+    />
     """
   end
 

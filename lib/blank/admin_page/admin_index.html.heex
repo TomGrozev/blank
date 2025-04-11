@@ -24,15 +24,27 @@
   </:actions>
 </.header>
 
+<div class="flex justify-end mt-8">
+  <label for="search-mode" class="inline-flex items-center space-x-2 text-sm cursor-pointer dark:text-gray-200">
+    <span>Simple</span>
+    <span class="relative">
+      <input id="search-mode" type="checkbox" class="hidden peer" phx-click="toggle-search" checked={!Keyword.has_key?(@filter_fields, :search)}>
+      <div class="w-10 h-6 rounded-full shadow-inner dark:bg-gray-600 peer-checked:dark:bg-indigo-600"></div>
+      <div class="absolute inset-y-0 left-0 w-4 h-4 m-1 rounded-full shadow peer-checked:right-0 peer-checked:left-auto dark:bg-gray-100"></div>
+    </span>
+    <span>Advanced</span>
+  </label>
+</div>
 <.page_table
   id={"#{@name}-table"}
+  filter_fields={@filter_fields}
   rows={@streams.items}
   meta={@meta}
   path={@active_link.url}
   row_click={fn {_id, item} -> JS.navigate("#{@active_link.url}/#{item.id}") end}
 >
-  <:col :for={{field, field_def} <- @fields} :let={{_, item}} label={field_def.label}>
-    <.field_display id={Map.fetch!(item, @primary_key)} definition={field_def} value={Map.get(item, field)} schema={@schema} />
+  <:col :for={{field, field_def} <- @fields} :let={{_, item}} field_def={field_def}>
+    <.field_list id={Map.fetch!(item, @primary_key)} definition={field_def} value={Map.get(item, field)} schema={@schema} />
   </:col>
   <:action :let={{_id, item}}>
     <div class="sr-only">

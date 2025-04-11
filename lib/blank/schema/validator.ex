@@ -2,6 +2,10 @@ defmodule Blank.Schema.Validator do
   @moduledoc false
 
   @field_schema [
+    filter_key: [
+      type: :atom,
+      doc: "Key for filtering (auto generated)"
+    ],
     module: [
       type: :atom,
       doc: "The rendering module"
@@ -118,6 +122,7 @@ defmodule Blank.Schema.Validator do
     Blank.Fields.Boolean,
     Blank.Fields.DateTime,
     Blank.Fields.HasMany,
+    Blank.Fields.Location,
     Blank.Fields.Password,
     Blank.Fields.QRCode,
     Blank.Fields.Text
