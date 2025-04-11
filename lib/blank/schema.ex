@@ -316,14 +316,11 @@ defimpl Blank.Schema, for: Any do
         {nil, %Ecto.Association.Has{}} ->
           Blank.Fields.HasMany
 
-        {:boolean, nil} ->
-          Blank.Fields.Boolean
+        {{:array, _}, nil} ->
+          Blank.Fields.List
 
-        {:utc_datetime, nil} ->
-          Blank.Fields.DateTime
-
-        _ ->
-          Blank.Fields.Text
+        {type, _} ->
+          Blank.Field.module_for_type(type)
       end
 
     opts = Keyword.put_new(field_def, :module, module)

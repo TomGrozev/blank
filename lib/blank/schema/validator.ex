@@ -123,6 +123,7 @@ defmodule Blank.Schema.Validator do
     Blank.Fields.DateTime,
     Blank.Fields.HasMany,
     Blank.Fields.Location,
+    Blank.Fields.List,
     Blank.Fields.Password,
     Blank.Fields.QRCode,
     Blank.Fields.Text

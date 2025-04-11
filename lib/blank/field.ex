@@ -91,4 +91,9 @@ defmodule Blank.Field do
 
     struct(__MODULE__, attrs)
   end
+
+  @doc false
+  def module_for_type(:boolean), do: Blank.Fields.Boolean
+  def module_for_type(:utc_datetime), do: Blank.Fields.DateTime
+  def module_for_type(_), do: Blank.Fields.Text
 end
