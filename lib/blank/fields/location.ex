@@ -22,7 +22,7 @@ if Code.ensure_loaded?(Geo) do
 
     @impl Blank.Field
     def render_form(%{field: field} = assigns) do
-      {lon, lat, address} = get_lon_lat_addr(assigns.field.value) |> dbg()
+      {lon, lat, address} = get_lon_lat_addr(assigns.field.value)
 
       errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
 

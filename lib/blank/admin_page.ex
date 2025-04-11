@@ -289,8 +289,7 @@ defmodule Blank.AdminPage do
           get_field_definitions(struct(schema), admin_page.config(:edit_fields))
       end
 
-    search = !Map.has_key?(params, "filters") or 
-      Map.get(params, "filters", []) |> Enum.any?(fn {_, v} -> v["field"] == "search" end) |> dbg()
+    search = !Map.has_key?(params, "filters") or Map.get(params, "filters", []) |> Enum.any?(fn {_, v} -> v["field"] == "search" end)
     
     filter_fields = 
       if search do
