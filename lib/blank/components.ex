@@ -751,7 +751,7 @@ defmodule Blank.Components do
     ~H"""
     <div class="relative flex-1 min-w-64 mt-2">
       <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-        <.icon name="hero-magnifying-glass" class="w-5 h-5 text-gray-500 dark:text-gray-400"></.icon>
+        <.icon name="hero-magnifying-glass" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
       </div>
       <input
         type="text"

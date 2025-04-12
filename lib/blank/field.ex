@@ -36,6 +36,8 @@ defmodule Blank.Field do
   @callback render_list(assigns :: map()) :: %Phoenix.LiveView.Rendered{}
   @callback render_form(assigns :: map()) :: %Phoenix.LiveView.Rendered{}
 
+  @optional_callbacks render_list: 1
+
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts] do
       @schema opts[:schema] || []

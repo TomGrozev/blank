@@ -146,7 +146,7 @@ defmodule Blank.Context do
             on: field(i, ^owner_key) == field(a, ^related_key)
           )
 
-        %{key: field} ->
+        _ ->
           acc
       end
     end)

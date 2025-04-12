@@ -379,7 +379,7 @@ defmodule Blank.AdminPage do
     fields
     |> Stream.filter(fn {_, def} -> def.searchable end)
     |> Enum.map(fn
-      {name, %{filter_key: key, label: label}} ->
+      {_name, %{filter_key: key, label: label}} ->
         {key,
         [
           label: label,
