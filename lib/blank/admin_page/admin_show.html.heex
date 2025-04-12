@@ -9,6 +9,6 @@
 
 <.list>
   <:item :for={{field, field_def} <- @fields} title={field_def.label}>
-    <.field_display id={Map.get(@item, @primary_key)} definition={field_def} value={Map.get(@item, field)} schema={@schema} />
+    <.field_display id={Map.get(@item, @primary_key)} definition={field_def} value={Map.get(@item, field)} schema={@schema} time_zone={@time_zone} />
   </:item>
 </.list>

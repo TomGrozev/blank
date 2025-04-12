@@ -18,6 +18,7 @@ defmodule Blank.Fields.List do
           type={:display}
           definition={@definition}
           schema={@schema}
+          time_zone={@time_zone}
           value={val}
         />
       </div>

@@ -1,7 +1,6 @@
 <.header>
   {Phoenix.Naming.humanize(@plural_name)}
   <:actions>
-    <div class="space-x-4">
     <.link patch={"#{@active_link.url}/new"}>
       <.button>
         <.icon name="hero-plus" class="h-5 w-5 mr-2" />
@@ -20,7 +19,6 @@
         Export {@plural_name}
       </.button>
     </.link>
-    </div>
   </:actions>
 </.header>
 
@@ -29,8 +27,8 @@
     <span>Simple</span>
     <span class="relative">
       <input id="search-mode" type="checkbox" class="hidden peer" phx-click="toggle-search" checked={!Keyword.has_key?(@filter_fields, :search)}>
-      <div class="w-10 h-6 rounded-full shadow-inner dark:bg-gray-600 peer-checked:dark:bg-indigo-600"></div>
-      <div class="absolute inset-y-0 left-0 w-4 h-4 m-1 rounded-full shadow peer-checked:right-0 peer-checked:left-auto dark:bg-gray-100"></div>
+      <div class="w-10 h-6 rounded-full shadow-inner bg-gray-300 dark:bg-gray-600 peer-checked:bg-indigo-600"></div>
+      <div class="absolute inset-y-0 left-0 w-4 h-4 m-1 rounded-full shadow peer-checked:right-0 peer-checked:left-auto bg-gray-100"></div>
     </span>
     <span>Advanced</span>
   </label>
@@ -44,7 +42,7 @@
   row_click={fn {_id, item} -> JS.navigate("#{@active_link.url}/#{item.id}") end}
 >
   <:col :for={{field, field_def} <- @fields} :let={{_, item}} field_def={field_def}>
-    <.field_list id={Map.fetch!(item, @primary_key)} definition={field_def} value={Map.get(item, field)} schema={@schema} />
+    <.field_list id={Map.fetch!(item, @primary_key)} definition={field_def} value={Map.get(item, field)} schema={@schema} time_zone={@time_zone} />
   </:col>
   <:action :let={{_id, item}}>
     <div class="sr-only">

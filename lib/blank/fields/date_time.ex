@@ -3,9 +3,11 @@ defmodule Blank.Fields.DateTime do
 
   @impl Blank.Field
   def render_display(assigns) do
-    format = "%Y-%m-%d %I:%M %p UTC"
+    format = "%Y-%m-%d %I:%M %p %Z"
 
-    assigns = assign(assigns, :value, Calendar.strftime(assigns.value, format))
+    datetime = DateTime.shift_zone!(assigns.value, assigns.time_zone, Tz.TimeZoneDatabase)
+
+    assigns = assign(assigns, :value, Calendar.strftime(datetime, format))
 
     ~H"""
     <span>

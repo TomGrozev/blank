@@ -31,7 +31,8 @@ defmodule Blank.MixProject do
       {:nimble_options, "~> 1.1.0"},
       {:eqrcode, "~> 0.2.0"},
       {:csv, "~> 3.2"},
-      {:geo, "~> 3.6", optional: true}
+      {:geo, "~> 3.6", optional: true},
+      {:tz, "~> 0.28"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]

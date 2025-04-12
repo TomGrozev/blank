@@ -175,8 +175,21 @@ defmodule Blank.AdminPage do
     schema = admin_page.config(:schema)
     primary_key = Blank.Schema.primary_key(struct(schema))
 
+    time_zone =
+      with true <- connected?(socket),
+           true <- Application.get_env(:blank, :use_local_timezone, false),
+           %{"time_zone" => time_zone} <- get_connect_params(socket) do
+        time_zone
+      else
+        _ ->
+          "Etc/UTC"
+      end
+
+    dbg(get_connect_params(socket))
+
     {:ok,
      socket
+     |> assign(:time_zone, time_zone)
      |> assign(:admin_page, admin_page)
      |> assign(:key, admin_page.config(:key))
      |> assign(:name, admin_page.config(:name))
@@ -289,9 +302,11 @@ defmodule Blank.AdminPage do
           get_field_definitions(struct(schema), admin_page.config(:edit_fields))
       end
 
-    search = !Map.has_key?(params, "filters") or Map.get(params, "filters", []) |> Enum.any?(fn {_, v} -> v["field"] == "search" end)
-    
-    filter_fields = 
+    search =
+      !Map.has_key?(params, "filters") or
+        Map.get(params, "filters", []) |> Enum.any?(fn {_, v} -> v["field"] == "search" end)
+
+    filter_fields =
       if search do
         @search_field
       else
@@ -371,7 +386,7 @@ defmodule Blank.AdminPage do
       else
         @search_field
       end
-    
+
     {:noreply, assign(socket, :filter_fields, filter_fields)}
   end
 
@@ -381,17 +396,17 @@ defmodule Blank.AdminPage do
     |> Enum.map(fn
       {_name, %{filter_key: key, label: label}} ->
         {key,
-        [
-          label: label,
-          op: :ilike_and
-        ]}
+         [
+           label: label,
+           op: :ilike_and
+         ]}
 
       {name, %{label: label}} ->
         {name,
-        [
-          label: label,
-          op: :ilike_and
-        ]}
+         [
+           label: label,
+           op: :ilike_and
+         ]}
     end)
   end
 
