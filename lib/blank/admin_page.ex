@@ -185,8 +185,6 @@ defmodule Blank.AdminPage do
           "Etc/UTC"
       end
 
-    dbg(get_connect_params(socket))
-
     {:ok,
      socket
      |> assign(:time_zone, time_zone)

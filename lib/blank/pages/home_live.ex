@@ -64,7 +64,7 @@ defmodule Blank.Pages.HomeLive do
                     Past Logins
                   </h3>
                   <p :for={login <- past_logins || []} class="text-sm font-medium space-y-2">
-                    {format_datetime(login)}
+                    {format_datetime(login, @time_zone)}
                   </p>
                 </div>
               </div>
@@ -87,8 +87,10 @@ defmodule Blank.Pages.HomeLive do
     )
   end
 
-  defp format_datetime(dt) do
-    Calendar.strftime(dt, "%d %b %Y @ %I:%M:%S %p")
+  defp format_datetime(dt, time_zone) do
+    datetime = DateTime.shift_zone!(dt, time_zone, Tz.TimeZoneDatabase)
+
+    Calendar.strftime(datetime, "%d %b %Y @ %I:%M:%S %p %Z")
   end
 
   attr :large, :boolean, default: false
@@ -148,8 +150,19 @@ defmodule Blank.Pages.HomeLive do
         stream(socket, :presences, [])
       end
 
+    time_zone =
+      with true <- connected?(socket),
+           true <- Application.get_env(:blank, :use_local_timezone, false),
+           %{"time_zone" => time_zone} <- get_connect_params(socket) do
+        time_zone
+      else
+        _ ->
+          "Etc/UTC"
+      end
+
     {:ok,
      socket
+     |> assign(:time_zone, time_zone)
      |> assign(:repo, repo)
      |> assign(:view_all_presences, false)}
   end
