@@ -226,8 +226,8 @@ defmodule Blank.Components do
 
   def header(assigns) do
     ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
-      <div>
+    <header class={[@actions != [] && "flex flex-wrap items-center justify-between gap-6", @class]}>
+      <div class="w-full md:w-auto">
         <h1 class="text-2xl/7 font-bold text-gray-900 dark:text-white sm:truncate sm:text-3xl sm:tracking-tight">
           {render_slot(@inner_block)}
         </h1>
@@ -235,7 +235,7 @@ defmodule Blank.Components do
           {render_slot(@subtitle)}
         </p>
       </div>
-      <div class="flex-none">{render_slot(@actions)}</div>
+      <div class="flex-1 flex items-center justify-end space-x-4">{render_slot(@actions)}</div>
     </header>
     """
   end
@@ -262,7 +262,7 @@ defmodule Blank.Components do
       class={[
         "phx-submit-loading:opacity-75 rounded-md px-3 py-2 text-sm font-semibold shadow-sm",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
-        "disabled:bg-gray-500 text-white disabled:hover:bg-gray-500",
+        "disabled:bg-gray-500 disabled:text-white disabled:hover:bg-gray-500",
         button_colour(@secondary),
         @class
       ]}
@@ -473,7 +473,7 @@ defmodule Blank.Components do
       meta={@meta}
       id={"#{@id}-filter"}
     />
-    <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
+    <div class="px-4 sm:px-0">
       <Flop.Phoenix.table
         id={@id}
         items={@rows}
@@ -482,14 +482,14 @@ defmodule Blank.Components do
         row_click={@row_click}
         row_item={@row_item}
         opts={[
-          table_attrs: [class: "w-[40rem] mt-11 sm:w-full"],
-          thead_attrs: [class: "text-sm text-left leading-6 text-white"],
+          table_attrs: [class: "min-w-full mt-11 sm:w-full"],
+          thead_attrs: [class: "text-sm text-left leading-6 text-gray-900 dark:text-white"],
           thead_th_attrs: [class: "p-0 pr-6 pb-4 font-semibold"],
           tbody_attrs: [
             class:
-              "relative divide-y divide-gray-700 border-t border-gray-600 text-sm leading-6 text-gray-50"
+              "relative divide-y divide-gray-300 dark:divide-gray-700 border-t border-gray-300 dark:border-gray-600 text-sm leading-6 text-gray-50"
           ],
-          tbody_tr_attrs: [class: "group hover:bg-gray-800"],
+          tbody_tr_attrs: [class: "group hover:bg-gray-100 hover:dark:bg-gray-800"],
           tbody_td_attrs: [class: "relative p-0 hover:cursor-pointer"]
         ]}
         {@rest}
@@ -497,23 +497,24 @@ defmodule Blank.Components do
         <:col
           :let={row}
           :for={{col, i} <- Enum.with_index(@col)}
-          col_class="relative p-0 hover:cursor-pointer"
+          thead_th_attrs={[class: ["p-0 pr-6 pb-4 font-semibold", i > 0 && " hidden sm:table-cell"]]}
+          tbody_td_attrs={[class: ["relative p-0 hover:cursor-pointer", (if i > 0, do: "hidden sm:table-cell", else: "w-full sm:w-auto")]]}
           label={col.field_def.label}
           field={col.field_def.filter_key}
         >
           <div class="block py-4 pr-6">
-            <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-gray-800 sm:rounded-l-xl" />
-            <span class={["relative", i == 0 && "font-semibold text-gray-300"]}>
+            <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-gray-100 group-hover:dark:bg-gray-800 rounded-l-xl" />
+            <span class={["relative text-gray-900 dark:text-gray-300", i == 0 && " font-semibold"]}>
               {render_slot(col, row)}
             </span>
           </div>
         </:col>
         <:action :let={row} col_class="relative w-14 p-0">
           <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-            <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-gray-800 sm:rounded-r-xl" />
+            <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-gray-100 group-hover:dark:bg-gray-800 rounded-r-xl" />
             <span
               :for={action <- @action}
-              class="relative ml-4 font-semibold leading-6 text-gray-100 hover:text-gray-200"
+              class="relative ml-4 font-semibold leading-6 text-gray-900 dark:text-gray-100 hover:text-gray-700 hover:dark:text-gray-200"
             >
               {render_slot(action, row)}
             </span>
@@ -541,11 +542,11 @@ defmodule Blank.Components do
       />
       <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
-          <p class="text-sm text-gray-200">
+          <p class="text-sm text-gray-900 dark:text-gray-200">
             Showing
             <select
               name="limit"
-              class="mt-1 inline-block rounded-md border border-gray-700 bg-gray-800 shadow-sm shadow-gray-900 focus:border-gray-700 focus:ring-0 sm:text-sm"
+              class="mt-1 inline-block rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50/10 dark:bg-gray-800 shadow-sm shadow-gray-200 dark:shadow-gray-900 focus:border-gray-200 focus:dark:border-gray-700 focus:ring-0 sm:text-sm"
             >
               <option
                 :for={val <- [10, 20, 50, 75, 100]}
@@ -578,17 +579,17 @@ defmodule Blank.Components do
               wrapper_attrs: [class: "isolate inline-flex -space-x-px rounded-md shadow-sm"],
               current_link_attrs: [
                 class:
-                  "relative z-10 inline-flex items-center border border-indigo-500 bg-indigo-900/50 px-4 py-2 text-sm font-medium text-white focus:z-20",
+                  "relative z-10 inline-flex items-center border border-indigo-600 dark:border-indigo-500 bg-indigo-600 dark:bg-indigo-900/50 px-4 py-2 text-sm font-medium text-white focus:z-20",
                 aria: [current: "page"]
               ],
-              disabled_class: "!text-gray-400 select-none hover:bg-gray-800",
+              disabled_class: "!text-gray-400 select-none hover:bg-gray-700 hover:dark:bg-gray-800",
               next_link_attrs: [
                 class:
-                  "order-3 relative inline-flex items-center rounded-r-md border border-gray-700 bg-gray-800 px-2 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700 focus:z-20"
+                  "order-3 relative inline-flex items-center rounded-r-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-2 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
               ],
               previous_link_attrs: [
                 class:
-                  "order-1 relative inline-flex items-center rounded-l-md border border-gray-700 bg-gray-800 px-2 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700 focus:z-20"
+                  "order-1 relative inline-flex items-center rounded-l-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-2 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
               ],
               next_link_content:
                 {:safe,
@@ -599,11 +600,11 @@ defmodule Blank.Components do
               pagination_list_attrs: [class: "order-2 flex"],
               ellipsis_attrs: [
                 class:
-                  "relative inline-flex items-center border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700 focus:z-20"
+                  "relative inline-flex items-center border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
               ],
               pagination_link_attrs: [
                 class:
-                  "relative inline-flex items-center border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-200 hover:bg-gray-700 focus:z-20"
+                  "relative inline-flex items-center border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
               ]
             ]}
           />
@@ -873,6 +874,7 @@ defmodule Blank.Components do
   attr :value, :any, required: true, doc: "the value of the field"
   attr :id, :any, required: true, doc: "the id value"
   attr :schema, :atom, doc: "the schema to use"
+  attr :time_zone, :string, doc: "the timezone to use for datetime"
 
   def field_list(assigns) do
     ~H"""
@@ -883,6 +885,7 @@ defmodule Blank.Components do
       definition={@definition}
       schema={@schema}
       value={@value}
+      time_zone={@time_zone}
     />
     """
   end
@@ -894,6 +897,7 @@ defmodule Blank.Components do
   attr :value, :any, required: true, doc: "the value of the field"
   attr :id, :any, required: true, doc: "the id value"
   attr :schema, :atom, doc: "the schema to use"
+  attr :time_zone, :string, doc: "the timezone to use for datetime"
 
   def field_display(assigns) do
     ~H"""
@@ -904,6 +908,7 @@ defmodule Blank.Components do
       definition={@definition}
       schema={@schema}
       value={@value}
+      time_zone={@time_zone}
     />
     """
   end
@@ -919,6 +924,7 @@ defmodule Blank.Components do
 
   attr :repo, :atom, doc: "the repo used for querying"
   attr :schema, :atom, doc: "the schema to use"
+  attr :time_zone, :string, doc: "the timezone to use for datetime"
 
   def field_form(assigns) do
     ~H"""
@@ -926,7 +932,7 @@ defmodule Blank.Components do
       id={"field_#{@definition.key}_form"}
       module={@definition.module}
       type={:form}
-      {Map.take(assigns, [:definition, :field, :schema, :repo])}
+      {Map.take(assigns, [:definition, :field, :schema, :repo, :time_zone])}
     />
     """
   end

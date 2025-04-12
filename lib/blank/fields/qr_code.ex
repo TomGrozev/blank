@@ -34,8 +34,8 @@ defmodule Blank.Fields.QRCode do
   @impl Blank.Field
   def render_display(assigns) do
     ~H"""
-    <div>
-      <span>{@value}</span>
+    <div class="mt-4">
+      <span class="p-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white font-bold text-xl rounded-md">{@value}</span>
       <div>
         <div class="mt-4 rounded-lg overflow-hidden inline-block">
           {raw(@qr_code)}
