@@ -2,7 +2,10 @@ defmodule Blank.Utils.QRCode do
   @spec svg(String.t()) :: String.t()
   def svg(code, path \\ "/") do
     generate(code, path)
-    |> EQRCode.svg()
+    |> EQRCode.svg(
+      background_color: :transparent,
+      color: "currentColor"
+    )
   end
 
   @spec png(String.t()) :: String.t()

@@ -84,6 +84,7 @@ defmodule Blank.Router do
             live("/", Blank.Pages.HomeLive, :home)
             live("/profile", Blank.Pages.ProfileLive, :profile)
             get("/download", Blank.Controllers.ExportController, :download)
+            get("/qrcode", Blank.Controllers.ExportController, :qr_code)
             admin_page("/admins", Blank.Pages.AdminsLive)
             unquote(block)
           end

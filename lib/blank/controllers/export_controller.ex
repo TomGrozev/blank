@@ -10,4 +10,14 @@ defmodule Blank.Controllers.ExportController do
         send_resp(conn, 404, "404 - not found")
     end
   end
+
+  def qr_code(conn, %{"code" => code, "path" => path}) do
+    png = Blank.Utils.QRCode.png(code, path)
+
+    send_download(conn, {:binary, png}, filename: "#{code}.png")
+  end
+
+  def qr_code(conn, _params) do
+    send_resp(conn, 404, "404 - not found")
+  end
 end

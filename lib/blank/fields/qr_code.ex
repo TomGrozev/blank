@@ -12,10 +12,21 @@ defmodule Blank.Fields.QRCode do
   def update(%{value: value} = assigns, socket) do
     path = Map.get(assigns.definition, :path, "/")
 
+    qr_path =
+      socket.router.__blank_prefix__()
+      |> URI.parse()
+      |> URI.append_path("/qrcode")
+      |> URI.append_query(URI.encode_query(%{code: value, path: path}))
+      |> URI.to_string()
+
+    download_path =
+      Phoenix.VerifiedRoutes.unverified_path(socket, socket.router, qr_path)
+
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:qr_code, Blank.Utils.QRCode.svg(value, path))}
+     |> assign(:qr_code, Blank.Utils.QRCode.svg(value, path))
+     |> assign(:download_path, download_path)}
   end
 
   def update(assigns, socket) do
@@ -35,11 +46,17 @@ defmodule Blank.Fields.QRCode do
   def render_display(assigns) do
     ~H"""
     <div class="mt-4">
-      <span class="p-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white font-bold text-xl rounded-md">{@value}</span>
-      <div>
-        <div class="mt-4 rounded-lg overflow-hidden inline-block">
+      <div class="inline-flex flex-col items-center justify-center space-y-4 p-4 bg-gray-100 dark:bg-gray-800 shadow rounded-xl">
+        <div class="rounded-lg overflow-hidden inline-block bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
           {raw(@qr_code)}
         </div>
+        <span class="text-gray-900 dark:text-white font-bold text-xl">{@value}</span>
+        <.link href={@download_path} target="_blank">
+          <.button>
+            <.icon name="hero-arrow-down-tray" class="w-5 h-5" />
+            Download
+          </.button>
+        </.link>
       </div>
     </div>
     """
