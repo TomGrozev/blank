@@ -1,4 +1,4 @@
-<.flash_group flash={@flash} />
+<.flash_group phx-mount={Process.send_after(self(), :clear_flash, 5000)} flash={@flash} />
 <main>
   {@inner_content}
 </main>

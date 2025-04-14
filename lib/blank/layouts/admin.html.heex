@@ -1,4 +1,4 @@
-<.flash_group flash={@flash} />
+<.flash_group phx-mount={Process.send_after(self(), :clear_flash, 5000)} flash={@flash} />
 <div>
   <div id="sidebar-wrapper" class="hidden relative z-50 lg:hidden" role="dialog" aria-modal="true">
     <div id="sidebar-backdrop" class="hidden fixed inset-0 bg-gray-900/80" phx-click={hide_side_bar()}></div>

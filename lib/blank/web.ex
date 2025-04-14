@@ -27,6 +27,7 @@ defmodule Blank.Web do
         layout: {Blank.LayoutView, :admin}
 
       unquote(html_helpers())
+      unquote(flash_helpers())
     end
   end
 
@@ -35,6 +36,14 @@ defmodule Blank.Web do
       use Phoenix.LiveComponent
 
       unquote(html_helpers())
+    end
+  end
+
+  def flash_helpers do
+    quote do
+      def handle_info(:clear_flash, socket) do
+        {:noreply, clear_flash(socket)}
+      end
     end
   end
 

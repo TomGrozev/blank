@@ -139,6 +139,7 @@ defmodule Blank.Components do
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
   attr :id, :string, default: "flash-group", doc: "the optional id of flash container"
+  attr :rest, :global, doc: "the arbitrary HTML attributes to add to the flash group"
 
   def flash_group(assigns) do
     ~H"""
