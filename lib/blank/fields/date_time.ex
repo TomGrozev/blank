@@ -20,7 +20,7 @@ defmodule Blank.Fields.DateTime do
   def render_form(assigns) do
     ~H"""
     <div>
-      <.input field={@field} type="datetime-local" label={@definition.label} />
+      <.input field={@field} type="datetime-local" label={@definition.label} disabled={@definition.readonly} />
     </div>
     """
   end

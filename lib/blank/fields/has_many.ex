@@ -68,21 +68,23 @@ defmodule Blank.Fields.HasMany do
                 placeholder={child_def.placeholder}
               />
             </div>
-            <button
-              type="button"
-              class="flex items-center float-right clear-both relative mt-2"
-              name={"#{drop_name(@field.name)}[]"}
-              value={pf.index}
-              phx-click={JS.dispatch("change")}
-            >
-              <.icon name="hero-x-mark" class="w-6 h-6" /> Delete
-            </button>
+            <div class="flex justify-end">
+              <button
+                type="button"
+                class="flex items-center relative text-rose-500"
+                name={"#{drop_name(@field.name)}[]"}
+                value={pf.index}
+                phx-click={JS.dispatch("change")}
+              >
+                <.icon name="hero-x-mark" class="w-6 h-6" /> Delete
+              </button>
+            </div>
           </div>
         </.inputs_for>
         <input type="hidden" name={"#{drop_name(@field.name)}[]"} />
 
         <button
-          class="flex items-center mt-14"
+          class="flex items-center mt-4"
           type="button"
           name={"#{sort_name(@field.name)}[]"}
           value="new"
