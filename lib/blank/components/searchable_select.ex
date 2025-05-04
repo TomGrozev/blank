@@ -8,8 +8,8 @@ defmodule Blank.Components.SearchableSelect do
       <div class="relative">
         <.input
           type="text"
-          id={"#{@id}_#{@search_input_name}"}
-          name={@search_input_name}
+          id={"#{@id}_search_input"}
+          name={"#{@field.name}_search_input"}
           label={@definition.label}
           phx-target={@myself}
           phx-change="change"
@@ -22,7 +22,13 @@ defmodule Blank.Components.SearchableSelect do
           data-value={value_label(@selected)}
         />
         <input type="hidden" id={"#{@id}_input"} name={@field.name} value={value(@selected)} />
-        <input type="hidden" id={"#{@id}_id_input"} name={@id_field.name} value={id_value(@selected)} />
+        <input
+          :if={@id_field}
+          type="hidden"
+          id={"#{@id}_id_input"}
+          name={@id_field.name}
+          value={id_value(@selected)}
+        />
         <ul
           :if={not Enum.empty?(@options) and not @hide_dropdown}
           class={[
@@ -62,7 +68,7 @@ defmodule Blank.Components.SearchableSelect do
             phx-click="option_selected"
             phx-target={@myself}
             phx-value-option={idx}
-            onclick={"setTimeout(() => document.getElementById('#{@id}_id_input').dispatchEvent(new Event('input', {bubbles: true})), 100)"}
+            onclick={"setTimeout(() => document.getElementById('#{@id}#{if @id_field, do: "_id", else: ""}_input').dispatchEvent(new Event('input', {bubbles: true})), 100)"}
           >
             <span class={["block truncate", if(item in @selected, do: "font-semibold")]}>
               {item.label}
@@ -101,6 +107,7 @@ defmodule Blank.Components.SearchableSelect do
      socket
      |> assign(:selected, [])
      |> assign(:hide_dropdown, false)
+     |> assign(:id_field, nil)
      |> assign(:options, [])}
   end
 
@@ -113,17 +120,16 @@ defmodule Blank.Components.SearchableSelect do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:selected, selected_option(assigns.field, assigns.definition))
-     |> assign(:search_input_name, "#{assigns.field.name}_search_input")}
+     |> assign(:selected, selected_option(assigns.value, Map.get(assigns, :definition)))}
   end
 
-  defp selected_option(field, field_def) do
-    List.wrap(value_mapper(field.value, field_def))
+  defp selected_option(value, field_def) do
+    List.wrap(value_mapper(value, field_def))
   end
 
   @impl true
   def handle_event("change", params, socket) do
-    value = Map.fetch!(params, socket.assigns.search_input_name)
+    value = Map.fetch!(params, socket.assigns.field.name <> "_search_input")
 
     options = socket.assigns.search_fun.(value)
 
@@ -154,6 +160,8 @@ defmodule Blank.Components.SearchableSelect do
 
   @doc false
   def value_mapper(nil, _definition), do: nil
+
+  def value_mapper(item, nil), do: %{label: item, value: item}
 
   def value_mapper(item, definition) do
     label =
