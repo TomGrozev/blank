@@ -30,6 +30,7 @@ defmodule Blank.Exporters.CSV do
       end
     end)
     |> Stream.reject(&is_nil/1)
+    |> Stream.map(fn {k, v} -> {k, convert_string(v)} end)
     |> Map.new()
   end
 
@@ -38,6 +39,16 @@ defmodule Blank.Exporters.CSV do
   defp get_val(%{} = val, key), do: Map.get(val, key)
 
   defp get_val(val, _), do: val
+
+  defp convert_string(list) when is_list(list) do
+    Enum.map(list, &convert_string/1)
+  end
+
+  defp convert_string(%DateTime{} = date) do
+    DateTime.to_iso8601(date)
+  end
+
+  defp convert_string(other), do: other
 
   @impl true
   def save(stream, path) do
