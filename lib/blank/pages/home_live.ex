@@ -139,7 +139,7 @@ defmodule Blank.Pages.HomeLive do
     socket =
       if connected?(socket) do
         Blank.Presence.subscribe()
-        key = Application.get_env(:blank, :presence_history_field, :past_logins)
+        {_schema, key} = Application.get_env(:blank, :presence_history, :past_logins)
 
         users =
           Blank.Presence.list_online_users()
@@ -198,8 +198,8 @@ defmodule Blank.Pages.HomeLive do
 
   @impl true
   def handle_info({Blank.Presence, {:join, presence}}, socket) do
-    key = Application.get_env(:blank, :presence_history_field, :past_logins)
-    item = Context.get!(socket.assigns.repo, presence.schema, presence.id)
+    {schema, key} = Application.get_env(:blank, :presence_history, :past_logins)
+    item = Context.get!(socket.assigns.repo, schema, presence.id)
 
     presence = Map.put(presence, :past_logins, Map.get(item, key))
     {:noreply, stream_insert(socket, :presences, presence)}
