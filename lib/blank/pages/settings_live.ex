@@ -3,6 +3,7 @@ defmodule Blank.Pages.SettingsLive do
 
   alias Blank.Context
 
+  @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""
     <.header class="text-center">
@@ -37,6 +38,7 @@ defmodule Blank.Pages.SettingsLive do
     """
   end
 
+  @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     {:ok, socket}
   end
