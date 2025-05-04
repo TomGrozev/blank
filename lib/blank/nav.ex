@@ -14,6 +14,13 @@ defmodule Blank.Nav do
     ],
     bottom: [
       %{
+        text: "Settings",
+        icon: "hero-cog-6-tooth",
+        url: "/settings",
+        key: :settings,
+        module: Blank.Pages.SettingsLive
+      },
+      %{
         text: "Profile",
         icon: "hero-user",
         url: "/profile",

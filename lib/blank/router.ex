@@ -83,6 +83,7 @@ defmodule Blank.Router do
           live_session session_name, session_opts do
             live("/", Blank.Pages.HomeLive, :home)
             live("/profile", Blank.Pages.ProfileLive, :profile)
+            live("/settings", Blank.Pages.SettingsLive, :settings)
             get("/download", Blank.Controllers.ExportController, :download)
             get("/qrcode", Blank.Controllers.ExportController, :qr_code)
             admin_page("/admins", Blank.Pages.AdminsLive)

@@ -223,4 +223,10 @@ defmodule Blank.Context do
   def delete(repo, item) do
     repo.delete(item)
   end
+
+  def reset_presence_history(repo) do
+    {schema, key} = Application.get_env(:blank, :presence_history, :past_logins)
+
+    repo.update_all(schema, set: [{key, []}])
+  end
 end
