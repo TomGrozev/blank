@@ -9,15 +9,64 @@ if Code.ensure_loaded?(Geo) do
 
     use Blank.Field, schema: @schema
 
-    alias Blank.Components.SearchableSelect
+    alias Blank.Components.LocationSelect
+
+    @impl Blank.Field
+    def render_list(assigns) do
+      ~H"""
+      <div>
+        <span>{format_coordinates(@value)}</span>
+      </div>
+      """
+    end
 
     @impl Blank.Field
     def render_display(assigns) do
       ~H"""
       <div>
-        <span>{@value}</span>
+        <div :if={@value} class="flex flex-col space-y-4">
+          <div>
+            <span class="text-xl font-bold p-2 rounded-lg bg-gray-700">{format_coordinates(@value, false)}</span>
+          </div>
+          <span :if={Map.has_key?(@value.properties, "address")}><strong>Address: </strong>{address(@value)}</span>
+        </div>
       </div>
       """
+    end
+
+    defp address(%{properties: %{"address" => address}}), do: address
+    defp address(_), do: nil
+
+    defp format_coordinates(%{coordinates: {lon, lat}}, trunc \\ true) do
+      [
+        format_float(lat, trunc),
+        " ",
+        sign(:lat, lat),
+        ", ",
+        format_float(lon, trunc),
+        " ",
+        sign(:lon, lon)
+      ]
+      |> IO.iodata_to_binary()
+    end
+
+    defp sign(:lat, val) when val > 0, do: ?N
+    defp sign(:lat, _val), do: ?S
+    defp sign(:lon, val) when val > 0, do: ?E
+    defp sign(:lon, _val), do: ?W
+
+    defp format_float(float, trunc) do
+      val =
+        float
+        |> abs()
+        |> Decimal.from_float()
+
+      if trunc do
+        Decimal.round(val, 2)
+      else
+        val
+      end
+      |> Decimal.to_string()
     end
 
     @impl Blank.Field
@@ -35,29 +84,13 @@ if Code.ensure_loaded?(Geo) do
         <div :if={not is_nil(@definition.address_fun)} class="col-span-2">
           <.live_component
             id={"#{@field.id}_searchable_select"}
-            module={SearchableSelect}
+            module={LocationSelect}
             field={@field}
+            definition={@definition}
             label="Address"
             search_fun={&search(@definition.address_fun, &1)}
-            value_mapper={&value_mapper/1}
           />
         </div>
-        <input type="hidden" name={"#{@field.name}[type]"} value="Point" />
-        <input type="hidden" name={"#{@field.name}[properties][address]"} value={@address} />
-        <.input
-          name={"#{@field.name}[coordinates][]"}
-          type="text"
-          label="Longitude (DD)"
-          value={@lon}
-          disabled={@definition.readonly}
-        />
-        <.input
-          name={"#{@field.name}[coordinates][]"}
-          type="text"
-          label="Latitude (DD)"
-          value={@lat}
-          disabled={@definition.readonly}
-        />
         <.error :for={msg <- @errors}>{msg}</.error>
       </div>
       """
@@ -76,23 +109,9 @@ if Code.ensure_loaded?(Geo) do
 
     defp search(fun, query) do
       case fun.(query) do
-        {:ok, res} -> Enum.map(res, &value_mapper/1)
+        {:ok, res} -> res
         _ -> []
       end
-    end
-
-    defp value_mapper(%Geo.Point{properties: %{"address" => address}} = item) do
-      %{
-        label: address,
-        value: item
-      }
-    end
-
-    defp value_mapper(%{"properties" => %{"address" => address}} = item) do
-      %{
-        label: address,
-        value: item
-      }
     end
   end
 end
