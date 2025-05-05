@@ -108,7 +108,7 @@ defmodule Blank.Pages.HomeLive do
 
   defp relative_time(dt) do
     %{days: days, hours: hours, minutes: minutes, seconds: seconds} =
-      calc_diff(dt, DateTime.utc_now()) |> dbg()
+      calc_diff(dt, DateTime.utc_now())
 
     cond do
       days > 0 -> format_time(days, "day")
