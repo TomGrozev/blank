@@ -30,7 +30,7 @@ defmodule Blank.Fields.BelongsTo do
 
   def render_display(%{value: value, definition: definition} = assigns) do
     display_field = Map.get(definition, :display_field, :id)
-    assigns = assign(assigns, :value, Map.get(value, display_field))
+    assigns = assign(assigns, :value, Map.get(value || %{}, display_field))
 
     ~H"""
     <span>
