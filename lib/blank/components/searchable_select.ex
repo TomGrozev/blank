@@ -120,7 +120,7 @@ defmodule Blank.Components.SearchableSelect do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:selected, selected_option(assigns.value, Map.get(assigns, :definition)))}
+     |> assign(:selected, selected_option(assigns.field.value, Map.get(assigns, :definition)))}
   end
 
   defp selected_option(value, field_def) do

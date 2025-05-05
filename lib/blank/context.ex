@@ -128,11 +128,11 @@ defmodule Blank.Context do
     fields
     |> Stream.map(fn {field, def} -> {schema.__schema__(:association, field), def} end)
     |> Enum.reduce({[], []}, fn
-      {nil, %{key: key}}, {normal, assocs} ->
-        {[key | normal], assocs}
+      {nil, %{key: key}}, {selectable, assocs} ->
+        {[key | selectable], assocs}
 
-      def, {normal, assocs} ->
-        {normal, [def | assocs]}
+      {%{owner_key: owner_key}, _} = def, {selectable, assocs} ->
+        {[owner_key | selectable], [def | assocs]}
     end)
   end
 
