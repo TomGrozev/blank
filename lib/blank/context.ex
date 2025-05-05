@@ -95,11 +95,14 @@ defmodule Blank.Context do
   defp maybe_select(query, _), do: query
 
   defp list_query(schema, fields) do
-    assocs = get_associations(fields, schema)
+    {selectable, assocs} = get_associations(fields, schema)
+
+    selectable = [Blank.Schema.primary_key(struct(schema)) | selectable]
 
     from(item in schema, as: :item)
-    |> maybe_join(assocs)
+    # |> maybe_join(assocs)
     |> maybe_preload(assocs)
+    |> select(^selectable)
   end
 
   def get!(repo, schema, id) do
@@ -111,17 +114,26 @@ defmodule Blank.Context do
 
   def get!(repo, schema, id, fields) do
     primary_key = Blank.Schema.primary_key(struct(schema))
-    assocs = get_associations(fields, schema)
+    {selectable, assocs} = get_associations(fields, schema)
+
+    selectable = [primary_key | selectable]
 
     from(item in schema, where: field(item, ^primary_key) == ^id)
     |> maybe_preload(assocs)
+    |> select(^selectable)
     |> repo.one!()
   end
 
   defp get_associations(fields, schema) do
     fields
     |> Stream.map(fn {field, def} -> {schema.__schema__(:association, field), def} end)
-    |> Enum.reject(fn {assoc, _} -> is_nil(assoc) end)
+    |> Enum.reduce({[], []}, fn
+      {nil, %{key: key}}, {normal, assocs} ->
+        {[key | normal], assocs}
+
+      def, {normal, assocs} ->
+        {normal, [def | assocs]}
+    end)
   end
 
   defp maybe_join(query, []), do: query
@@ -139,7 +151,7 @@ defmodule Blank.Context do
 
           acc
           |> join(
-            :left_lateral,
+            :inner,
             [item: i],
             a in ^subquery(preload_query),
             as: ^field,
@@ -228,5 +240,37 @@ defmodule Blank.Context do
     {schema, key} = Application.get_env(:blank, :presence_history, :past_logins)
 
     repo.update_all(schema, set: [{key, []}])
+  end
+
+  def get_presence_history(repo, limit \\ 10) do
+    {schema, key} = Application.get_env(:blank, :presence_history, :past_logins)
+    struct = struct(schema)
+
+    identity_field = Blank.Schema.identity_field(struct)
+    primary_key = Blank.Schema.primary_key(struct(schema))
+
+    fields =
+      [identity_field, key]
+      |> Stream.uniq()
+      |> Enum.map(&{&1, Blank.Schema.get_field(struct, &1)})
+
+    query =
+      list_query(schema, fields)
+      |> exclude(:select)
+      |> select([i], {i, %{id: i.id, date: fragment("unnest(?) AS date", field(i, ^key))}})
+      |> order_by({:desc, fragment("date")})
+      |> limit(^limit)
+
+    query
+    |> repo.all()
+    |> Enum.map(fn {item, out} ->
+      names =
+        Map.fetch!(item, identity_field)
+        |> Enum.map_join(", ", & &1.full_name)
+
+      out
+      |> Map.put(:name, names)
+      |> Map.update!(:id, &"presence-history-#{&1}-#{:erlang.phash2(out.date)}")
+    end)
   end
 end
