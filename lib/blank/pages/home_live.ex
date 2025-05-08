@@ -108,7 +108,7 @@ defmodule Blank.Pages.HomeLive do
 
   defp relative_time(dt) do
     %{days: days, hours: hours, minutes: minutes, seconds: seconds} =
-      calc_diff(dt, DateTime.utc_now())
+      calc_diff(dt, NaiveDateTime.utc_now())
 
     cond do
       days > 0 -> format_time(days, "day")
@@ -188,9 +188,15 @@ defmodule Blank.Pages.HomeLive do
     history =
       (Context.get_presence_history(repo) ++
          Context.get_activity_history(repo))
+      |> Stream.map(fn i ->
+        Map.update!(i, :date, fn
+          %NaiveDateTime{} = dt -> dt
+          dt -> DateTime.to_naive(dt)
+        end)
+      end)
       |> Enum.sort_by(& &1.date, :desc)
 
-    presence_history_path = presence_path(socket, presence_schema) |> dbg()
+    presence_history_path = presence_path(socket, presence_schema)
 
     socket =
       if connected?(socket) do
