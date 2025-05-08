@@ -247,17 +247,24 @@ defmodule Blank.Context do
     struct = struct(schema)
 
     identity_field = Blank.Schema.identity_field(struct)
-    primary_key = Blank.Schema.primary_key(struct(schema))
 
     fields =
       [identity_field, key]
       |> Stream.uniq()
       |> Enum.map(&{&1, Blank.Schema.get_field(struct, &1)})
 
+    display_field =
+      fields
+      |> Keyword.fetch!(identity_field)
+      |> Map.fetch!(:display_field)
+
     query =
       list_query(schema, fields)
       |> exclude(:select)
-      |> select([i], {i, %{id: i.id, date: fragment("unnest(?) AS date", field(i, ^key))}})
+      |> select(
+        [i],
+        {i, %{id: i.id, date: fragment("unnest(?) AS date", field(i, ^key)), type: ^"logged in"}}
+      )
       |> order_by({:desc, fragment("date")})
       |> limit(^limit)
 
@@ -266,11 +273,50 @@ defmodule Blank.Context do
     |> Enum.map(fn {item, out} ->
       names =
         Map.fetch!(item, identity_field)
-        |> Enum.map_join(", ", & &1.full_name)
+        |> List.wrap()
+        |> Enum.map_join(", ", &display_field(&1, display_field))
 
-      out
-      |> Map.put(:name, names)
-      |> Map.update!(:id, &"presence-history-#{&1}-#{:erlang.phash2(out.date)}")
+      Map.put(out, :name, names)
+    end)
+  end
+
+  defp display_field(val, nil), do: val
+  defp display_field(val, display_field), do: Map.fetch!(val, display_field)
+
+  def get_activity_history(repo, limit \\ 10) do
+    schemas = Application.get_env(:blank, :activity_modules, [])
+
+    Enum.flat_map(schemas, fn schema ->
+      struct = struct(schema)
+
+      identity_field = Blank.Schema.identity_field(struct)
+
+      fields =
+        [identity_field]
+        |> Stream.uniq()
+        |> Enum.map(&{&1, Blank.Schema.get_field(struct, &1)})
+
+      display_field =
+        fields
+        |> Keyword.fetch!(identity_field)
+        |> Map.fetch!(:display_field)
+
+      type = "saved a #{Phoenix.Naming.resource_name(schema)}"
+
+      list_query(schema, fields)
+      |> exclude(:select)
+      |> select([i], {i, %{id: i.id, date: i.updated_at, type: ^type}})
+      |> order_by([i], desc: i.updated_at)
+      |> limit(^limit)
+      |> repo.all()
+      |> Enum.map(fn {item, out} ->
+        names =
+          Map.fetch!(item, identity_field)
+          |> List.wrap()
+          |> Enum.map_join(", ", &display_field(&1, display_field))
+
+        Map.put(out, :name, names)
+      end)
     end)
   end
 end

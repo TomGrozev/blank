@@ -23,7 +23,7 @@ defmodule Blank.Pages.HomeLive do
             <div class="relative flex h-6 w-6 flex-none items-center justify-center bg-white dark:bg-gray-800">
               <div class="h-1.5 w-1.5 rounded-full bg-gray-100 dark:bg-gray-400 ring-1 ring-gray-300 dark:ring-gray-600"></div>
             </div>
-            <p class="flex-auto py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400"><.link class="font-medium text-gray-900 dark:text-white">{history.name}</.link> logged in.</p>
+            <p class="flex-auto py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400"><.link navigate={Path.join(@presence_history_path, Integer.to_string(history.id))} class="font-medium text-gray-900 dark:text-white">{history.name}</.link> {history.type}.</p>
             <time datetime={history.date} class="flex-none py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400">{relative_time(history.date)}</time>
           </li>
         </ul>
@@ -32,7 +32,7 @@ defmodule Blank.Pages.HomeLive do
         <:title>Active Users</:title>
         <:description>Below is a list of active users on your site.</:description>
         <div class="flex flex-col justify-between h-full">
-          <ul id="online_users" role="list" class="divide-y divide-gray-100 flex-1" phx-update="stream">
+          <ul id="online_users" role="list" class="flex-1" phx-update="stream">
             <span class="hidden only:block text-sm text-center italic text-gray-400">There are no users online :(</span>
             <li
               :for={
@@ -50,9 +50,9 @@ defmodule Blank.Pages.HomeLive do
                 <div class="min-w-0 flex-auto">
                   <div class="flex items-center justify-between">
                     <div>
-                      <p class="text-sm font-semibold leading-6 text-gray-900 dark:text-white">
+                      <.link navigate={Path.join(@presence_history_path, Integer.to_string(id))} class="text-sm font-semibold leading-6 text-gray-900 dark:text-white">
                         {user}
-                      </p>
+                      </.link>
                       <p
                         :for={meta <- metas}
                         class="mt-1 truncate text-xs leading-5 text-gray-500
@@ -183,16 +183,22 @@ defmodule Blank.Pages.HomeLive do
   def mount(_params, _session, socket) do
     repo = Application.fetch_env!(:blank, :repo)
 
-    history = Context.get_presence_history(repo)
+    {presence_schema, presence_key} = Application.get_env(:blank, :presence_history, :past_logins)
+
+    history =
+      (Context.get_presence_history(repo) ++
+         Context.get_activity_history(repo))
+      |> Enum.sort_by(& &1.date, :desc)
+
+    presence_history_path = presence_path(socket, presence_schema) |> dbg()
 
     socket =
       if connected?(socket) do
         Blank.Presence.subscribe()
-        {_schema, key} = Application.get_env(:blank, :presence_history, :past_logins)
 
         users =
           Blank.Presence.list_online_users()
-          |> apply_past_logins(repo, key)
+          |> apply_past_logins(repo, presence_key)
 
         stream(socket, :presences, users)
       else
@@ -214,7 +220,22 @@ defmodule Blank.Pages.HomeLive do
      |> assign(:time_zone, time_zone)
      |> assign(:repo, repo)
      |> assign(:view_all_presences, false)
+     |> assign(:presence_history_path, presence_history_path)
+     |> stream_configure(:presence_history,
+       dom_id: &"presence-history-#{&1.id}-#{:erlang.phash2(&1.date)}"
+     )
      |> stream(:presence_history, history)}
+  end
+
+  defp presence_path(socket, presence_schema) do
+    with {_path, module} <-
+           Enum.find(
+             socket.router.__blank_modules__(),
+             &(elem(&1, 1).config(:schema) == presence_schema)
+           ),
+         %{url: url} <- Enum.find(socket.assigns.main_links, &(&1.module == module)) do
+      url
+    end
   end
 
   defp apply_past_logins(users, repo, key) do
