@@ -14,17 +14,36 @@ defmodule Blank.Pages.HomeLive do
     <div class="grid grid-rows-2 xl:grid-cols-6 gap-4 mt-4">
       <.bento_box edge="tl" large>
         <:title>Past Activity</:title>
-        <:description>This is the past acitivity on the site using the presence history.</:description>
+        <:description>
+          This is the past acitivity on the site using the presence history.
+        </:description>
         <ul id="presence-history" role="list" class="space-y-6" phx-update="stream">
-          <li :for={{dom_id, history} <- @streams.presence_history} id={dom_id} class="relative flex gap-x-4 group">
+          <li
+            :for={{dom_id, history} <- @streams.presence_history}
+            id={dom_id}
+            class="relative flex gap-x-4 group"
+          >
             <div class="absolute group-last:hidden left-0 top-0 flex w-6 justify-center -bottom-6">
               <div class="w-px bg-gray-200 dark:bg-gray-500"></div>
             </div>
             <div class="relative flex h-6 w-6 flex-none items-center justify-center bg-white dark:bg-gray-800">
-              <div class="h-1.5 w-1.5 rounded-full bg-gray-100 dark:bg-gray-400 ring-1 ring-gray-300 dark:ring-gray-600"></div>
+              <div class="h-1.5 w-1.5 rounded-full bg-gray-100 dark:bg-gray-400 ring-1 ring-gray-300 dark:ring-gray-600">
+              </div>
             </div>
-            <p class="flex-auto py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400"><.link navigate={Path.join(@presence_history_path, Integer.to_string(history.id))} class="font-medium text-gray-900 dark:text-white">{history.name}</.link> {history.type}.</p>
-            <time datetime={history.date} class="flex-none py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400">{relative_time(history.date)}</time>
+            <p class="flex-auto py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400">
+              <.link
+                navigate={Path.join(@presence_history_path, Integer.to_string(history.id))}
+                class="font-medium text-gray-900 dark:text-white"
+              >
+                {history.name}
+              </.link> {history.type}.
+            </p>
+            <time
+              datetime={history.date}
+              class="flex-none py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400"
+            >
+              {relative_time(history.date)}
+            </time>
           </li>
         </ul>
       </.bento_box>
@@ -33,7 +52,9 @@ defmodule Blank.Pages.HomeLive do
         <:description>Below is a list of active users on your site.</:description>
         <div class="flex flex-col justify-between h-full">
           <ul id="online_users" role="list" class="flex-1" phx-update="stream">
-            <span class="hidden only:block text-sm text-center italic text-gray-400">There are no users online :(</span>
+            <span class="hidden only:block text-sm text-center italic text-gray-400">
+              There are no users online :(
+            </span>
             <li
               :for={
                 {dom_id, %{id: id, past_logins: past_logins, user: user, metas: metas}} <-
@@ -50,7 +71,10 @@ defmodule Blank.Pages.HomeLive do
                 <div class="min-w-0 flex-auto">
                   <div class="flex items-center justify-between">
                     <div>
-                      <.link navigate={Path.join(@presence_history_path, Integer.to_string(id))} class="text-sm font-semibold leading-6 text-gray-900 dark:text-white">
+                      <.link
+                        navigate={Path.join(@presence_history_path, Integer.to_string(id))}
+                        class="text-sm font-semibold leading-6 text-gray-900 dark:text-white"
+                      >
                         {user}
                       </.link>
                       <p

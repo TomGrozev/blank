@@ -53,8 +53,7 @@ defmodule Blank.Fields.QRCode do
         <span class="text-gray-900 dark:text-white font-bold text-xl">{@value}</span>
         <.link href={@download_path} target="_blank">
           <.button>
-            <.icon name="hero-arrow-down-tray" class="w-5 h-5" />
-            Download
+            <.icon name="hero-arrow-down-tray" class="w-5 h-5" /> Download
           </.button>
         </.link>
       </div>

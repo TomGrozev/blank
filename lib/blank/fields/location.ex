@@ -26,9 +26,13 @@ if Code.ensure_loaded?(Geo) do
       <div>
         <div :if={@value} class="flex flex-col space-y-4">
           <div>
-            <span class="text-xl font-bold p-2 rounded-lg bg-gray-700">{format_coordinates(@value, false)}</span>
+            <span class="text-xl font-bold p-2 rounded-lg bg-gray-700">
+              {format_coordinates(@value, false)}
+            </span>
           </div>
-          <span :if={Map.has_key?(@value.properties, "address")}><strong>Address: </strong>{address(@value)}</span>
+          <span :if={Map.has_key?(@value.properties, "address")}>
+            <strong>Address: </strong>{address(@value)}
+          </span>
         </div>
       </div>
       """

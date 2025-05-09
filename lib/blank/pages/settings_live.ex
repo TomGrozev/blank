@@ -18,17 +18,20 @@ defmodule Blank.Pages.SettingsLive do
             Danger Zone
           </h2>
           <p class="mt-1 text-sm text-gray-500">
-            Be careful, actions in this area <strong class="underline uppercase">will</strong> 
+            Be careful, actions in this area <strong class="underline uppercase">will</strong>
             cause destructive actions!
           </p>
         </div>
         <div class="px-4 py-5 sm:p-6">
           <div>
             <h4 class="text-lg font-medium text-gray-900 dark:text-white">Reset presence history</h4>
-            <p class="mt-1 mb-4 text-sm text-gray-500">This will reset the presence history of ALL users.</p>
+            <p class="mt-1 mb-4 text-sm text-gray-500">
+              This will reset the presence history of ALL users.
+            </p>
             <.button
               phx-click="reset-presence-history"
-              data-confirm="Are you sure you want to reset ALL presence history?">
+              data-confirm="Are you sure you want to reset ALL presence history?"
+            >
               Reset all
             </.button>
           </div>

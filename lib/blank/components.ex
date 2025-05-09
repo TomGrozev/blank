@@ -429,9 +429,23 @@ defmodule Blank.Components do
     assigns = assign(assigns, form: Phoenix.Component.to_form(meta), meta: nil)
 
     ~H"""
-    <.form class="mt-4 mb-6 flex flex-wrap space-x-4" for={@form} id={@id} phx-target={@target} phx-change={@on_change} phx-submit={@on_change}>
+    <.form
+      class="mt-4 mb-6 flex flex-wrap space-x-4"
+      for={@form}
+      id={@id}
+      phx-target={@target}
+      phx-change={@on_change}
+      phx-submit={@on_change}
+    >
       <Flop.Phoenix.filter_fields :let={i} form={@form} fields={@fields}>
-        <.input field={i.field} label={i.label} placeholder={i.label} type="search" phx-debounce={120} {i.rest} />
+        <.input
+          field={i.field}
+          label={i.label}
+          placeholder={i.label}
+          type="search"
+          phx-debounce={120}
+          {i.rest}
+        />
       </Flop.Phoenix.filter_fields>
     </.form>
     """
@@ -499,7 +513,12 @@ defmodule Blank.Components do
           :let={row}
           :for={{col, i} <- Enum.with_index(@col)}
           thead_th_attrs={[class: ["p-0 pr-6 pb-4 font-semibold", i > 0 && " hidden sm:table-cell"]]}
-          tbody_td_attrs={[class: ["relative p-0 hover:cursor-pointer", (if i > 0, do: "hidden sm:table-cell", else: "w-full sm:w-auto")]]}
+          tbody_td_attrs={[
+            class: [
+              "relative p-0 hover:cursor-pointer",
+              if(i > 0, do: "hidden sm:table-cell", else: "w-full sm:w-auto")
+            ]
+          ]}
           label={col.field_def.label}
           field={col.field_def.filter_key}
         >

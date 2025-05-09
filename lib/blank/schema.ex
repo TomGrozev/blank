@@ -218,7 +218,7 @@ defimpl Blank.Schema, for: Any do
   defp get_filterable_fields([]), do: {[], [], []}
 
   defp get_filterable_fields(fields) do
-    {searchable, sortable, join_opts} = 
+    {searchable, sortable, join_opts} =
       Enum.reduce(fields, {[], [], []}, fn {name, value}, {acc_search, acc_sort, j_opts} ->
         searchable = Keyword.get(value, :searchable, false)
         sortable = Keyword.get(value, :sortable, false)
@@ -232,8 +232,8 @@ defimpl Blank.Schema, for: Any do
             j_opts
           )
 
-        {maybe_add(acc_search, searchable, search_name), maybe_add(acc_sort, sortable, search_name),
-        j_opts}
+        {maybe_add(acc_search, searchable, search_name),
+         maybe_add(acc_sort, sortable, search_name), j_opts}
       end)
 
     adapter_opts = [
