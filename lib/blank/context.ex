@@ -125,11 +125,17 @@ defmodule Blank.Context do
   end
 
   defp get_associations(fields, schema) do
+    virtual = schema.__schema__(:virtual_fields)
+
     fields
     |> Stream.map(fn {field, def} -> {schema.__schema__(:association, field), def} end)
     |> Enum.reduce({[], []}, fn
       {nil, %{key: key}}, {selectable, assocs} ->
-        {[key | selectable], assocs}
+        if key in virtual do
+          {selectable, assocs}
+        else
+          {[key | selectable], assocs}
+        end
 
       {%{owner_key: owner_key}, _} = def, {selectable, assocs} ->
         {[owner_key | selectable], [def | assocs]}
