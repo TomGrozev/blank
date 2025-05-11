@@ -258,7 +258,12 @@ defmodule Blank.Components.ImportComponent do
 
       total = length(rows)
 
-      case Context.create_multiple(socket.assigns.repo, socket.assigns.schema, rows) do
+      case Context.create_multiple(
+             socket.assigns.repo,
+             socket.assigns.audit_context,
+             socket.assigns.schema,
+             rows
+           ) do
         count when count == total ->
           {:noreply,
            socket

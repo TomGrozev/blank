@@ -14,6 +14,13 @@ defmodule Blank.Nav do
     ],
     bottom: [
       %{
+        text: "Audit Logs",
+        icon: "hero-table-cells",
+        url: "/audit",
+        key: :audit,
+        module: Blank.Pages.AuditLogLive
+      },
+      %{
         text: "Settings",
         icon: "hero-cog-6-tooth",
         url: "/settings",
@@ -86,7 +93,8 @@ defmodule Blank.Nav do
       icon: module.config(:icon),
       url: route_path(socket, prefix, path),
       key: module.config(:key),
-      module: module
+      module: module,
+      schema: module.config(:schema)
     }
   end
 end

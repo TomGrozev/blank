@@ -34,7 +34,7 @@ defmodule Blank.Components.LocationSelect do
                 to: "##{@id}_options",
                 transition:
                   {"transition ease-out duration-100", "transform opacity-0 scale-95",
-                   "transform opacity-100 scale-100"}
+                  "transform opacity-100 scale-100"}
               )
             }
             id={"#{@id}_options"}
@@ -45,7 +45,7 @@ defmodule Blank.Components.LocationSelect do
                 to: "##{@id}_options",
                 transition:
                   {"transition ease-in duration-75", "transform opacity-100 scale-100",
-                   "transform opacity-0 scale-95"}
+                  "transform opacity-0 scale-95"}
               )
             }
           >
@@ -94,28 +94,9 @@ defmodule Blank.Components.LocationSelect do
     <%= for sel <- @selected do %>
       <% {address, lon, lat} = value(sel) %>
       <input type="hidden" name={"#{@name}[type]"} value="Point" />
-      <input
-        id={"#{@name}_address"}
-        type="hidden"
-        name={"#{@name}[properties][address]"}
-        value={address}
-      />
-      <.input
-        type="text"
-        name={"#{@name}[coordinates][]"}
-        label="Longitude (DD)"
-        onchange={"document.getElementById('#{@name}_address').value = ''; document.getElementById('#{@id}_search_input').value=''; document.getElementById('#{@id}_search_input').dataset.value=''"}
-        value={lon}
-        readonly={@readonly}
-      />
-      <.input
-        type="text"
-        name={"#{@name}[coordinates][]"}
-        label="Latitude (DD)"
-        onchange={"document.getElementById('#{@name}_address').value = ''; document.getElementById('#{@id}_search_input').value=''; document.getElementById('#{@id}_search_input').dataset.value=''"}
-        value={lat}
-        readonly={@readonly}
-      />
+      <input id={"#{@name}_address"} type="hidden" name={"#{@name}[properties][address]"} value={address} />
+      <.input type="text" name={"#{@name}[coordinates][]"} label="Longitude (DD)" onchange={"document.getElementById('#{@name}_address').value = ''; document.getElementById('#{@id}_search_input').value=''; document.getElementById('#{@id}_search_input').dataset.value=''"} value={lon} readonly={@readonly} />
+      <.input type="text" name={"#{@name}[coordinates][]"} label="Latitude (DD)" onchange={"document.getElementById('#{@name}_address').value = ''; document.getElementById('#{@id}_search_input').value=''; document.getElementById('#{@id}_search_input').dataset.value=''"} value={lat} readonly={@readonly} />
     <% end %>
     """
   end

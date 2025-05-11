@@ -1,6 +1,8 @@
 defmodule Blank.Context do
   import Ecto.Query
 
+  alias Blank.Audit
+
   def paginate_schema(repo, schema, params, fields) do
     try do
       list_query(schema, fields)
@@ -94,14 +96,15 @@ defmodule Blank.Context do
 
   defp maybe_select(query, _), do: query
 
-  defp list_query(schema, fields) do
+  def list_query(schema, fields) do
     {selectable, assocs} = get_associations(fields, schema)
 
-    selectable = [Blank.Schema.primary_key(struct(schema)) | selectable]
+    selectable = Enum.uniq([Blank.Schema.primary_key(struct(schema)) | selectable])
 
     from(item in schema, as: :item)
-    # |> maybe_join(assocs)
+    |> maybe_join(assocs)
     |> maybe_preload(assocs)
+    |> distinct(true)
     |> select(^selectable)
   end
 
@@ -114,13 +117,9 @@ defmodule Blank.Context do
 
   def get!(repo, schema, id, fields) do
     primary_key = Blank.Schema.primary_key(struct(schema))
-    {selectable, assocs} = get_associations(fields, schema)
 
-    selectable = [primary_key | selectable]
-
-    from(item in schema, where: field(item, ^primary_key) == ^id)
-    |> maybe_preload(assocs)
-    |> select(^selectable)
+    list_query(schema, fields)
+    |> where([i], field(i, ^primary_key) == ^id)
     |> repo.one!()
   end
 
@@ -153,11 +152,13 @@ defmodule Blank.Context do
         %{key: field, select: select, display_field: display_field} when not is_nil(select) ->
           preload_query =
             from(queryable)
-            |> select_merge(^%{display_field => select})
+            |> select(
+              ^%{display_field => select, related_key => dynamic([i], field(i, ^related_key))}
+            )
 
           acc
           |> join(
-            :inner,
+            :left_lateral,
             [item: i],
             a in ^subquery(preload_query),
             as: ^field,
@@ -212,117 +213,75 @@ defmodule Blank.Context do
     |> changeset_function.(attrs)
   end
 
-  def update(repo, item, params) do
-    change(item, :edit, params)
-    |> repo.update()
+  def update(repo, audit_context, item, params) do
+    changeset = change(item, :edit, params)
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(:item, changeset)
+    |> Audit.multi(audit_context, action(item, :update), fn audit_context, %{item: item} ->
+      %{audit_context | params: %{item_id: item.id}}
+    end)
+    |> repo.transaction()
+    |> case do
+      {:ok, %{item: item}} -> {:ok, item}
+      {:error, :item, changeset, _} -> {:error, changeset}
+    end
   end
 
-  def create(repo, item, params) do
-    change(item, :new, params)
-    |> repo.insert()
+  def create(repo, audit_context, item, params) do
+    changeset = change(item, :new, params)
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:item, changeset)
+    |> Audit.multi(audit_context, action(item, :create), fn audit_context, %{item: item} ->
+      %{audit_context | params: %{item_id: item.id}}
+    end)
+    |> repo.transaction()
+    |> case do
+      {:ok, %{item: item}} -> {:ok, item}
+      {:error, :item, changeset, _} -> {:error, changeset}
+    end
   end
 
-  def create_multiple(repo, schema, params) do
+  def create_multiple(repo, audit_context, schema, params) do
     item = struct(schema)
 
-    Enum.reduce(params, 0, fn param, acc ->
-      change(item, :new, param)
-      |> repo.insert()
-      |> case do
-        {:ok, _} ->
-          acc + 1
-
-        _ ->
-          acc
-      end
+    params
+    |> Stream.with_index()
+    |> Enum.reduce(Ecto.Multi.new(), fn {param, idx}, acc ->
+      Ecto.Multi.insert(acc, "item-#{idx}", change(item, :new, param))
     end)
-  end
+    |> Audit.multi(audit_context, action(item, :create_multiple), fn audit_context, results ->
+      ids = Enum.map(Map.values(results), & &1.id)
 
-  def delete(repo, item) do
-    repo.delete(item)
-  end
-
-  def reset_presence_history(repo) do
-    {schema, key} = Application.get_env(:blank, :presence_history, :past_logins)
-
-    repo.update_all(schema, set: [{key, []}])
-  end
-
-  def get_presence_history(repo, limit \\ 10) do
-    {schema, key} = Application.get_env(:blank, :presence_history, :past_logins)
-    struct = struct(schema)
-
-    identity_field = Blank.Schema.identity_field(struct)
-
-    fields =
-      [identity_field, key]
-      |> Stream.uniq()
-      |> Enum.map(&{&1, Blank.Schema.get_field(struct, &1)})
-
-    display_field =
-      fields
-      |> Keyword.fetch!(identity_field)
-      |> Map.fetch!(:display_field)
-
-    query =
-      list_query(schema, fields)
-      |> exclude(:select)
-      |> select(
-        [i],
-        {i, %{id: i.id, date: fragment("unnest(?) AS date", field(i, ^key)), type: ^"logged in"}}
-      )
-      |> order_by({:desc, fragment("date")})
-      |> limit(^limit)
-
-    query
-    |> repo.all()
-    |> Enum.map(fn {item, out} ->
-      names =
-        Map.fetch!(item, identity_field)
-        |> List.wrap()
-        |> Enum.map_join(", ", &display_field(&1, display_field))
-
-      Map.put(out, :name, names)
+      %{audit_context | params: %{item_ids: ids}}
     end)
+    |> repo.transaction()
+    |> case do
+      {:ok, results} -> {:ok, Enum.count(results) - 1}
+      {:error, _, changeset, _} -> {:error, changeset}
+    end
+  end
+
+  def delete(repo, audit_context, item) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete(:item, item)
+    |> Audit.multi(audit_context, action(item, :delete), fn audit_context, %{item: item} ->
+      %{audit_context | params: %{item_id: item.id}}
+    end)
+    |> repo.transaction()
+    |> case do
+      {:ok, %{item: item}} -> {:ok, item}
+      {:error, :item, changeset, _} -> {:error, changeset}
+    end
   end
 
   defp display_field(val, nil), do: val
   defp display_field(val, display_field), do: Map.fetch!(val, display_field)
 
-  def get_activity_history(repo, limit \\ 10) do
-    schemas = Application.get_env(:blank, :activity_modules, [])
+  defp action(item, action) when is_struct(item) do
+    schema = item.__struct__
 
-    Enum.flat_map(schemas, fn schema ->
-      struct = struct(schema)
-
-      identity_field = Blank.Schema.identity_field(struct)
-
-      fields =
-        [identity_field]
-        |> Stream.uniq()
-        |> Enum.map(&{&1, Blank.Schema.get_field(struct, &1)})
-
-      display_field =
-        fields
-        |> Keyword.fetch!(identity_field)
-        |> Map.fetch!(:display_field)
-
-      type = "saved a #{Phoenix.Naming.resource_name(schema)}"
-
-      list_query(schema, fields)
-      |> exclude(:select)
-      |> select([i], {i, %{id: i.id, date: i.updated_at, type: ^type}})
-      |> order_by([i], desc: i.updated_at)
-      |> limit(^limit)
-      |> repo.all()
-      |> Enum.map(fn {item, out} ->
-        names =
-          Map.fetch!(item, identity_field)
-          |> List.wrap()
-          |> Enum.map_join(", ", &display_field(&1, display_field))
-
-        Map.put(out, :name, names)
-      end)
-    end)
+    Phoenix.Naming.resource_name(schema) <> "." <> to_string(action)
   end
 end

@@ -48,6 +48,7 @@ defmodule Blank.Router do
       quote do
         import Phoenix.LiveView.Router
         import Blank.Auth
+        import Blank.Plugs.AuditContext
 
         {session_name, session_opts} =
           Blank.Router.__options__(unquote(opts))
@@ -62,6 +63,7 @@ defmodule Blank.Router do
           plug :protect_from_forgery
           plug :put_secure_browser_headers
           plug :fetch_current_admin
+          plug :fetch_audit_context
         end
 
         scope path, alias: false, as: false do
@@ -70,7 +72,10 @@ defmodule Blank.Router do
           live_session :blank_redirect_if_admin_is_authenticated,
             root_layout: {Blank.LayoutView, :root},
             layout: {Blank.LayoutView, :basic},
-            on_mount: [{Blank.Auth, :redirect_if_admin_is_authenticated}] do
+            on_mount: [
+              {Blank.Auth, :redirect_if_admin_is_authenticated},
+              {Blank.Plugs.AuditContext, :load_context}
+            ] do
             live("/log_in", Blank.Pages.LoginLive, :new)
           end
 
@@ -84,6 +89,7 @@ defmodule Blank.Router do
             live("/", Blank.Pages.HomeLive, :home)
             live("/profile", Blank.Pages.ProfileLive, :profile)
             live("/settings", Blank.Pages.SettingsLive, :settings)
+            live("/audit", Blank.Pages.AuditLogLive, :audit)
             get("/download", Blank.Controllers.ExportController, :download)
             get("/qrcode", Blank.Controllers.ExportController, :qr_code)
             admin_page("/admins", Blank.Pages.AdminsLive)
@@ -117,7 +123,11 @@ defmodule Blank.Router do
   @doc false
   def __options__(options) do
     on_mount =
-      Enum.concat(options[:on_mount] || [], [Blank.Nav, {Blank.Auth, :ensure_authenticated}])
+      Enum.concat(options[:on_mount] || [], [
+        Blank.Nav,
+        {Blank.Auth, :ensure_authenticated},
+        {Blank.Plugs.AuditContext, :load_context}
+      ])
 
     {
       options[:live_session_name] || :blank_admin_panel,

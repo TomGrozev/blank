@@ -358,7 +358,7 @@ defmodule Blank.AdminPage do
 
   def handle_event("delete", %{"id" => id}, socket) do
     item = Context.get!(socket.assigns.repo, socket.assigns.schema, id)
-    {:ok, _} = Context.delete(socket.assigns.repo, item)
+    {:ok, _} = Context.delete(socket.assigns.repo, socket.assigns.audit_context, item)
 
     {:noreply, stream_delete(socket, :items, item)}
   end
@@ -409,7 +409,12 @@ defmodule Blank.AdminPage do
   end
 
   defp save_item(socket, :edit, params) do
-    case Context.update(socket.assigns.repo, socket.assigns.item, params) do
+    case Context.update(
+           socket.assigns.repo,
+           socket.assigns.audit_context,
+           socket.assigns.item,
+           params
+         ) do
       {:ok, _item} ->
         {:noreply,
          socket
@@ -425,7 +430,12 @@ defmodule Blank.AdminPage do
   end
 
   defp save_item(socket, :new, params) do
-    case Context.create(socket.assigns.repo, socket.assigns.item, params) do
+    case Context.create(
+           socket.assigns.repo,
+           socket.assigns.audit_context,
+           socket.assigns.item,
+           params
+         ) do
       {:ok, _item} ->
         {:noreply,
          socket

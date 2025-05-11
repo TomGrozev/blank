@@ -24,6 +24,8 @@ defmodule Blank.Auth do
   if you are not using LiveView.
   """
   def log_in(conn, admin, params \\ %{}) do
+    audit_context = %{conn.assigns.audit_context | admin: admin}
+    Blank.Audit.log!(audit_context, "accounts.login", %{email: admin.email, type: "admin"})
     token = Accounts.generate_admin_session_token(admin)
     return_to = get_session(conn, :return_to)
 

@@ -24,13 +24,15 @@ defmodule Blank.Pages.SettingsLive do
         </div>
         <div class="px-4 py-5 sm:p-6">
           <div>
-            <h4 class="text-lg font-medium text-gray-900 dark:text-white">Reset presence history</h4>
+            <h4 class="text-lg font-medium text-gray-900 dark:text-white">Reset ALL logs</h4>
             <p class="mt-1 mb-4 text-sm text-gray-500">
-              This will reset the presence history of ALL users.
+              This will delete ALL audit logs. This will be locked down more in
+              the future. Note that a new audit log will be created for this
+              action to record who deleted the logs.
             </p>
             <.button
-              phx-click="reset-presence-history"
-              data-confirm="Are you sure you want to reset ALL presence history?"
+              phx-click="reset-audit-logs"
+              data-confirm="Are you sure you want to reset ALL audit logs?"
             >
               Reset all
             </.button>
@@ -47,11 +49,9 @@ defmodule Blank.Pages.SettingsLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_event("reset-presence-history", _params, socket) do
-    {count, _} = Context.reset_presence_history(repo())
+  def handle_event("reset-audit-logs", _params, socket) do
+    {count, _} = Blank.Audit.delete_all(socket.assigns.audit_context)
 
-    {:noreply, put_flash(socket, :info, "Presence history has been reset for #{count} records.")}
+    {:noreply, put_flash(socket, :info, "Deleted #{count} audit logs.")}
   end
-
-  defp repo, do: Application.fetch_env!(:blank, :repo)
 end
