@@ -3,7 +3,6 @@ defmodule Blank.Pages.HomeLive do
 
   use Blank.Web, :live_view
 
-  alias Blank.Context
   alias Blank.Components.AuditLogComponent
 
   @impl true
@@ -114,40 +113,6 @@ defmodule Blank.Pages.HomeLive do
     Calendar.strftime(datetime, "%d %b %Y @ %I:%M:%S %p %Z")
   end
 
-  defp relative_time(dt) do
-    %{days: days, hours: hours, minutes: minutes, seconds: seconds} =
-      calc_diff(dt, NaiveDateTime.utc_now())
-
-    cond do
-      days > 0 -> format_time(days, "day")
-      hours > 0 -> format_time(hours, "hour")
-      minutes > 0 -> format_time(minutes, "minute")
-      seconds > 0 -> format_time(seconds, "second")
-      true -> "just now"
-    end
-  end
-
-  defp format_time(num, type) do
-    "#{num} #{plural(num, type)} ago"
-  end
-
-  defp plural(n, type) when n > 1, do: type <> "s"
-  defp plural(_n, type), do: type
-
-  defp calc_diff(first, last) do
-    diff_days = last.day - first.day
-    diff_hours = last.hour - first.hour
-    diff_minutes = last.minute - first.minute
-    diff_seconds = last.second - first.second
-
-    %{
-      days: abs(diff_days),
-      hours: abs(diff_hours),
-      minutes: abs(diff_minutes),
-      seconds: abs(diff_seconds)
-    }
-  end
-
   attr :large, :boolean, default: false
   attr :edge, :string, default: nil
   slot :inner_block, required: true
@@ -191,8 +156,6 @@ defmodule Blank.Pages.HomeLive do
   def mount(_params, _session, socket) do
     repo = Application.fetch_env!(:blank, :repo)
 
-    presence_schema = Application.get_env(:blank, :user_module, Blank.Accounts.Admin)
-
     schema_links = Map.new(socket.assigns.main_links, &{Map.get(&1, :schema), &1.url})
 
     socket =
@@ -224,12 +187,6 @@ defmodule Blank.Pages.HomeLive do
      |> assign(:repo, repo)
      |> assign(:schema_links, schema_links)
      |> assign(:view_all_presences, false)}
-  end
-
-  defp presence_path(socket, presence_schema) do
-    if link = Enum.find(socket.assigns.main_links, &(&1.schema == presence_schema)) do
-      link.url
-    end
   end
 
   defp apply_past_logins(user) do

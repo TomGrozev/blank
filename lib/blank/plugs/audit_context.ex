@@ -32,8 +32,6 @@ defmodule Blank.Plugs.AuditContext do
   end
 
   defp get_audit_context(%Phoenix.LiveView.Socket{} = socket) do
-    ip = get_ip(socket)
-
     %AuditLog{
       user_agent: Phoenix.LiveView.get_connect_info(socket, :user_agent),
       ip_address: get_ip(socket),

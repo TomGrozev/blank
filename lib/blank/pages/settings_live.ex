@@ -1,8 +1,6 @@
 defmodule Blank.Pages.SettingsLive do
   use Blank.Web, :live_view
 
-  alias Blank.Context
-
   @impl Phoenix.LiveView
   def render(assigns) do
     ~H"""

@@ -276,9 +276,6 @@ defmodule Blank.Context do
     end
   end
 
-  defp display_field(val, nil), do: val
-  defp display_field(val, display_field), do: Map.fetch!(val, display_field)
-
   defp action(item, action) when is_struct(item) do
     schema = item.__struct__
 
