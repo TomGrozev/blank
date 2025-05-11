@@ -22,6 +22,13 @@
   </:actions>
 </.header>
 
+  <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+    <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow bg-white dark:bg-gray-800 dark:ring-1 dark:ring-inset dark:ring-white/15 sm:p-6">
+      <dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total {Phoenix.Naming.humanize(@plural_name)}</dt>
+      <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">{@meta.total_count}</dd>
+    </div>
+  </dl>
+
 <div class="flex justify-end mt-8">
   <label for="search-mode" class="inline-flex items-center space-x-2 text-sm cursor-pointer dark:text-gray-200">
     <span>Simple</span>
