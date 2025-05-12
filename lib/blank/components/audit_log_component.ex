@@ -17,18 +17,24 @@ defmodule Blank.Components.AuditLogComponent do
                   <.icon class="h-5 w-5" name={Blank.Audit.Display.icon(log)} />
                 </span>
               </div>
-              <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                <div>
+              <details class="flex flex-col min-w-0 flex-1 pt-1.5">
+                <summary class="flex flex-col lg:flex-row justify-between lg:space-x-4">
                   <p class="text-sm text-gray-500 dark:text-gray-400">{Blank.Audit.Display.text(log, @path_prefix, @schema_links)}</p>
-                  <div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">User Agent: {log.user_agent}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">IP: {format_ip(log.ip_address)}</p>
+                  <div class="whitespace-nowrap text-left lg:text-right text-sm italic lg:not-italic text-gray-500 dark:text-gray-400">
+                    <time datetime={log.inserted_at}>{format_datetime(log.inserted_at, @time_zone)}</time>
                   </div>
-                </div>
-                <div class="whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400">
-                  <time datetime={log.inserted_at}>{format_datetime(log.inserted_at, @time_zone)}</time>
-                </div>
-              </div>
+                </summary>
+                <table class="mt-2">
+                  <tr>
+                    <td class="text-gray-900 dark:text-gray-200 font-medium whitespace-nowrap pr-4">User Agent:</td>
+                    <td class="text-sm text-gray-500 dark:text-gray-400">{log.user_agent}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-gray-900 dark:text-gray-200 font-medium whitespace-nowrap pr-4">IP:</td>
+                    <td class="text-sm text-gray-500 dark:text-gray-400">{format_ip(log.ip_address)}</td>
+                  </tr>
+                </table>
+              </details>
             </div>
           </div>
         </li>

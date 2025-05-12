@@ -12,9 +12,9 @@ defmodule Blank.Pages.HomeLive do
       Dashboard
     </.header>
 
-    <div class="grid grid-rows-2 xl:grid-cols-6 gap-4 mt-4">
+    <div class="flex flex-col-reverse xl:grid xl:grid-rows-2 xl:grid-cols-6 gap-4 mt-4">
       <.bento_box edge="tl" large>
-        <:title>Past Activity</:title>
+        <:title>Past Activity (last 10)</:title>
         <:description>
           This is the past acitivity on the site using the presence history.
         </:description>
@@ -31,7 +31,7 @@ defmodule Blank.Pages.HomeLive do
         <:title>Active Users</:title>
         <:description>Below is a list of active users on your site.</:description>
         <div class="flex flex-col justify-between h-full">
-          <ul id="online_users" role="list" class="flex-1" phx-update="stream">
+          <ul id="online-users" role="list" class="flex-1" phx-update="stream">
             <span class="hidden only:block text-sm text-center italic text-gray-400 pb-6">
               There are no users online :(
             </span>
