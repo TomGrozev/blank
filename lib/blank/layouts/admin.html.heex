@@ -35,13 +35,16 @@
                 </ul>
               </li>
               <li class="mt-auto">
-                <a
-                  href="#"
-                  class="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                  <.icon name="hero-cog-6-tooth" class="h-6 w-6 shrink-0" />
-                  Settings
-                </a>
+                <ul role="list" class="-mx-2 space-y-1">
+                  <li :for={link <- @bottom_links}>
+                    <.link
+                      navigate={link.url}
+                      class={["flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold", (if link.key == @active_link.key, do: "bg-gray-50 text-indigo-600 dark:bg-gray-800 dark:text-white", else: "text-gray-700 hover:text-indigo-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800")]}
+                    >
+                      <.icon name={link.icon} class="w-6 h-6" /> {link.text}
+                    </.link>
+                  </li>
+                </ul>
               </li>
             </ul>
           </nav>
