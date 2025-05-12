@@ -635,6 +635,22 @@ defmodule Blank.Components do
   end
 
   @doc """
+  Loading spinner
+  """
+  attr :name, :string, required: true
+
+  def loader(assigns) do
+    ~H"""
+    <div class="flex items-center justify-center w-full h-full min-h-96">
+      <div class="flex flex-col items-center">
+        <.icon name="hero-arrow-path" class="h-10 w-10 animate-spin" />
+        <span class="text-sm italic">Loading {Phoenix.Naming.humanize(@name)}...</span>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
   Renders an input with label and error messages.
 
   A `Phoenix.HTML.FormField` may be passed as argument,

@@ -46,6 +46,7 @@ defmodule Blank.AdminPage do
     ]
   ]
 
+  alias Phoenix.LiveView.AsyncResult
   alias Blank.Context
   use Blank.Web, :live_view
 
@@ -92,6 +93,10 @@ defmodule Blank.AdminPage do
 
       @impl Phoenix.LiveView
       def handle_params(params, url, socket), do: AdminPage.handle_params(params, url, socket)
+
+      @impl Phoenix.LiveView
+      def handle_async(name, async_fun_result, socket),
+        do: AdminPage.handle_async(name, async_fun_result, socket)
 
       @impl Phoenix.LiveView
       def handle_event(event, params, socket), do: AdminPage.handle_event(event, params, socket)
@@ -311,24 +316,41 @@ defmodule Blank.AdminPage do
         advanced_search(fields)
       end
 
-    case Context.paginate_schema(repo, schema, params, fields) do
-      {:ok, {items, meta}} ->
-        socket
-        |> assign(:meta, meta)
-        |> assign(:item, nil)
-        |> assign(:fields, fields)
-        |> assign(:filter_fields, filter_fields)
-        |> assign(:modal_fields, modal_fields)
-        |> stream(:items, items, reset: true)
-
-      {:error, _meta} ->
-        push_navigate(socket, to: socket.assigns.active_link.url)
-    end
+    socket
+    |> assign(:item, nil)
+    |> assign(:fields, fields)
+    |> assign(:filter_fields, filter_fields)
+    |> assign(:modal_fields, modal_fields)
+    |> assign(:items, AsyncResult.loading())
+    |> start_async(:items, fn -> Context.paginate_schema(repo, schema, params, fields) end)
   end
 
   defp get_field_definitions(struct, fields) do
     Stream.map(fields, &{&1, Blank.Schema.get_field(struct, &1)})
     |> Enum.filter(&Map.get(elem(&1, 1), :viewable, true))
+  end
+
+  @impl Phoenix.LiveView
+  def handle_async(:items, {:ok, {:ok, {items, meta}}}, socket) do
+    {:noreply,
+     socket
+     |> assign(:items, AsyncResult.ok(:items))
+     |> assign(:meta, meta)
+     |> stream(:items, items, reset: true)}
+  end
+
+  def handle_async(:items, {:ok, {:error, _meta}}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(:error, "Failed to get items")
+     |> push_navigate(to: socket.assigns.active_link.url)}
+  end
+
+  def handle_async(:items, {:exit, _reason}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(:error, "Failed to get items")
+     |> push_navigate(to: socket.assigns.active_link.url)}
   end
 
   @impl Phoenix.LiveView
