@@ -99,12 +99,14 @@ defmodule Blank.Context do
   def list_query(schema, fields) do
     {selectable, assocs} = get_associations(fields, schema)
 
-    selectable = Enum.uniq([Blank.Schema.primary_key(struct(schema)) | selectable])
+    primary_key = Blank.Schema.primary_key(struct(schema))
+    selectable = Enum.uniq([primary_key | selectable])
 
     from(item in schema, as: :item)
     |> maybe_join(assocs)
     |> maybe_preload(assocs)
     |> distinct(true)
+    |> order_by(^primary_key)
     |> select(^selectable)
   end
 
