@@ -29,13 +29,13 @@ defmodule Blank.Audit.Display do
   end
 
   def text(
-        %{action: "*.create_multiple", params: %{"item_id" => item_id}} = log,
+        %{action: "*.create_multiple", params: %{"item_ids" => item_ids}} = log,
         prefix,
         schema_links,
         type
       ) do
     identified_text(
-      "created multiple #{Phoenix.Naming.humanize(type)} (IDs: #{Enum.join(item_id, ", ")})",
+      "created multiple #{Phoenix.Naming.humanize(type)} (IDs: #{Enum.join(item_ids, ", ")})",
       log,
       prefix,
       schema_links
@@ -50,6 +50,20 @@ defmodule Blank.Audit.Display do
       ) do
     identified_text(
       "updated a #{Phoenix.Naming.humanize(type)} (ID: #{item_id})",
+      log,
+      prefix,
+      schema_links
+    )
+  end
+
+  def text(
+        %{action: "*.update_multiple", params: %{"item_ids" => item_ids}} = log,
+        prefix,
+        schema_links,
+        type
+      ) do
+    identified_text(
+      "updated multiple #{Phoenix.Naming.humanize(type)} (IDs: #{Enum.join(item_ids, ", ")})",
       log,
       prefix,
       schema_links
@@ -141,6 +155,7 @@ defmodule Blank.Audit.Display do
   def icon(%{action: "*.create"}), do: "hero-plus"
   def icon(%{action: "*.create_multiple"}), do: "hero-plus"
   def icon(%{action: "*.update"}), do: "hero-pencil"
+  def icon(%{action: "*.update_multiple"}), do: "hero-pencil"
   def icon(%{action: "*.delete"}), do: "hero-trash"
   def icon(%{action: "*.delete_all"}), do: "hero-trash"
   def icon(%{action: "*." <> _}), do: "hero-information-circle-solid"
@@ -159,6 +174,7 @@ defmodule Blank.Audit.Display do
   def colour(%{action: "*.create"}), do: "bg-blue-400"
   def colour(%{action: "*.create_multiple"}), do: "bg-blue-400"
   def colour(%{action: "*.update"}), do: "bg-sky-400"
+  def colour(%{action: "*.update_multiple"}), do: "bg-sky-400"
   def colour(%{action: "*.delete"}), do: "bg-rose-400"
   def colour(%{action: "*.delete_all"}), do: "bg-rose-400"
   def colour(%{action: "*." <> _}), do: "bg-gray-400"

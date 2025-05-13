@@ -23,6 +23,7 @@ defmodule Blank.Audit.AuditLog do
     "*.create" => ~w(item_id),
     "*.create_multiple" => ~w(item_ids),
     "*.update" => ~w(item_id),
+    "*.update_multiple" => ~w(item_ids),
     "*.delete" => ~w(item_id),
     "*.delete_all" => ~w()
   }
