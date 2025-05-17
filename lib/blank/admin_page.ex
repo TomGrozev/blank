@@ -3,6 +3,8 @@ defmodule Blank.AdminPage do
   This represents an administable resource.
   """
 
+  import Ecto.Query, only: [from: 2, subquery: 1, count: 1]
+
   @callback config(key :: atom()) :: any()
   @callback repo() :: atom()
   @callback stat_query(key :: atom(), query :: Ecto.Query.t()) :: Ecto.Query.t()
@@ -411,13 +413,7 @@ defmodule Blank.AdminPage do
       module.stat_query(:total, query)
     rescue
       _e ->
-        fun = fn
-          %{meta: %{total_count: count}} -> {:ok, count}
-          %{meta: nil} -> :loading
-          _ -> :error
-        end
-
-        {:value, fun}
+        {:query, from(i in subquery(query), select: count(i))}
     end
   end
 
