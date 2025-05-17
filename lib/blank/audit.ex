@@ -3,6 +3,8 @@ defmodule Blank.Audit do
 
   alias Blank.Audit.AuditLog
 
+  @pubsub_topic "audit:logs"
+
   @doc """
   Lists all audits
   """
@@ -87,6 +89,9 @@ defmodule Blank.Audit do
   def log!(audit_context, action, params) do
     AuditLog.build!(audit_context, action, params)
     |> repo().insert!()
+    |> tap(fn log ->
+      Phoenix.PubSub.broadcast(Blank.PubSub, @pubsub_topic, {:audit_log, log})
+    end)
   end
 
   @doc """
@@ -95,13 +100,21 @@ defmodule Blank.Audit do
   def multi(multi, audit_context, action, fun) when is_function(fun, 2) do
     Ecto.Multi.run(multi, :audit, fn repo, results ->
       audit_log = AuditLog.build!(fun.(audit_context, results), action, %{})
+
       {:ok, repo.insert!(audit_log)}
+      |> tap(fn {:ok, log} ->
+        Phoenix.PubSub.broadcast(Blank.PubSub, @pubsub_topic, {:audit_log, log})
+      end)
     end)
   end
 
   def multi(multi, audit_context, action, params) do
-    Ecto.Multi.insert(multi, :audit, fn _ ->
+    multi
+    |> Ecto.Multi.insert(:audit, fn _ ->
       AuditLog.build!(audit_context, action, params)
+    end)
+    |> Ecto.Multi.run(:broadcast, fn _repo, %{audit: log} ->
+      Phoenix.PubSub.broadcast(Blank.PubSub, @pubsub_topic, {:audit_log, log})
     end)
   end
 

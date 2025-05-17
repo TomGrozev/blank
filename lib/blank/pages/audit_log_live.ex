@@ -37,4 +37,10 @@ defmodule Blank.Pages.AuditLogLive do
 
     {:ok, assign(socket, :time_zone, time_zone)}
   end
+
+  @impl true
+  def handle_info({:audit_log, log}, socket) do
+    send_update(AuditLogComponent, id: "audit-log-component", log: log)
+    {:noreply, socket}
+  end
 end

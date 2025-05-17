@@ -93,7 +93,7 @@ defmodule Blank.Audit.Display do
     identified_text("deleted all #{Phoenix.Naming.humanize(type)}", log, prefix, schema_links)
   end
 
-  def text(%{action: "*." <> sub_action = full_action}, _, _, type) do
+  def text(%{action: "*." <> sub_action = full_action} = a, _, _, type) do
     action =
       if is_nil(type) do
         full_action
@@ -108,6 +108,9 @@ defmodule Blank.Audit.Display do
     {star_action, type} = star(action)
 
     log
+    |> Map.update!(:params, fn params ->
+      Map.new(params, fn {k, v} -> {to_string(k), v} end)
+    end)
     |> Map.put(:action, star_action)
     |> text(prefix, schema_links, type)
   end

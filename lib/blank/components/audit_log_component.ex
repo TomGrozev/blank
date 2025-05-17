@@ -44,6 +44,10 @@ defmodule Blank.Components.AuditLogComponent do
   end
 
   @impl true
+  def update(%{log: log} = assigns, socket) do
+    {:ok, stream_insert(socket, :logs, log, at: 0)}
+  end
+
   def update(assigns, socket) do
     logs =
       Audit.list_all(limit: Map.get(assigns, :limit, 50))
@@ -52,6 +56,10 @@ defmodule Blank.Components.AuditLogComponent do
       Map.get_lazy(assigns, :schema_links, fn ->
         Map.new(assigns.main_links, &{Map.get(&1, :schema), &1.url})
       end)
+
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(Blank.PubSub, "audit:logs")
+    end
 
     {:ok,
      socket

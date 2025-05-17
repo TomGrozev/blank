@@ -214,4 +214,9 @@ defmodule Blank.Pages.HomeLive do
       {:noreply, stream_insert(socket, :presences, presence)}
     end
   end
+
+  def handle_info({:audit_log, log}, socket) do
+    send_update(AuditLogComponent, id: "audit-log-component", log: log)
+    {:noreply, socket}
+  end
 end
