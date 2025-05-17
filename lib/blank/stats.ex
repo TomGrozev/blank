@@ -3,8 +3,6 @@ defmodule Blank.Stats do
   Stats behaviour
   """
 
-  alias Blank.Stats
-
   @callback render(assigns :: map()) :: %Phoenix.LiveView.Rendered{}
   @callback query(
               multi :: Ecto.Multi.t(),

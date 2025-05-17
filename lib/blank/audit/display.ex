@@ -93,7 +93,7 @@ defmodule Blank.Audit.Display do
     identified_text("deleted all #{Phoenix.Naming.humanize(type)}", log, prefix, schema_links)
   end
 
-  def text(%{action: "*." <> sub_action = full_action} = a, _, _, type) do
+  def text(%{action: "*." <> sub_action = full_action}, _, _, type) do
     action =
       if is_nil(type) do
         full_action
@@ -130,6 +130,8 @@ defmodule Blank.Audit.Display do
     end
   end
 
+  defp identity(%{admin: nil, user: nil, user_agent: "SYSTEM"}), do: {"SYSTEM", "system", nil}
+
   defp identity(%{admin: admin, user: nil}, prefix, _schema_links) when not is_nil(admin) do
     username = Blank.Schema.name(admin)
 
@@ -147,8 +149,6 @@ defmodule Blank.Audit.Display do
 
     {username, "user", path}
   end
-
-  defp identity(%{admin: nil, user: nil, user_agent: "SYSTEM"}), do: {"SYSTEM", "system", nil}
 
   @doc """
   Returns the icon name for a log type

@@ -44,7 +44,7 @@ defmodule Blank.Components.AuditLogComponent do
   end
 
   @impl true
-  def update(%{log: log} = assigns, socket) do
+  def update(%{log: log}, socket) do
     {:ok, stream_insert(socket, :logs, log, at: 0)}
   end
 

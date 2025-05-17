@@ -3,11 +3,13 @@ defmodule Blank.AdminPage do
   This represents an administable resource.
   """
 
-  import Ecto.Query, only: [from: 2, subquery: 1, count: 1]
+  import Ecto.Query, only: [from: 2, subquery: 1]
 
   @callback config(key :: atom()) :: any()
   @callback repo() :: atom()
   @callback stat_query(key :: atom(), query :: Ecto.Query.t()) :: Ecto.Query.t()
+
+  @optional_callbacks stat_query: 2
 
   @schema [
     schema: [
@@ -92,8 +94,6 @@ defmodule Blank.AdminPage do
   use Blank.Web, :live_view
 
   embed_templates("admin_page/*")
-
-  @callback repo() :: atom()
 
   defmacro __using__(opts) do
     opts =
@@ -396,7 +396,7 @@ defmodule Blank.AdminPage do
         {key, stat, {:query, _}} = val, {q, v} ->
           {[val | q], Map.put(v, key, Map.put(stat, :value, AsyncResult.loading()))}
 
-        {key, stat, {:value, fun}} = val, {q, v} ->
+        {key, stat, {:value, fun}}, {q, v} ->
           value = stat_value(fun, socket.assigns)
           new_stat = Map.merge(stat, %{value: value, value_fun: fun})
 
@@ -441,7 +441,7 @@ defmodule Blank.AdminPage do
   end
 
   defp stat_module(mod) do
-    if function_exported?(mod, :render, 1) do
+    if Code.ensure_loaded?(mod) and function_exported?(mod, :render, 1) do
       mod
     else
       raise ArgumentError, """
