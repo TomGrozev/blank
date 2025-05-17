@@ -56,6 +56,14 @@ defmodule Blank.Web do
     end
   end
 
+  def stat do
+    quote do
+      use Phoenix.Component
+
+      unquote(html_helpers())
+    end
+  end
+
   defp html_helpers do
     quote do
       use Gettext, backend: Blank.Gettext

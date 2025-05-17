@@ -974,6 +974,36 @@ defmodule Blank.Components do
   end
 
   @doc """
+  Renders a stat
+  """
+
+  attr :stat, :map, required: true
+  attr :module, :atom, required: true
+
+  def stat_component(%{stat: stat, module: module}) do
+    %{name: name, value: value, display: display_module, formatter: formatter} =
+      stat
+
+    value =
+      if value.ok? do
+        Map.update!(value, :result, &format_val(&1, module, formatter))
+      else
+        value
+      end
+
+    Phoenix.LiveView.TagEngine.component(
+      Function.capture(display_module, :render, 1),
+      [value: value, name: name],
+      {__ENV__.module, __ENV__.function, __ENV__.file, __ENV__.line}
+    )
+  end
+
+  defp format_val(value, _module, nil), do: value
+
+  defp format_val(value, module, formatter) when is_function(formatter, 2),
+    do: formatter.(module, value)
+
+  @doc """
   Translates an error message using gettext.
   """
   def translate_error({msg, opts}) do

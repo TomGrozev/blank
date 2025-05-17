@@ -22,10 +22,9 @@
   </:actions>
 </.header>
 
-<dl :if={@meta} class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-  <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow bg-white dark:bg-gray-800 dark:ring-1 dark:ring-inset dark:ring-white/15 sm:p-6">
-    <dt class="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total {Phoenix.Naming.humanize(@plural_name)}</dt>
-    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">{@meta.total_count}</dd>
+<dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+  <div :for={{_, stat} <- @stats} class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow bg-white dark:bg-gray-800 dark:ring-1 dark:ring-inset dark:ring-white/15 sm:p-6">
+    <.stat_component stat={stat} module={@admin_page} />
   </div>
 </dl>
 

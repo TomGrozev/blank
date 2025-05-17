@@ -5,6 +5,7 @@ defmodule Blank.AdminPage do
 
   @callback config(key :: atom()) :: any()
   @callback repo() :: atom()
+  @callback stat_query(key :: atom(), query :: Ecto.Query.t()) :: Ecto.Query.t()
 
   @schema [
     schema: [
@@ -43,6 +44,44 @@ defmodule Blank.AdminPage do
     edit_fields: [
       type: {:list, :atom},
       doc: "list of fields to show on the edit/new page"
+    ],
+    stats: [
+      type: :non_empty_keyword_list,
+      keys: [
+        *: [
+          type: :non_empty_keyword_list,
+          keys: [
+            name: [
+              type: {:or, [:string, nil]},
+              doc: "name of the stat"
+            ],
+            display: [
+              type: :atom,
+              doc: "type of state, should be a stat module",
+              default: Blank.Stats.Value
+            ],
+            formatter: [
+              type: {:or, [{:fun, 2}, nil]},
+              doc: """
+              a function that formats the value
+
+              Takes the admin page module and the value as options. See
+              `Blank.Stats.formatter/2` for more info.
+
+              Nil will not format the value.
+              """,
+              default: &Blank.Stats.named_value/2
+            ]
+          ]
+        ]
+      ],
+      default: [
+        total: [
+          name: nil,
+          display: Blank.Stats.Value,
+          formatter: nil
+        ]
+      ]
     ]
   ]
 
@@ -321,8 +360,110 @@ defmodule Blank.AdminPage do
     |> assign(:fields, fields)
     |> assign(:filter_fields, filter_fields)
     |> assign(:modal_fields, modal_fields)
+    |> assign_stats(repo, schema, fields, admin_page)
     |> assign(:items, AsyncResult.loading())
     |> start_async(:items, fn -> Context.paginate_schema(repo, schema, params, fields) end)
+  end
+
+  defp assign_stats(socket, repo, schema, fields, module) do
+    query =
+      Blank.Context.list_query(schema, fields)
+      |> Ecto.Query.exclude(:preload)
+      |> Ecto.Query.exclude(:group_by)
+      |> Ecto.Query.exclude(:order_by)
+      |> Ecto.Query.exclude(:select)
+
+    {query_stats, stats} =
+      module.config(:stats)
+      |> Stream.map(fn {key, stat} ->
+        res = stat_func(key, query, module)
+
+        named_stat =
+          Map.new(stat)
+          |> Map.update!(:name, fn
+            nil ->
+              Phoenix.Naming.humanize(key) <> " " <> module.config(:plural_name)
+
+            name ->
+              name
+          end)
+
+        {key, named_stat, res}
+      end)
+      |> Enum.reduce({[], %{}}, fn
+        {key, stat, {:query, _}} = val, {q, v} ->
+          {[val | q], Map.put(v, key, Map.put(stat, :value, AsyncResult.loading()))}
+
+        {key, stat, {:value, fun}} = val, {q, v} ->
+          value = stat_value(fun, socket.assigns)
+          new_stat = Map.merge(stat, %{value: value, value_fun: fun})
+
+          {q, Map.put(v, key, new_stat)}
+      end)
+
+    socket
+    |> assign(:stats, stats)
+    |> maybe_async_query(query_stats, repo)
+  end
+
+  defp stat_func(:total, query, module) do
+    try do
+      module.stat_query(:total, query)
+    rescue
+      _e ->
+        fun = fn
+          %{meta: %{total_count: count}} -> {:ok, count}
+          %{meta: nil} -> :loading
+          _ -> :error
+        end
+
+        {:value, fun}
+    end
+  end
+
+  defp stat_func(key, query, module), do: module.stat_query(key, query)
+
+  defp stat_value(fun, assigns) do
+    case fun.(assigns) do
+      {:ok, val} -> AsyncResult.ok(val)
+      :loading -> AsyncResult.loading()
+      :error -> AsyncResult.failed(AsyncResult.loading(), :error)
+    end
+  end
+
+  defp maybe_async_query(socket, [], _repo), do: socket
+
+  defp maybe_async_query(socket, stats, repo) do
+    multi =
+      Enum.reduce(stats, Ecto.Multi.new(), fn {key, stat, {:query, query}}, multi ->
+        display_module = stat_module(Map.fetch!(stat, :display))
+
+        display_module.query(multi, {key, stat}, query)
+      end)
+
+    start_async(socket, :stats, fn -> repo.transaction(multi) end)
+  end
+
+  defp stat_module(mod) do
+    if function_exported?(mod, :render, 1) do
+      mod
+    else
+      raise ArgumentError, """
+      A stat module is required, got: #{inspect(mod)}.
+      """
+    end
+  end
+
+  defp reassign_stats(socket) do
+    update(socket, :stats, fn stats ->
+      Enum.map(stats, fn
+        {k, %{value_fun: fun} = stat} ->
+          {k, Map.put(stat, :value, stat_value(fun, socket.assigns))}
+
+        stat ->
+          stat
+      end)
+    end)
   end
 
   defp get_field_definitions(struct, fields) do
@@ -334,23 +475,36 @@ defmodule Blank.AdminPage do
   def handle_async(:items, {:ok, {:ok, {items, meta}}}, socket) do
     {:noreply,
      socket
-     |> assign(:items, AsyncResult.ok(:items))
      |> assign(:meta, meta)
-     |> stream(:items, items, reset: true)}
+     |> assign(:items, AsyncResult.ok(:items))
+     |> stream(:items, items, reset: true)
+     |> reassign_stats()}
   end
 
-  def handle_async(:items, {:ok, {:error, _meta}}, socket) do
+  def handle_async(:items, _, socket) do
     {:noreply,
      socket
      |> put_flash(:error, "Failed to get items")
      |> push_navigate(to: socket.assigns.active_link.url)}
   end
 
-  def handle_async(:items, {:exit, _reason}, socket) do
+  def handle_async(:stats, {:ok, {:ok, loaded}}, socket) do
     {:noreply,
      socket
-     |> put_flash(:error, "Failed to get items")
-     |> push_navigate(to: socket.assigns.active_link.url)}
+     |> update(:stats, fn stats ->
+       Enum.reduce(loaded, stats, fn {key, val}, acc ->
+         put_in(acc, [key, :value], AsyncResult.ok(val))
+       end)
+     end)}
+  end
+
+  def handle_async(:stats, _, socket) do
+    {:noreply,
+     update(socket, :stats, fn stats ->
+       Enum.map(stats, fn {k, stat} ->
+         {k, Map.update!(stat, :value, &AsyncResult.failed(&1, "failed to get stats"))}
+       end)
+     end)}
   end
 
   @impl Phoenix.LiveView
