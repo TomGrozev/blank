@@ -2,6 +2,7 @@ defmodule Blank.Components do
   use Phoenix.Component
   use Gettext, backend: Blank.Gettext
 
+  alias Phoenix.LiveView.AsyncResult
   alias Phoenix.LiveView.JS
 
   @doc """
@@ -466,6 +467,8 @@ defmodule Blank.Components do
   attr(:meta, :map, required: true)
   attr(:path, :any, required: true)
   attr(:filter_fields, :list, default: [])
+  attr(:async_result, AsyncResult, default: AsyncResult.ok(:items))
+  attr(:plural_name, :string, default: "")
   attr(:rest, :global)
   attr(:row_click, :any, default: nil, doc: "the function for handling phx-click on each row")
 
@@ -483,154 +486,160 @@ defmodule Blank.Components do
   def page_table(assigns) do
     ~H"""
     <.filter_form
-      :if={not Enum.empty?(@filter_fields)}
+      :if={not (is_nil(@meta) or Enum.empty?(@filter_fields))}
       fields={@filter_fields}
       meta={@meta}
       id={"#{@id}-filter"}
     />
-    <div class="px-4 sm:px-0">
-      <Flop.Phoenix.table
-        id={@id}
-        items={@rows}
-        meta={@meta}
-        path={@path}
-        row_click={@row_click}
-        row_item={@row_item}
-        opts={[
-          table_attrs: [class: "min-w-full mt-11 sm:w-full"],
-          thead_attrs: [class: "text-sm text-left leading-6 text-gray-900 dark:text-white"],
-          thead_th_attrs: [class: "p-0 pr-6 pb-4 font-semibold"],
-          tbody_attrs: [
-            class:
-              "relative divide-y divide-gray-300 dark:divide-gray-700 border-t border-gray-300 dark:border-gray-600 text-sm leading-6 text-gray-50"
-          ],
-          tbody_tr_attrs: [class: "group hover:bg-gray-100 hover:dark:bg-gray-800"],
-          tbody_td_attrs: [class: "relative p-0 hover:cursor-pointer"]
-        ]}
-        {@rest}
-      >
-        <:col
-          :let={row}
-          :for={{col, i} <- Enum.with_index(@col)}
-          thead_th_attrs={[class: ["p-0 pr-6 pb-4 font-semibold", i > 0 && " hidden sm:table-cell"]]}
-          tbody_td_attrs={[
-            class: [
-              "relative p-0 hover:cursor-pointer",
-              if(i > 0, do: "hidden sm:table-cell", else: "w-full sm:w-auto")
-            ]
+    <.async_result :let={_stream_key} assign={@async_result}>
+      <:loading>
+        <.loader name={@plural_name} />
+      </:loading>
+      <:failed :let={_failure}>There was an error loading the {Phoenix.Naming.humanize(@plural_name)}. Please try again later.</:failed>
+      <div class="px-4 sm:px-0">
+        <Flop.Phoenix.table
+          id={@id}
+          items={@rows}
+          meta={@meta}
+          path={@path}
+          row_click={@row_click}
+          row_item={@row_item}
+          opts={[
+            table_attrs: [class: "min-w-full mt-11 sm:w-full"],
+            thead_attrs: [class: "text-sm text-left leading-6 text-gray-900 dark:text-white"],
+            thead_th_attrs: [class: "p-0 pr-6 pb-4 font-semibold"],
+            tbody_attrs: [
+              class:
+                "relative divide-y divide-gray-300 dark:divide-gray-700 border-t border-gray-300 dark:border-gray-600 text-sm leading-6 text-gray-50"
+            ],
+            tbody_tr_attrs: [class: "group hover:bg-gray-100 hover:dark:bg-gray-800"],
+            tbody_td_attrs: [class: "relative p-0 hover:cursor-pointer"]
           ]}
-          label={col.field_def.label}
-          field={col.field_def.filter_key}
+          {@rest}
         >
-          <div class="block py-4 pr-6">
-            <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-gray-100 group-hover:dark:bg-gray-800 rounded-l-xl" />
-            <span class={["relative text-gray-900 dark:text-gray-300", i == 0 && " font-semibold"]}>
-              {render_slot(col, row)}
-            </span>
-          </div>
-        </:col>
-        <:action :let={row} col_class="relative w-14 p-0">
-          <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-            <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-gray-100 group-hover:dark:bg-gray-800 rounded-r-xl" />
-            <span
-              :for={action <- @action}
-              class="relative ml-4 font-semibold leading-6 text-gray-900 dark:text-gray-100 hover:text-gray-700 hover:dark:text-gray-200"
-            >
-              {render_slot(action, row)}
-            </span>
-          </div>
-        </:action>
-      </Flop.Phoenix.table>
-    </div>
-    <div class="flex items-center justify-between border-t border-gray-400 px-4 py-3 sm:px-6">
-      <Flop.Phoenix.pagination
-        meta={@meta}
-        path={@path}
-        page_links={:none}
-        opts={[
-          wrapper_attrs: [class: "flex flex-1 justify-between sm:hidden"],
-          disabled_class: "!text-gray-400 select-none hover:bg-gray-900",
-          next_link_attrs: [
-            class:
-              "relative inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 leading-6 active:text-white/80"
-          ],
-          previous_link_attrs: [
-            class:
-              "relative inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 leading-6 active:text-white/80"
-          ]
-        ]}
-      />
-      <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-        <div>
-          <p class="text-sm text-gray-900 dark:text-gray-200">
-            Showing
-            <select
-              name="limit"
-              class="mt-1 inline-block rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50/10 dark:bg-gray-800 shadow-sm shadow-gray-200 dark:shadow-gray-900 focus:border-gray-200 focus:dark:border-gray-700 focus:ring-0 sm:text-sm"
-            >
-              <option
-                :for={val <- [10, 20, 50, 75, 100]}
-                value={val}
-                selected={val == @meta.page_size}
-                phx-click={
-                  JS.navigate(
-                    Flop.Phoenix.build_path(
-                      @path,
-                      Map.put(@meta.flop, :page_size, val)
-                    )
-                  )
-                }
-              >
-                {val}
-              </option>
-            </select>
-            of <span class="font-medium">{@meta.total_count}</span>
-            results
-          </p>
-        </div>
-        <div>
-          <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-          </nav>
-
-          <Flop.Phoenix.pagination
-            meta={@meta}
-            path={@path}
-            opts={[
-              wrapper_attrs: [class: "isolate inline-flex -space-x-px rounded-md shadow-sm"],
-              current_link_attrs: [
-                class:
-                  "relative z-10 inline-flex items-center border border-indigo-600 dark:border-indigo-500 bg-indigo-600 dark:bg-indigo-900/50 px-4 py-2 text-sm font-medium text-white focus:z-20",
-                aria: [current: "page"]
-              ],
-              disabled_class: "!text-gray-400 select-none hover:bg-gray-700 hover:dark:bg-gray-800",
-              next_link_attrs: [
-                class:
-                  "order-3 relative inline-flex items-center rounded-r-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-2 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
-              ],
-              previous_link_attrs: [
-                class:
-                  "order-1 relative inline-flex items-center rounded-l-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-2 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
-              ],
-              next_link_content:
-                {:safe,
-                 "<span class=\"sr-only\">Next</span><div class=\"flex items-center justify-center w-5 h-5\">&rsaquo;</div>"},
-              previous_link_content:
-                {:safe,
-                 "<span class=\"sr-only\">Previous</span><div class=\"flex items-center justify-center w-5 h-5\">&lsaquo;</div>"},
-              pagination_list_attrs: [class: "order-2 flex"],
-              ellipsis_attrs: [
-                class:
-                  "relative inline-flex items-center border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
-              ],
-              pagination_link_attrs: [
-                class:
-                  "relative inline-flex items-center border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
+          <:col
+            :let={row}
+            :for={{col, i} <- Enum.with_index(@col)}
+            thead_th_attrs={[class: ["p-0 pr-6 pb-4 font-semibold", i > 0 && " hidden sm:table-cell"]]}
+            tbody_td_attrs={[
+              class: [
+                "relative p-0 hover:cursor-pointer",
+                if(i > 0, do: "hidden sm:table-cell", else: "w-full sm:w-auto")
               ]
             ]}
-          />
+            label={col.field_def.label}
+            field={col.field_def.filter_key}
+          >
+            <div class="block py-4 pr-6">
+              <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-gray-100 group-hover:dark:bg-gray-800 rounded-l-xl" />
+              <span class={["relative text-gray-900 dark:text-gray-300", i == 0 && " font-semibold"]}>
+                {render_slot(col, row)}
+              </span>
+            </div>
+          </:col>
+          <:action :let={row} col_class="relative w-14 p-0">
+            <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
+              <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-gray-100 group-hover:dark:bg-gray-800 rounded-r-xl" />
+              <span
+                :for={action <- @action}
+                class="relative ml-4 font-semibold leading-6 text-gray-900 dark:text-gray-100 hover:text-gray-700 hover:dark:text-gray-200"
+              >
+                {render_slot(action, row)}
+              </span>
+            </div>
+          </:action>
+        </Flop.Phoenix.table>
+      </div>
+      <div class="flex items-center justify-between border-t border-gray-400 px-4 py-3 sm:px-6">
+        <Flop.Phoenix.pagination
+          meta={@meta}
+          path={@path}
+          page_links={:none}
+          opts={[
+            wrapper_attrs: [class: "flex flex-1 justify-between sm:hidden"],
+            disabled_class: "!text-gray-400 select-none hover:bg-gray-900",
+            next_link_attrs: [
+              class:
+                "relative inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 leading-6 active:text-white/80"
+            ],
+            previous_link_attrs: [
+              class:
+                "relative inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 leading-6 active:text-white/80"
+            ]
+          ]}
+        />
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-gray-900 dark:text-gray-200">
+              Showing
+              <select
+                name="limit"
+                class="mt-1 inline-block rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50/10 dark:bg-gray-800 shadow-sm shadow-gray-200 dark:shadow-gray-900 focus:border-gray-200 focus:dark:border-gray-700 focus:ring-0 sm:text-sm"
+              >
+                <option
+                  :for={val <- [10, 20, 50, 75, 100]}
+                  value={val}
+                  selected={val == @meta.page_size}
+                  phx-click={
+                    JS.navigate(
+                      Flop.Phoenix.build_path(
+                        @path,
+                        Map.put(@meta.flop, :page_size, val)
+                      )
+                    )
+                  }
+                >
+                  {val}
+                </option>
+              </select>
+              of <span class="font-medium">{@meta.total_count}</span>
+              results
+            </p>
+          </div>
+          <div>
+            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            </nav>
+
+            <Flop.Phoenix.pagination
+              meta={@meta}
+              path={@path}
+              opts={[
+                wrapper_attrs: [class: "isolate inline-flex -space-x-px rounded-md shadow-sm"],
+                current_link_attrs: [
+                  class:
+                    "relative z-10 inline-flex items-center border border-indigo-600 dark:border-indigo-500 bg-indigo-600 dark:bg-indigo-900/50 px-4 py-2 text-sm font-medium text-white focus:z-20",
+                  aria: [current: "page"]
+                ],
+                disabled_class: "!text-gray-400 select-none hover:bg-gray-700 hover:dark:bg-gray-800",
+                next_link_attrs: [
+                  class:
+                    "order-3 relative inline-flex items-center rounded-r-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-2 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
+                ],
+                previous_link_attrs: [
+                  class:
+                    "order-1 relative inline-flex items-center rounded-l-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-2 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
+                ],
+                next_link_content:
+                  {:safe,
+                  "<span class=\"sr-only\">Next</span><div class=\"flex items-center justify-center w-5 h-5\">&rsaquo;</div>"},
+                previous_link_content:
+                  {:safe,
+                  "<span class=\"sr-only\">Previous</span><div class=\"flex items-center justify-center w-5 h-5\">&lsaquo;</div>"},
+                pagination_list_attrs: [class: "order-2 flex"],
+                ellipsis_attrs: [
+                  class:
+                    "relative inline-flex items-center border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
+                ],
+                pagination_link_attrs: [
+                  class:
+                    "relative inline-flex items-center border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
+                ]
+              ]}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </.async_result>
     """
   end
 

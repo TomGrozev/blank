@@ -39,39 +39,35 @@
     <span>Advanced</span>
   </label>
 </div>
-<.async_result :let={stream_key} assign={@items}>
-  <:loading>
-    <.loader name={@plural_name} />
-  </:loading>
-  <:failed :let={_failure}>There was an error loading the {Phoenix.Naming.humanize(@plural_name)}. Please try again later.</:failed>
-  <.page_table
-    id={"#{@name}-table"}
-    filter_fields={@filter_fields}
-    rows={@streams.items}
-    meta={@meta}
-    path={@active_link.url}
-    row_click={fn {_id, item} -> JS.navigate("#{@active_link.url}/#{item.id}") end}
-  >
-    <:col :for={{field, field_def} <- @fields} :let={{_, item}} field_def={field_def}>
-      <.field_list id={Map.fetch!(item, @primary_key)} definition={field_def} value={Map.get(item, field)} schema={@schema} time_zone={@time_zone} />
-    </:col>
-    <:action :let={{_id, item}}>
-      <div class="sr-only">
-        <.link navigate={"#{@active_link.url}/#{item.id}"}>Show</.link>
-      </div>
-      <.link patch={"#{@active_link.url}/#{item.id}/edit"} class="hover:text-zinc-400"><.icon name="hero-pencil" class="w-5 h-5" /></.link>
-    </:action>
-    <:action :let={{id, item}}>
-      <.link
-        phx-click={JS.push("delete", value: %{id: item.id}) |> hide("##{id}")}
-        data-confirm="Are you sure?"
-        class="text-rose-500 hover:text-rose-400"
-      >
-        <.icon name="hero-trash" class="w-5 h-5" />
-      </.link>
-    </:action>
-  </.page_table>
-</.async_result>
+<.page_table
+  id={"#{@name}-table"}
+  filter_fields={@filter_fields}
+  async_result={@items}
+  plural_name={@plural_name}
+  rows={@streams.items}
+  meta={@meta}
+  path={@active_link.url}
+  row_click={fn {_id, item} -> JS.navigate("#{@active_link.url}/#{item.id}") end}
+>
+  <:col :for={{field, field_def} <- @fields} :let={{_, item}} field_def={field_def}>
+    <.field_list id={Map.fetch!(item, @primary_key)} definition={field_def} value={Map.get(item, field)} schema={@schema} time_zone={@time_zone} />
+  </:col>
+  <:action :let={{_id, item}}>
+    <div class="sr-only">
+      <.link navigate={"#{@active_link.url}/#{item.id}"}>Show</.link>
+    </div>
+    <.link patch={"#{@active_link.url}/#{item.id}/edit"} class="hover:text-zinc-400"><.icon name="hero-pencil" class="w-5 h-5" /></.link>
+  </:action>
+  <:action :let={{id, item}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: item.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+      class="text-rose-500 hover:text-rose-400"
+    >
+      <.icon name="hero-trash" class="w-5 h-5" />
+    </.link>
+  </:action>
+</.page_table>
 
 <.modal
   :if={@live_action == :import}
