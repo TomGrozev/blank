@@ -5,6 +5,8 @@ defmodule Mix.Tasks.Blank.Install do
 
   use Mix.Task
 
+  @requirements ["app.config"]
+
   @switches [
     migrations_path: :keep,
     adapter: :string
@@ -42,6 +44,7 @@ defmodule Mix.Tasks.Blank.Install do
       |> Stream.map(&Path.relative_to(&1, project_dir, force: true))
 
     with :ok <- add_tailwind_files(blank_dir, project_dir),
+         :ok <- add_audit_options(),
          {:ok, adapter} <- get_adapter(opts),
          :ok <- add_migrations(blank_dir, project_dir, adapter, migrations_paths) do
       Mix.Shell.IO.info("""
@@ -120,6 +123,41 @@ defmodule Mix.Tasks.Blank.Install do
       |> then(&"content: [#{&1}]")
     else
       nil -> {:error, "could not read content in '#{file}'"}
+    end
+  end
+
+  @socket_regex ~r/\[connect_info: (\[.*?\])\]/is
+  defp add_audit_options do
+    endpoint = Application.fetch_env!(:blank, :endpoint)
+    Code.ensure_compiled!(endpoint)
+
+    source =
+      endpoint.__info__(:compile)
+      |> Keyword.fetch!(:source)
+
+    with {:ok, content} <- File.read(source),
+         true <- Regex.match?(@socket_regex, content),
+         new_content = Regex.replace(@socket_regex, content, fn _, inner ->
+           replace_socket_content(inner, source)
+         end),
+         :ok <- File.write(source, new_content) do
+      
+      Mix.Shell.IO.info(">> Added audit socket requirements to endpoint file: #{source}")
+
+      :ok
+    else
+      false -> {:error, "could not read content in '#{source}'"}
+    end
+  end
+
+  defp replace_socket_content(inner, file) do
+    with {:ok, quoted} <- Code.string_to_quoted(inner) do
+      [:peer_data, :x_headers, :user_agent | quoted]
+      |> Enum.uniq()
+      |> Macro.to_string()
+      |> then(&"[connect_info: #{&1}]")
+    else
+      nil -> {:error, "could not replace socket info in '#{file}'"}
     end
   end
 
