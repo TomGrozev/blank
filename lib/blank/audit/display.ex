@@ -130,7 +130,8 @@ defmodule Blank.Audit.Display do
     end
   end
 
-  defp identity(%{admin: nil, user: nil, user_agent: "SYSTEM"}), do: {"SYSTEM", "system", nil}
+  defp identity(%{admin: nil, user: nil, user_agent: "SYSTEM"}, _prefix, _schema_links),
+    do: {"SYSTEM", "system", nil}
 
   defp identity(%{admin: admin, user: nil}, prefix, _schema_links) when not is_nil(admin) do
     username = Blank.Schema.name(admin)
