@@ -48,7 +48,7 @@ defmodule Blank.Schema.Validator do
   @schema [
     identity_field: [
       type: :atom,
-      doc: "Defines which field is used ad the name for the record",
+      doc: "Defines which field is used as the name for the record",
       default: :id
     ],
     primary_key: [
@@ -77,6 +77,25 @@ defmodule Blank.Schema.Validator do
           keys: @field_schema
         ]
       ]
+    ],
+    order_field: [
+      type:
+        {:or,
+         [
+           :atom,
+           {:tuple, [:atom, {:in, [:asc, :desc]}]}
+         ]},
+      doc: """
+      Defines which field is used to order a list.
+
+      Accepts either the field name and defaults to ascending order.
+      Otherwise accepts a two element tuple, where the first element 
+      is the field name and the second is the direction (either `:asc`
+      or `:desc`).
+
+      A value of `nil` (default) will use the primary_key.
+      """,
+      default: nil
     ],
     flop_opts: [
       type: :keyword_list

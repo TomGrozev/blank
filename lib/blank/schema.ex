@@ -17,6 +17,9 @@ defprotocol Blank.Schema do
 
   @spec identity_field(any()) :: atom()
   def identity_field(data)
+
+  @spec order_field(any()) :: atom()
+  def order_field(data)
 end
 
 defimpl Blank.Schema, for: Any do
@@ -56,6 +59,10 @@ defimpl Blank.Schema, for: Any do
     identity_field = Keyword.fetch!(options, :identity_field)
     primary_key = Keyword.fetch!(options, :primary_key)
 
+    order_field =
+      Keyword.fetch!(options, :order_field)
+      |> default_order(primary_key)
+
     quote do
       unquote(flop_derive)
 
@@ -87,6 +94,9 @@ defimpl Blank.Schema, for: Any do
         def identity_field(struct), do: unquote(identity_field)
 
         @impl Blank.Schema
+        def order_field(struct), do: unquote(order_field)
+
+        @impl Blank.Schema
         def changeset(struct, :new), do: unquote(create_changeset)
         def changeset(struct, :edit), do: unquote(update_changeset)
 
@@ -94,6 +104,13 @@ defimpl Blank.Schema, for: Any do
       end
     end
   end
+
+  defp default_order(nil, pk), do: {pk, :asc}
+
+  defp default_order({field, direction}, _pk) when is_atom(field) and direction in [:asc, :desc],
+    do: {field, direction}
+
+  defp default_order(field, _pk) when is_atom(field), do: {field, :asc}
 
   defp get_flop_opts(module, caller, struct, options) do
     {searchable, sortable, adapter_opts} =
@@ -388,4 +405,12 @@ defimpl Blank.Schema, for: Any do
       value: struct,
       description: @instructions
   end
+
+  def order_field(struct) do
+    raise Protocol.UndefinedError,
+      protocol: @protocol,
+      value: struct,
+      description: @instructions
+  end
 end
+
