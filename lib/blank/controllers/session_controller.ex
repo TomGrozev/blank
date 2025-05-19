@@ -2,7 +2,7 @@ defmodule Blank.Controllers.SessionController do
   use Blank.Web, :controller
 
   alias Blank.Accounts
-  alias Blank.Auth
+  alias Blank.Plugs.Auth
 
   def create(conn, %{"_action" => "password_updated"} = params) do
     prefix = conn.private.phoenix_router.__blank_prefix__()

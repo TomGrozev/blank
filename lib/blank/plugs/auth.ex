@@ -1,4 +1,4 @@
-defmodule Blank.Auth do
+defmodule Blank.Plugs.Auth do
   import Plug.Conn
   import Phoenix.Controller
 
@@ -138,13 +138,13 @@ defmodule Blank.Auth do
       defmodule Blank.PageLive do
         use Blank.Web, :live_view
 
-        on_mount {Blank.Auth, :mount_current_admin}
+        on_mount {Blank.Plugs.Auth, :mount_current_admin}
         ...
       end
 
   Or use the `live_session` of your router to invoke the on_mount callback:
 
-      live_session :authenticated, on_mount: [{Blank.Auth, :ensure_authenticated}] do
+      live_session :authenticated, on_mount: [{Blank.Plugs.Auth, :ensure_authenticated}] do
         live "/profile", ProfileLive, :index
       end
   """
