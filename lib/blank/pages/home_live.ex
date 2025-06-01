@@ -37,7 +37,8 @@ defmodule Blank.Pages.HomeLive do
             </span>
             <li
               :for={
-                {dom_id, %{id: id, schema: schema, past_logins: past_logins, user: user, metas: metas}} <-
+                {dom_id,
+                 %{id: id, schema: schema, past_logins: past_logins, user: user, metas: metas}} <-
                   @streams.presences
               }
               id={dom_id}

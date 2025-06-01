@@ -125,7 +125,12 @@ defmodule Blank.Audit.Display do
       """
     else
       ~H"""
-      <.link class="font-medium text-gray-900 dark:text-white" navigate={@user_path}>{@username} ({@type})</.link> {@text}
+      <span>
+        <.link class="font-medium text-gray-900 dark:text-white" navigate={@user_path}>
+          {@username} ({@type})
+        </.link>
+        {@text}
+      </span>
       """
     end
   end

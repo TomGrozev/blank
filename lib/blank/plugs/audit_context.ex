@@ -43,12 +43,10 @@ defmodule Blank.Plugs.AuditContext do
   defp get_ip(%Plug.Conn{} = conn) do
     header_ip = get_ip_from_x_headers(conn.req_headers)
 
-    cond do
-      not is_nil(header_ip) ->
-        header_ip
-
-      true ->
-        Map.get(conn, :remote_ip)
+    if is_nil(header_ip) do
+      Map.get(conn, :remote_ip)
+    else
+      header_ip
     end
   end
 
@@ -57,13 +55,11 @@ defmodule Blank.Plugs.AuditContext do
       (Phoenix.LiveView.get_connect_info(socket, :x_headers) || [])
       |> get_ip_from_x_headers()
 
-    cond do
-      not is_nil(header_ip) ->
-        header_ip
-
-      true ->
-        (Phoenix.LiveView.get_connect_info(socket, :peer_data) || %{})
-        |> Map.get(:address)
+    if is_nil(header_ip) do
+      (Phoenix.LiveView.get_connect_info(socket, :peer_data) || %{})
+      |> Map.get(:address)
+    else
+      header_ip
     end
   end
 

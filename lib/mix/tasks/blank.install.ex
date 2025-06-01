@@ -137,11 +137,11 @@ defmodule Mix.Tasks.Blank.Install do
 
     with {:ok, content} <- File.read(source),
          true <- Regex.match?(@socket_regex, content),
-         new_content = Regex.replace(@socket_regex, content, fn _, inner ->
-           replace_socket_content(inner, source)
-         end),
+         new_content =
+           Regex.replace(@socket_regex, content, fn _, inner ->
+             replace_socket_content(inner, source)
+           end),
          :ok <- File.write(source, new_content) do
-      
       Mix.Shell.IO.info(">> Added audit socket requirements to endpoint file: #{source}")
 
       :ok
@@ -151,13 +151,15 @@ defmodule Mix.Tasks.Blank.Install do
   end
 
   defp replace_socket_content(inner, file) do
-    with {:ok, quoted} <- Code.string_to_quoted(inner) do
-      [:peer_data, :x_headers, :user_agent | quoted]
-      |> Enum.uniq()
-      |> Macro.to_string()
-      |> then(&"[connect_info: #{&1}]")
-    else
-      nil -> {:error, "could not replace socket info in '#{file}'"}
+    case Code.string_to_quoted(inner) do
+      {:ok, quoted} ->
+        [:peer_data, :x_headers, :user_agent | quoted]
+        |> Enum.uniq()
+        |> Macro.to_string()
+        |> then(&"[connect_info: #{&1}]")
+
+      nil ->
+        {:error, "could not replace socket info in '#{file}'"}
     end
   end
 

@@ -232,28 +232,7 @@ defmodule Blank.Components.ImportComponent do
 
       rows =
         apply_mapping(socket.assigns.csv_rows, mappers)
-        |> Stream.map(fn row ->
-          Enum.reduce(socket.assigns.fields, %{}, fn {k, def}, acc ->
-            if field = Ecto.Changeset.get_field(changeset, k) do
-              children_strings =
-                Map.new(
-                  Keyword.keys(def.children),
-                  &{Atom.to_string(&1), &1}
-                )
-
-              order =
-                Ecto.Changeset.get_field(changeset, order_key(k))
-                |> String.split(", ")
-                |> Stream.map(&Map.get(children_strings, &1))
-                |> Enum.reject(&is_nil/1)
-
-              val = Map.fetch!(row, field) |> Enum.map(&map_values(&1, order))
-              Map.put(acc, k, val)
-            else
-              acc
-            end
-          end)
-        end)
+        |> Stream.map(&object_to_csv(changeset, &1, socket.assigns.fields))
         |> Enum.reject(&(map_size(&1) == 0))
 
       total = length(rows)
@@ -301,6 +280,29 @@ defmodule Blank.Components.ImportComponent do
      |> assign(:sample_rows, sample_rows)
      |> assign(:csv_rows, rows)
      |> assign(:csv_headings, headers)}
+  end
+
+  defp object_to_csv(changeset, object, fields) do
+    Enum.reduce(fields, %{}, fn {k, def}, acc ->
+      if field = Ecto.Changeset.get_field(changeset, k) do
+        children_strings =
+          Map.new(
+            Keyword.keys(def.children),
+            &{Atom.to_string(&1), &1}
+          )
+
+        order =
+          Ecto.Changeset.get_field(changeset, order_key(k))
+          |> String.split(", ")
+          |> Stream.map(&Map.get(children_strings, &1))
+          |> Enum.reject(&is_nil/1)
+
+        val = Map.fetch!(object, field) |> Enum.map(&map_values(&1, order))
+        Map.put(acc, k, val)
+      else
+        acc
+      end
+    end)
   end
 
   defp map_values(val, order) when is_list(val) do
@@ -351,12 +353,8 @@ defmodule Blank.Components.ImportComponent do
         path
         |> File.stream!()
         |> CSV.decode!(headers: true)
-        |> Stream.map(fn row ->
-          Map.reject(row, fn {k, _v} -> k == "" end)
-        end)
-        |> Stream.reject(fn row ->
-          Enum.all?(row, fn {_k, v} -> v == "" end)
-        end)
+        |> Stream.reject(&Enum.all?(&1, fn {_k, v} -> v == "" end))
+        |> Stream.map(&Map.reject(&1, fn {k, _v} -> k == "" end))
         |> Enum.to_list()
 
       {:ok, rows}
@@ -401,19 +399,19 @@ defmodule Blank.Components.ImportComponent do
 
     Ecto.Changeset.change({data, types})
     |> Ecto.Changeset.cast(params, fields)
-    |> then(
-      &Enum.reduce(fields, &1, fn field, acc ->
-        Ecto.Changeset.validate_change(acc, field, fn ^field, val ->
-          case Regex.compile(val, "i") do
-            {:ok, _} ->
-              []
+    |> then(fn changeset -> Enum.reduce(fields, changeset, &validate_regex/2) end)
+  end
 
-            {:error, {reason, _}} ->
-              [{field, List.to_string(reason)}]
-          end
-        end)
-      end)
-    )
+  defp validate_regex(field, changeset) when is_atom(field) do
+    Ecto.Changeset.validate_change(changeset, field, fn ^field, val ->
+      case Regex.compile(val, "i") do
+        {:ok, _} ->
+          []
+
+        {:error, {reason, _}} ->
+          [{field, List.to_string(reason)}]
+      end
+    end)
   end
 
   defp error_to_string(:too_large), do: "Too large"

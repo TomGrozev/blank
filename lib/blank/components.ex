@@ -495,7 +495,9 @@ defmodule Blank.Components do
       <:loading>
         <.loader name={@plural_name} />
       </:loading>
-      <:failed :let={_failure}>There was an error loading the {Phoenix.Naming.humanize(@plural_name)}. Please try again later.</:failed>
+      <:failed :let={_failure}>
+        There was an error loading the {Phoenix.Naming.humanize(@plural_name)}. Please try again later.
+      </:failed>
       <div class="px-4 sm:px-0">
         <Flop.Phoenix.table
           id={@id}
@@ -621,10 +623,10 @@ defmodule Blank.Components do
                 ],
                 next_link_content:
                   {:safe,
-                  "<span class=\"sr-only\">Next</span><div class=\"flex items-center justify-center w-5 h-5\">&rsaquo;</div>"},
+                   "<span class=\"sr-only\">Next</span><div class=\"flex items-center justify-center w-5 h-5\">&rsaquo;</div>"},
                 previous_link_content:
                   {:safe,
-                  "<span class=\"sr-only\">Previous</span><div class=\"flex items-center justify-center w-5 h-5\">&lsaquo;</div>"},
+                   "<span class=\"sr-only\">Previous</span><div class=\"flex items-center justify-center w-5 h-5\">&lsaquo;</div>"},
                 pagination_list_attrs: [class: "order-2 flex"],
                 ellipsis_attrs: [
                   class:

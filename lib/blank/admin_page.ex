@@ -626,15 +626,17 @@ defmodule Blank.AdminPage do
   defp decode(value, fields) do
     fields
     |> Stream.filter(&(elem(&1, 1).module in @decode_fields))
-    |> Enum.reduce(value, fn {key, _}, acc ->
-      Map.update(acc, Atom.to_string(key), nil, fn selected ->
-        case selected do
-          nil -> []
-          "" -> nil
-          selected when is_list(selected) -> Enum.map(selected, &decode_value/1)
-          selected -> decode_value(selected)
-        end
-      end)
+    |> Enum.reduce(value, fn {key, _}, acc -> decode_selected_value(acc, Atom.to_string(key)) end)
+  end
+
+  defp decode_selected_value(map, key) do
+    Map.update(map, key, nil, fn selected ->
+      case selected do
+        nil -> []
+        "" -> nil
+        selected when is_list(selected) -> Enum.map(selected, &decode_value/1)
+        selected -> decode_value(selected)
+      end
     end)
   end
 

@@ -69,22 +69,7 @@ defimpl Blank.Schema, for: Any do
       defimpl Blank.Schema, for: unquote(module) do
         @impl Blank.Schema
         def name(struct) do
-          case Map.get(struct, unquote(identity_field)) do
-            val when is_list(val) ->
-              Blank.Schema.get_field(struct, unquote(identity_field))
-              |> Map.get(:display_field, :id)
-              |> then(fn display_field ->
-                Enum.map_join(val, ", ", &Map.fetch!(&1, display_field))
-              end)
-
-            %{} = val ->
-              Blank.Schema.get_field(struct, unquote(identity_field))
-              |> Map.get(:display_field, :id)
-              |> then(&Map.fetch!(val, &1))
-
-            val ->
-              val
-          end
+          unquote(__MODULE__).__name__(struct, unquote(identity_field))
         end
 
         @impl Blank.Schema
@@ -102,6 +87,26 @@ defimpl Blank.Schema, for: Any do
 
         unquote(field_def_funcs)
       end
+    end
+  end
+
+  @doc false
+  def __name__(struct, identity_field) do
+    case Map.get(struct, identity_field) do
+      val when is_list(val) ->
+        Blank.Schema.get_field(struct, identity_field)
+        |> Map.get(:display_field, :id)
+        |> then(fn display_field ->
+          Enum.map_join(val, ", ", &Map.fetch!(&1, display_field))
+        end)
+
+      %{} = val ->
+        Blank.Schema.get_field(struct, identity_field)
+        |> Map.get(:display_field, :id)
+        |> then(&Map.fetch!(val, &1))
+
+      val ->
+        val
     end
   end
 
@@ -413,4 +418,3 @@ defimpl Blank.Schema, for: Any do
       description: @instructions
   end
 end
-
