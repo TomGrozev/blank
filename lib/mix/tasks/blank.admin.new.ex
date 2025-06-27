@@ -1,6 +1,16 @@
 defmodule Mix.Tasks.Blank.Admin.New do
   @moduledoc """
   Creates a new admin in Blank
+
+  For example you can use the command like:
+  `mix blank.admin.new -e myadmin@mydomain.com -p "MyPassword"`
+
+  Accepts the following options:
+
+    * `repo` - the repo to use, will default to fetching from the app
+              environment
+    * `email` - the email to set
+    * `password` - the password to set
   """
 
   use Mix.Task

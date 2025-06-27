@@ -1,4 +1,5 @@
 defmodule Blank.Pages.SettingsLive do
+  @moduledoc false
   use Blank.Web, :live_view
 
   @impl Phoenix.LiveView

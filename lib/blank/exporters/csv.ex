@@ -1,4 +1,6 @@
 defmodule Blank.Exporters.CSV do
+  @moduledoc false
+
   @behaviour Blank.Exporter
 
   @impl true

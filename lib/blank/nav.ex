@@ -1,4 +1,5 @@
 defmodule Blank.Nav do
+  @moduledoc false
   import Phoenix.LiveView
   import Phoenix.Component
 

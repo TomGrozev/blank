@@ -1,6 +1,8 @@
 defmodule Blank.Stats do
   @moduledoc """
-  Stats behaviour
+  Statistics behaviour
+
+  Used for how statistics are displayed.
   """
 
   @callback render(assigns :: map()) :: %Phoenix.LiveView.Rendered{}
@@ -20,7 +22,10 @@ defmodule Blank.Stats do
   end
 
   @doc """
-  Formats a value with name
+  Simple formats a value with name
+
+  Formats the value to be of the format `1 person` where the value is prefixed
+  and the singular or plural name of the module is used.
   """
   @spec named_value(module(), number()) :: String.t()
   def named_value(module, value) when value > 1 or value < -1 do

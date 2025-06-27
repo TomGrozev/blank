@@ -1,4 +1,5 @@
 defmodule Blank.Pages.AdminsLive do
+  @moduledoc false
   alias Blank.Accounts.Admin
 
   use Blank.AdminPage,

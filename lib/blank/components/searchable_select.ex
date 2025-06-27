@@ -1,4 +1,5 @@
 defmodule Blank.Components.SearchableSelect do
+  @moduledoc false
   use Blank.Web, :live_component
 
   @impl true

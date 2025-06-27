@@ -1,4 +1,5 @@
 defmodule Blank.Components do
+  @moduledoc false
   use Phoenix.Component
   use Gettext, backend: Blank.Gettext
 

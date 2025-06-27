@@ -1,4 +1,6 @@
 defmodule Blank.Exporters.QRCode do
+  @moduledoc false
+
   alias Blank.Utils.QRCode
 
   @behaviour Blank.Exporter

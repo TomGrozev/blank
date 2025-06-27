@@ -1,16 +1,4 @@
 defmodule Blank.AdminPage do
-  @moduledoc """
-  This represents an administable resource.
-  """
-
-  import Ecto.Query, only: [from: 2, subquery: 1]
-
-  @callback config(key :: atom()) :: any()
-  @callback repo() :: atom()
-  @callback stat_query(key :: atom(), query :: Ecto.Query.t()) :: Ecto.Query.t()
-
-  @optional_callbacks stat_query: 2
-
   @schema [
     schema: [
       type: :atom,
@@ -27,27 +15,52 @@ defmodule Blank.AdminPage do
     ],
     key: [
       type: :atom,
-      doc: "the atom key for the schema"
+      doc: """
+      the atom key for the schema. Only needed if you need to specify something
+      other than the default.
+
+      Defaults to the downcased version of the schema (e.g. for Post it would be
+      :post).
+      """
     ],
     name: [
       type: :string,
-      doc: "name of the object for the page"
+      doc: "name of the object for the page. Defaults to string of the key."
     ],
     plural_name: [
       type: :string,
-      doc: "plural name of the object for the page"
+      doc: """
+      plural name of the object for the page. Defaults to the schema
+      source (i.e. the table name).
+      """
     ],
     index_fields: [
       type: {:list, :atom},
-      doc: "list of fields to show on the index page"
+      doc: """
+      list of fields to show on the index page.
+
+      Defaults to all fields (including virtual fields and associations) minus 
+      any foreign keys (i.e. for an association of posts, the post_id field 
+      would excluded but not the posts field).
+      """
     ],
     show_fields: [
       type: {:list, :atom},
-      doc: "list of fields to show on the show page"
+      doc: """
+      list of fields to show on the show page.
+
+      Defaults to all index fields minus the `:inserted_at` and `:updated_at`
+      fields.
+      """
     ],
     edit_fields: [
       type: {:list, :atom},
-      doc: "list of fields to show on the edit/new page"
+      doc: """
+      list of fields to show on the edit/new page.
+
+      Defaults to all index fields minus the `:inserted_at` and `:updated_at`
+      fields.
+      """
     ],
     stats: [
       type: :non_empty_keyword_list,
@@ -57,7 +70,13 @@ defmodule Blank.AdminPage do
           keys: [
             name: [
               type: {:or, [:string, nil]},
-              doc: "name of the stat"
+              doc: """
+              name of the stat.
+
+              Defaults to a humanized name based on the key and the plural name. 
+              E.g. for a key of `:total` and a plural name of `products` the
+              generated name would be `Total proucts`.
+              """
             ],
             display: [
               type: :atom,
@@ -69,10 +88,10 @@ defmodule Blank.AdminPage do
               doc: """
               a function that formats the value
 
-              Takes the admin page module and the value as options. See
-              `Blank.Stats.formatter/2` for more info.
+              Takes the admin page module and the value as options.
 
-              Nil will not format the value.
+              A value of nil will not format the value and just displays the
+              value.
               """,
               default: &Blank.Stats.named_value/2
             ]
@@ -89,11 +108,152 @@ defmodule Blank.AdminPage do
     ]
   ]
 
+  @moduledoc """
+  Configures an admin page for some resource.
+
+  An admin page is actually a group of three pages, an index page where all the
+  records are listed, a show page where a specific item can be viewed, and an
+  edit page where an item can be edited.
+
+  Each admin page is configured by using this module. A seperate usage of this
+  module is needed per resource. For example, you would need one for an admin
+  page for posts and one for products.
+
+  ## Basic Example
+
+  An admin page to show posts could be created as follows.
+
+      defmodule MyApp.Admin.PostsLive do
+        alias MyApp.Products.Product
+
+        use Blank.AdminPage,
+          schema: Product,
+          icon: "hero-archive-box",
+          index_fields: [:title, :price]
+      end
+
+  ## Available options
+
+  The available options to `use Blank.AdminPage` are:
+  #{NimbleOptions.docs(@schema)}
+
+  ## Custom Stats
+
+  By default a total stat is included but you can add your own custom stats. You
+  can also disable the total stat by settings the `:stats` option to `[]`.
+
+  To add a custom stat you just add it to the `stats` option list. For example, 
+  if you wanted a stat for the total number of products in stock you could configure it
+  as below.
+
+      [
+        ...
+        in_stock: [
+          name: "Total in-stock",
+        ]
+        ...
+      ]
+
+  Here we have only configured the name of the stat and left all of the other
+  options as the defaults. Make sure to include the total stat, otherwise it 
+  won't be included. So for the above example we could include it by setting
+  `:total` to `[]` (i.e. all defaults are used).
+
+      [
+        total: [],
+        in_stock: [
+          name: "Total in-stock",
+        ]
+        ...
+      ]
+
+  To configure how the stat queries data, you need to add a `c:stat_query/2`
+  implementation. This function accepts two params, the first is the key for the
+  stat and the second is the Ecto query used for the index page. The function
+  then returns either a query that is run or a function that derives the value
+  from the assigns on the page.
+
+  See `c:stat_query/2` for more info.
+  """
+
+  import Ecto.Query, only: [from: 2, subquery: 1]
+
+  @doc """
+  Returns the config of the admin page
+  """
+  @callback config(key :: atom()) :: any()
+
+  @doc """
+  Returns the repo for the admin page
+  """
+  @callback repo() :: atom()
+
+  @doc """
+  Returns the stat query result
+
+  ## Parameters
+
+    * `key` - the key of the statistic that the query function returns
+    * `query` - the ecto query used to list items
+
+  ## Returns
+
+  Can either return a query that is run to fetch the stat, or a value function
+  that fetches the value from the assigns.
+
+  ### Query stats
+
+  If you want to perform an Ecto query you must return a tuple where the first
+  element is `:query` and the second is the query to be run.  Note you probably
+  will need to import `Ecto.Query` here.
+
+  For the in stock example above, the function could be as follows.
+
+      @impl Blank.AdminPage
+      def stat_query(:in_stock, query) do
+        {:query, from(i in query, where: i.stock > 0, select: count(i))}
+      end
+
+  ### Value stats
+
+  If you would prefer to use some value that exists in the assigns
+  on the page, you can return a tuple where the first element is `:value` and
+  the second is a one arity function where the page's assigns is passed.
+
+  The return of the function can be one of the following:
+
+    * `{:ok, value}` - where `value` is the value to be used
+    * `:loading` - if the value isn't available yet because the results list
+      hasn't loaded yet
+    * `:error` - if there was an error getting the value
+
+  For the in stock example above, the function could be as follows.
+
+      @impl Blank.AdminPage
+      def stat_query(:in_stock, _query) do
+        getter_fun = fn 
+          %{in_stock_count: nil} = _assigns ->
+            :loading
+
+          %{in_stock_count: val} = _assigns ->
+            {:ok, val}
+
+          _ ->
+            :error
+        end
+        {:value, getter_fun}
+      end
+
+  """
+  @callback stat_query(key :: atom(), query :: Ecto.Query.t()) ::
+              {:query, Ecto.Query.t()}
+              | {:value, (Phoenix.LiveView.Socket.assigns() -> {:ok, any()} | :loading | :error)}
+
+  @optional_callbacks stat_query: 2
+
   alias Phoenix.LiveView.AsyncResult
   alias Blank.Context
   use Blank.Web, :live_view
-
-  embed_templates("admin_page/*")
 
   defmacro __using__(opts) do
     opts =
@@ -109,15 +269,21 @@ defmodule Blank.AdminPage do
       |> Keyword.put_new_lazy(:key, fn -> get_key(opts[:schema]) end)
 
     default_fields = get_schema_fields(opts[:schema])
-    default_edit_fields = Enum.reject(default_fields, &(&1 in [:inserted_at, :updated_at]))
 
     opts =
       opts
       |> Keyword.put_new_lazy(:name, fn -> Atom.to_string(opts[:key]) end)
       |> Keyword.put_new(:plural_name, opts[:schema].__schema__(:source))
       |> Keyword.put_new(:index_fields, default_fields)
-      |> Keyword.put_new(:show_fields, default_edit_fields)
-      |> Keyword.put_new(:edit_fields, default_edit_fields)
+      |> then(fn kv ->
+        default_edit_fields =
+          Keyword.fetch!(kv, :index_fields)
+          |> Enum.reject(&(&1 in [:inserted_at, :updated_at]))
+
+        kv
+        |> Keyword.put_new(:show_fields, default_edit_fields)
+        |> Keyword.put_new(:edit_fields, default_edit_fields)
+      end)
 
     quote do
       @behaviour Blank.AdminPage
@@ -143,22 +309,22 @@ defmodule Blank.AdminPage do
       def handle_event(event, params, socket), do: AdminPage.handle_event(event, params, socket)
 
       @impl Phoenix.LiveView
+      def handle_info(event, socket), do: AdminPage.handle_info(event, socket)
+
+      @impl Phoenix.LiveView
       def render(assigns), do: AdminPage.render(assigns)
 
       @impl Blank.AdminPage
       def config(key), do: Keyword.fetch!(@config_opts, key)
 
       @impl Blank.AdminPage
-      def repo,
-        do:
-          Keyword.get(
-            @config_opts,
-            :repo,
-            Application.get_env(
-              :blank,
-              :repo
-            )
-          )
+      def repo do
+        Keyword.get(
+          @config_opts,
+          :repo,
+          Application.fetch_env!(:blank, :repo)
+        )
+      end
     end
   end
 
@@ -213,6 +379,48 @@ defmodule Blank.AdminPage do
     |> String.downcase()
     |> String.to_atom()
   end
+
+  embed_templates("admin_page/*")
+
+  @doc false
+  attr(:name, :string, required: true)
+  attr(:item_name, :string, required: true)
+  attr(:form, Phoenix.HTML.Form, required: true)
+  attr(:fields, :list, required: true)
+  attr(:form_btn, :string, required: true)
+  attr(:schema, :atom, required: true)
+  attr(:repo, :atom, required: true)
+  attr(:time_zone, :string, required: true)
+  def admin_edit(assigns)
+
+  @doc false
+  attr(:plural_name, :string, required: true)
+  attr(:name, :string, required: true)
+  attr(:active_link, :map, required: true)
+  attr(:stats, :list, required: true)
+  attr(:admin_page, :atom, required: true)
+  attr(:filter_fields, :list, required: true)
+  attr(:streams, :map, required: true)
+  attr(:meta, Flop.Meta, required: true)
+  attr(:primary_key, :atom, required: true)
+  attr(:live_action, :atom, required: true)
+  attr(:modal_fields, :list)
+  attr(:fields, :list, required: true)
+  attr(:schema, :atom, required: true)
+  attr(:repo, :atom, required: true)
+  attr(:time_zone, :string, required: true)
+  def admin_index(assigns)
+
+  @doc false
+  attr(:name, :string, required: true)
+  attr(:item_name, :string, required: true)
+  attr(:active_link, :map, required: true)
+  attr(:item, :map, required: true)
+  attr(:fields, :list, required: true)
+  attr(:primary_key, :atom, required: true)
+  attr(:schema, :atom, required: true)
+  attr(:time_zone, :string, required: true)
+  def admin_show(assigns)
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -620,6 +828,11 @@ defmodule Blank.AdminPage do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
     end
+  end
+
+  @impl Phoenix.LiveView
+  def handle_info(_event, socket) do
+    {:noreply, socket}
   end
 
   @decode_fields [Blank.Fields.BelongsTo, Blank.Fields.Location]

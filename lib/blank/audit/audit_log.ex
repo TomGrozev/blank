@@ -1,10 +1,30 @@
 defmodule Blank.Audit.AuditLog do
+  @moduledoc """
+  Schema modile for audit logs
+
+  This stores information about the user that performed the action, such as
+  their ip address, user agent and either their admin or user account.
+  """
   use Blank.Schema.Ecto
   @timestamps_opts [type: :utc_datetime]
 
   defmodule InvalidParameterError do
+    @moduledoc false
     defexception [:message]
   end
+
+  @type t :: %{
+          action: String.t(),
+          admin: Blank.Accounts.Admin.t(),
+          admin_id: String.t() | integer(),
+          id: String.t() | integer(),
+          inserted_at: DateTime.t(),
+          ip_address: String.t(),
+          params: map(),
+          user: struct(),
+          user_agent: String.t(),
+          user_id: String.t() | integer()
+        }
 
   schema "blank_audit_logs" do
     field(:action, :string)
@@ -18,6 +38,16 @@ defmodule Blank.Audit.AuditLog do
     timestamps(updated_at: false)
   end
 
+  @doc """
+  Creates a system log
+
+  This is a log with no user and the user agent set as `SYSTEM`.
+  """
+  @spec system() :: t()
+  def system do
+    %__MODULE__{user: nil, admin: nil, user_agent: "SYSTEM"}
+  end
+
   @allowed_params %{
     "accounts.login" => ~w(email type),
     "*.create" => ~w(item_id),
@@ -29,15 +59,16 @@ defmodule Blank.Audit.AuditLog do
   }
 
   @doc """
-  Creates a system log
-  """
-  def system do
-    %__MODULE__{user: nil, admin: nil, user_agent: "SYSTEM"}
-  end
-
-  @doc """
   Builds a audit log
+
+  ## Available actions
+
+  Star actions (e.g. `*.create`) are wildcards that allow any prefix.
+  The available actions are as follows:
+
+    #{Map.keys(@allowed_params)}
   """
+  @spec build!(t(), String.t(), map()) :: t()
   def build!(%__MODULE__{} = audit_context, action, params)
       when is_binary(action) and is_map(params) do
     %{
@@ -51,6 +82,8 @@ defmodule Blank.Audit.AuditLog do
     }
     |> validate_params!()
   end
+
+  defp validate_params!(%{action: "app." <> _} = log), do: log
 
   defp validate_params!(%{action: action, params: params} = log) do
     expected_keys =

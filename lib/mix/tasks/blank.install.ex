@@ -1,6 +1,16 @@
 defmodule Mix.Tasks.Blank.Install do
   @moduledoc """
-  Installs Blank
+  Installs Blank into an application
+
+  This will add blank into your tailwind config, install required audit options
+  (if enabled) and copy migrations.
+
+  Accepts the following options:
+
+    * `adapter` - specify the database adapter to be used.
+      Accepts: ecto_sql, arango
+    * `migrations_path` - path to the migrations folder (defaults to the
+      priv/repo/migrations in your project directory)
   """
 
   use Mix.Task
@@ -128,6 +138,7 @@ defmodule Mix.Tasks.Blank.Install do
 
   @socket_regex ~r/\[connect_info: (\[.*?\])\]/is
   defp add_audit_options do
+    # TODO: Add optional audit config option
     endpoint = Application.fetch_env!(:blank, :endpoint)
     Code.ensure_compiled!(endpoint)
 

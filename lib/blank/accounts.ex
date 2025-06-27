@@ -1,4 +1,6 @@
 defmodule Blank.Accounts do
+  @moduledoc false
+
   import Ecto.Query, warn: false
 
   alias Blank.Accounts.{Admin, AdminToken}
@@ -6,12 +8,13 @@ defmodule Blank.Accounts do
   @doc """
   Get all admins
   """
+  @spec list_admins() :: [Admin.t()]
   def list_admins do
     repo().all(Admin)
   end
 
   @doc """
-  Gets a admin by email.
+  Gets an admin by email.
 
   ## Examples
 
@@ -22,22 +25,26 @@ defmodule Blank.Accounts do
       nil
 
   """
+  @spec get_admin_by_email(String.t()) :: Admin.t() | nil
   def get_admin_by_email(email) when is_binary(email) do
     repo().get_by(Admin, email: email)
   end
 
   @doc """
-  Gets a admin by email and password.
+  Gets an admin by email and password.
 
   ## Examples
 
-      iex> get_admin_by_email_and_password(MyApp.Repo, "foo@example.com", "correct_password")
+      iex> get_admin_by_email_and_password("foo@example.com", "correct_password")
       %Admin{}
 
-      iex> get_admin_by_email_and_password(MyApp.Repo, "foo@example.com", "invalid_password")
+      iex> get_admin_by_email_and_password("foo@example.com", "invalid_password")
       nil
 
   """
+  @spec get_admin_by_email_and_password(String.t(), String.t()) ::
+          Admin.t()
+          | nil
   def get_admin_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
     admin = repo().get_by(Admin, email: email)
@@ -58,12 +65,16 @@ defmodule Blank.Accounts do
       ** (Ecto.NoResultsError)
 
   """
+  @spec get_admin!(integer()) :: Admin.t()
   def get_admin!(id), do: repo().get!(Admin, id)
 
   ## Admin Registration
 
   @doc """
   Registers an admin.
+
+  For available options refer to
+  `Blank.Accounts.Admin.registration_changeset/3`
 
   ## Examples
 
@@ -74,6 +85,7 @@ defmodule Blank.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec register_admin(map(), Keyword.t()) :: {:ok, Admin.t()} | {:error, Ecto.Changeset.t()}
   def register_admin(attrs, opts \\ []) do
     %Admin{}
     |> Admin.registration_changeset(attrs, opts)
@@ -89,6 +101,7 @@ defmodule Blank.Accounts do
       %Ecto.Changeset{data: %Admin}}
 
   """
+  @spec change_admin_registration(Admin.t(), map()) :: Ecto.Changeset.t()
   def change_admin_registration(%Admin{} = admin, attrs \\ %{}) do
     Admin.registration_changeset(admin, attrs, hash_password: false, validate_email: false)
   end
@@ -105,6 +118,7 @@ defmodule Blank.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec delete_admin(Admin.t()) :: {:ok, Admin.t()} | {:error, Ecto.Changeset.t()}
   def delete_admin(%Admin{} = admin) do
     repo().delete(admin)
   end
@@ -120,6 +134,7 @@ defmodule Blank.Accounts do
       %Ecto.Changeset{data: %Admin{}}
 
   """
+  @spec change_admin_password(Admin.t(), map()) :: Ecto.Changeset.t()
   def change_admin_password(admin, attrs \\ %{}) do
     Admin.password_changeset(admin, attrs, hash_password: false)
   end
@@ -136,6 +151,9 @@ defmodule Blank.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec update_admin_password(Admin.t(), String.t(), map()) ::
+          {:ok, Admin.t()}
+          | {:error, Ecto.Changeset.t()}
   def update_admin_password(admin, password, attrs) do
     changeset =
       admin
@@ -157,6 +175,7 @@ defmodule Blank.Accounts do
   @doc """
   Generates a session token.
   """
+  @spec generate_admin_session_token(Admin.t()) :: String.t()
   def generate_admin_session_token(admin) do
     {token, admin_token} = AdminToken.build_session_token(admin)
     repo().insert!(admin_token)
@@ -166,6 +185,7 @@ defmodule Blank.Accounts do
   @doc """
   Gets the admin with the given signed token.
   """
+  @spec get_admin_by_session_token(String.t()) :: Admin.t()
   def get_admin_by_session_token(token) do
     {:ok, query} = AdminToken.verify_session_token_query(token)
     repo().one(query)
@@ -174,6 +194,7 @@ defmodule Blank.Accounts do
   @doc """
   Deletes the signed token with the given context.
   """
+  @spec delete_admin_session_token(String.t()) :: :ok
   def delete_admin_session_token(token) do
     repo().delete_all(AdminToken.by_token_and_context_query(token, "session"))
     :ok

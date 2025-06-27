@@ -1,13 +1,22 @@
 defmodule Blank.Audit.Display do
-  @moduledoc """
-  Methods to display audit log messages correctly
-  """
+  @moduledoc false
 
   import Phoenix.Component
 
+  alias Blank.Audit.AuditLog
+
   @doc """
   Returns descriptive text for the log type
+
+  ## Parameters
+
+    * `log` - the audit log the display
+    * `prefix` - the path prefix for the admin panel (used for generating
+      links)
+    * `schema_links` - the links used from the nav
+    * `type` - the name of the thing logged (extracted from the action)
   """
+  @spec text(AuditLog.t(), String.t(), map(), String.t() | nil) :: String.t()
   def text(log, prefix, schema_links, type \\ nil)
 
   def text(%{action: "accounts.login"} = log, prefix, schema_links, _type) do
@@ -159,6 +168,7 @@ defmodule Blank.Audit.Display do
   @doc """
   Returns the icon name for a log type
   """
+  @spec icon(AuditLog.t()) :: String.t()
   def icon(%{action: "accounts.login"}), do: "hero-arrow-right-end-on-rectangle"
   def icon(%{action: "accounts.logout"}), do: "hero-arrow-left-start-on-rectangle"
   def icon(%{action: "*.create"}), do: "hero-plus"
@@ -179,6 +189,7 @@ defmodule Blank.Audit.Display do
   @doc """
   Returns the colour for the log type
   """
+  @spec colour(AuditLog.t()) :: String.t()
   def colour(%{action: "accounts." <> _}), do: "bg-emerald-400"
   def colour(%{action: "*.create"}), do: "bg-blue-400"
   def colour(%{action: "*.create_multiple"}), do: "bg-blue-400"

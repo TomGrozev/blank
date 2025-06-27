@@ -1,4 +1,5 @@
 defmodule Blank.Controllers.SessionController do
+  @moduledoc false
   use Blank.Web, :controller
 
   alias Blank.Accounts

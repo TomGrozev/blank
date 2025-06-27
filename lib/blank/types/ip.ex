@@ -1,7 +1,6 @@
 defmodule Blank.Types.IP do
-  @moduledoc """
-  Implements Ecto.Type behavior for storing IP (either v4 or v6) data that originally comes as tuples.
-  """
+  @moduledoc false
+  ### Implements Ecto.Type behavior for storing IP (either v4 or v6) data that originally comes as tuples.
 
   use Ecto.Type
 

@@ -1,4 +1,5 @@
 defmodule Blank.Components.ExportComponent do
+  @moduledoc false
   use Blank.Web, :live_component
 
   alias Blank.Exporter

@@ -1,4 +1,6 @@
 defmodule Blank.Accounts.AdminToken do
+  @moduledoc false
+
   use Blank.Schema.Ecto
 
   import Ecto.Query

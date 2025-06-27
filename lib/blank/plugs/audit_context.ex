@@ -1,10 +1,44 @@
 defmodule Blank.Plugs.AuditContext do
+  @moduledoc """
+  Plug to apply the audit context
+
+  This fetches the user's ip address, user agent and their user/admin struct and
+  applies it to the `audit_context` assign. This is then used later for when
+  logs are created so it is clear who performs an action.
+
+  This module is automatically applied to all blank admin routes but you must
+  add it to your app router to ensure audit logs are created for frontend
+  actions.
+
+  ## Adding to your application's router
+
+  To do this you need to add the plug in two places, the conn pipeline and the
+  live_session. For example, see below.
+
+      import Blank.Plugs.AuditContext
+
+      pipeline :browser do
+        ...
+        plug :fetch_audit_context
+      end
+
+      live_session :default,
+        on_mount: [
+          ...
+          Blank.Plugs.AuditContext
+        ] do
+
+  Make sure that you add the audit context options **after** your user plug.
+  Otherwise, it won't be able to fetch the user details.
+  """
+
   import Plug.Conn
   alias Blank.Audit.AuditLog
 
   @doc """
-  Loads the audit context into the connection
+  Loads the audit context into the plug connection
   """
+  @spec fetch_audit_context(Plug.Conn.t(), Keyword.t()) :: Plug.Conn.t()
   def fetch_audit_context(conn, _opts) do
     assign(conn, :audit_context, get_audit_context(conn))
   end
@@ -12,7 +46,9 @@ defmodule Blank.Plugs.AuditContext do
   @doc """
   Mounts the audit context into the live session
   """
-  def on_mount(:load_context, _params, _session, socket) do
+  @spec on_mount(atom(), map(), map(), Phoenix.LiveView.Socket.t()) ::
+          Phoenix.LiveView.Socket.t()
+  def on_mount(_, _params, _session, socket) do
     {:cont, Phoenix.Component.assign(socket, :audit_context, get_audit_context(socket))}
   end
 

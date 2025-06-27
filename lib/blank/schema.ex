@@ -1,23 +1,78 @@
 defprotocol Blank.Schema do
   @moduledoc """
-  Blank.Schema is a protocol that defines how Blank will query and use your 
-  Ecto schemas.
+  Protocol for querying info from Ecto schemas.
+
+  ## Available options
+
+  #{NimbleOptions.docs(Blank.Schema.Validator.__schema__())}
+
+  ## Example
+
+      @derive {
+        Blank.Schema,
+        fields: [
+          authors: [
+            display_field: :full_name,
+            searchable: true,
+            sortable: true,
+            select: quote(do: dynamic([p], fragment("concat(?, ' ', ?)", p.first_name, p.last_name))),
+            children: [
+              first_name: [],
+              last_name: []
+            ]
+          ],
+          content: [
+            viewable: false
+          ]
+        ],
+        identity_field: :people,
+        order_field: :inserted_at
+      }
+  """
+
+  @doc """
+  Returns the display name of a struct
+
+  Uses the `identity_field` option and if the value is a struct itself, then the
+  `display_field` is used.
   """
   @spec name(any()) :: String.t()
   def name(data)
 
+  @doc """
+  Returns the primary key of the struct
+
+  By default this is usually the `:id` key.
+  """
   @spec primary_key(any()) :: atom()
   def primary_key(data)
 
+  @doc """
+  Returns the changeset function that is to be used
+
+  Depending on the action, this could be the `:create_changeset` option or the
+  `:update_changeset` option.
+  """
   @spec changeset(any(), :new | :edit) :: function()
   def changeset(data, action)
 
-  @spec get_field(any(), atom()) :: any()
+  @doc """
+  Returns the field definition for key
+
+  The field definition is validated on fetch due to the schema being dynamic.
+  """
+  @spec get_field(any(), atom()) :: Blank.Field.t()
   def get_field(data, field)
 
+  @doc """
+  Returns the identity field option
+  """
   @spec identity_field(any()) :: atom()
   def identity_field(data)
 
+  @doc """
+  Returns the order field options
+  """
   @spec order_field(any()) :: atom()
   def order_field(data)
 end
@@ -28,15 +83,34 @@ defimpl Blank.Schema, for: Any do
   @instructions """
   Blank.Schema protocol must always be explicitly implemented.
 
-  To do this, you have to derive Blank.Schema in your Ecto schema module.
+  To do this, you have to derive Blank.Schema in your Ecto schema module. For
+  example: 
 
       @derive {
         Blank.Schema,
-        TODO
+        fields: [
+          authors: [
+            display_field: :full_name,
+            searchable: true,
+            sortable: true,
+            select: quote(do: dynamic([p], fragment("concat(?, ' ', ?)", p.first_name, p.last_name))),
+            children: [
+              first_name: [],
+              last_name: []
+            ]
+          ],
+          content: [
+            viewable: false
+          ]
+        ],
+        identity_field: :people,
+        order_field: :inserted_at
       }
 
-      schema "users" do
-        field :name, :string
+      schema "posts" do
+        field :content, :string
+
+        has_many :people, Person, on_delete: :delete_all, on_replace: :delete
       end
 
   """
@@ -92,23 +166,21 @@ defimpl Blank.Schema, for: Any do
 
   @doc false
   def __name__(struct, identity_field) do
-    case Map.get(struct, identity_field) do
-      val when is_list(val) ->
-        Blank.Schema.get_field(struct, identity_field)
-        |> Map.get(:display_field, :id)
-        |> then(fn display_field ->
-          Enum.map_join(val, ", ", &Map.fetch!(&1, display_field))
-        end)
-
-      %{} = val ->
-        Blank.Schema.get_field(struct, identity_field)
-        |> Map.get(:display_field, :id)
-        |> then(&Map.fetch!(val, &1))
-
-      val ->
-        val
-    end
+    Map.get(struct, identity_field)
+    |> get_name(struct, identity_field)
   end
+
+  defp get_name(val, struct, identity_field) when is_list(val) do
+    Enum.map_join(val, ", ", &get_name(&1, struct, identity_field))
+  end
+
+  defp get_name(val, struct, identity_field) when is_map(val) do
+    Blank.Schema.get_field(struct, identity_field)
+    |> Map.get(:display_field, :id)
+    |> then(&Map.fetch!(val, &1))
+  end
+
+  defp get_name(val, _struct, _identity_field), do: val
 
   defp default_order(nil, pk), do: {pk, :asc}
 
@@ -258,6 +330,7 @@ defimpl Blank.Schema, for: Any do
          maybe_add(acc_sort, sortable, search_name), j_opts}
       end)
 
+    # TODO: Fix non string search in compound fields
     adapter_opts = [
       join_fields: join_opts,
       compound_fields: [

@@ -1,4 +1,5 @@
 defmodule Blank.Plugs.Auth do
+  @moduledoc false
   import Plug.Conn
   import Phoenix.Controller
 

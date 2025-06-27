@@ -1,4 +1,5 @@
 defmodule Blank.Pages.AuditLogLive do
+  @moduledoc false
   use Blank.Web, :live_view
 
   alias Blank.Components.AuditLogComponent

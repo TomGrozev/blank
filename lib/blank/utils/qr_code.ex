@@ -1,4 +1,13 @@
 defmodule Blank.Utils.QRCode do
+  @moduledoc false
+
+  @doc """
+  Creates an SVG QR code
+
+  This takes the code and the path and generates the QR code where the path with
+  the base url is passed a query parameter `code` with the value of the passed
+  code.
+  """
   @spec svg(String.t()) :: String.t()
   def svg(code, path \\ "/") do
     generate(code, path)
@@ -8,6 +17,13 @@ defmodule Blank.Utils.QRCode do
     )
   end
 
+  @doc """
+  Creates a PNG QR code
+
+  This takes the code and the path and generates the QR code where the path with
+  the base url is passed a query parameter `code` with the value of the passed
+  code.
+  """
   @spec png(String.t()) :: String.t()
   def png(code, path \\ "/") do
     generate(code, path)

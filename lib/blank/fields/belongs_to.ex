@@ -1,4 +1,10 @@
 defmodule Blank.Fields.BelongsTo do
+  @moduledoc """
+  Belongs to field
+
+
+  """
+
   use Blank.Field
 
   alias Blank.Context

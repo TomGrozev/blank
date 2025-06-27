@@ -1,6 +1,14 @@
 defmodule Blank.Stats.Value do
-  use Blank.Stats
+  @moduledoc """
+  Displays a basic value
 
+  Uses async loading of the value.
+  """
+  use Blank.Stats
+  alias Phoenix.LiveView.AsyncResult
+
+  attr :name, :string, required: true
+  attr :value, AsyncResult, required: true
   @impl Blank.Stats
   def render(assigns) do
     ~H"""

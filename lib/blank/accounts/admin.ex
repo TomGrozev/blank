@@ -1,4 +1,6 @@
 defmodule Blank.Accounts.Admin do
+  @moduledoc false
+
   use Blank.Schema.Ecto
   import Ecto.Changeset
 

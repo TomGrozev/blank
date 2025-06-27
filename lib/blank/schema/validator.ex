@@ -8,7 +8,7 @@ defmodule Blank.Schema.Validator do
     ],
     module: [
       type: :atom,
-      doc: "The rendering module"
+      doc: "The rendering module, see `Blank.Field` for more info"
     ],
     label: [
       type: :string,
@@ -76,7 +76,13 @@ defmodule Blank.Schema.Validator do
           type: :non_empty_keyword_list,
           keys: @field_schema
         ]
-      ]
+      ],
+      doc: """
+      All options specified below apply to all field definitions.
+
+      Based on the module specified, additional options can be supplied. Refer 
+      to the module for more info on available options.
+      """
     ],
     order_field: [
       type:
@@ -98,9 +104,13 @@ defmodule Blank.Schema.Validator do
       default: nil
     ],
     flop_opts: [
-      type: :keyword_list
+      type: :keyword_list,
+      doc: "Options that are passed to flop, see the flop docs for more info."
     ]
   ]
+
+  @doc false
+  def __schema__, do: @schema
 
   @doc false
   def field_schema, do: @field_schema

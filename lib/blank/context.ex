@@ -1,9 +1,12 @@
 defmodule Blank.Context do
+  @moduledoc false
   import Ecto.Query
 
   alias Blank.Audit
 
   def paginate_schema(repo, schema, params, fields) do
+    dbg(params)
+
     try do
       list_query(schema, fields)
       |> Flop.validate_and_run(params, repo: repo, for: schema)

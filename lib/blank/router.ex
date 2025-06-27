@@ -1,29 +1,9 @@
 defmodule Blank.Router do
   @moduledoc """
   Provides routing options for blank admin panel.
-  """
 
-  @doc """
-  Defines the Blank routes.
-
-  It expects the `path` the admin panel will be mounted at
-  and a set of options. You can then link to the route directly:
-
-      <a href={~p"/admin"}>Admin Panel</a>
-
-  ## Options
-
-    * `:live_socket_path` - Configures the socket path. it must match
-      the `socket "/live", Phoenix.LiveView.Socket` in your endpoint.
-
-    * `:ecto_repos` - the repositories where data is stored.
-      Currently only PostgreSQL, MySQL, and SQLite databases are supported.
-
-    * `:on_mount` - Declares a custom list of `Phoenix.LiveView.on_mount/1`
-      callbacks to add to the admin panel's `Phoenix.LiveView.Router.live_session/3`.
-      A single value may also be declared.
-
-  ## Examples
+  The two macros in this function are mearly wrappers around regular Phoenix
+  routing. Below is an example of how it can be used.
 
       defmodule MyAppWeb.Router do
         use Phoenix.Router
@@ -31,8 +11,48 @@ defmodule Blank.Router do
 
         scope "/", MyAppWeb do
           pipe_through [:browser]
-          blank_admin "/admin"
         end
+
+        blank_admin "/admin" do
+          admin_page("/products", MyAppWeb.Admin.ProductsLive)
+        end
+      end
+  """
+
+  @doc """
+  Defines the Blank routes.
+
+  Expects the `path` the admin panel will be mounted at
+  and a set of options. You can then link to the home of the admin panel
+  directly.
+
+      <a href={~p"/admin"}>Admin Panel</a>
+
+  The options supplied in the do block define each admin page, see
+  `admin_page/2`.
+
+  ## Options
+
+  These options are generally not required and only needed for some advanced
+  setups.
+
+    * `:live_session_name` - Configures the name of the live session. Defaults
+      to `:blank_admin_panel`
+    * `:on_mount` - Declares a custom list of `Phoenix.LiveView.on_mount/1`
+      callbacks to add to the admin panel's `Phoenix.LiveView.Router.live_session/3`.
+      A single value may also be declared.
+
+  ## Examples
+
+      defmodule MyAppWeb.Router do
+        ...
+
+        blank_admin "/admin" do
+          admin_page("/products", MyAppWeb.Admin.ProductsLive)
+          ...
+        end
+
+        ...
       end
 
   """
@@ -74,7 +94,7 @@ defmodule Blank.Router do
             layout: {Blank.LayoutView, :basic},
             on_mount: [
               {Blank.Plugs.Auth, :redirect_if_admin_is_authenticated},
-              {Blank.Plugs.AuditContext, :load_context}
+              Blank.Plugs.AuditContext
             ] do
             live("/log_in", Blank.Pages.LoginLive, :new)
           end
@@ -90,9 +110,12 @@ defmodule Blank.Router do
             live("/profile", Blank.Pages.ProfileLive, :profile)
             live("/settings", Blank.Pages.SettingsLive, :settings)
             live("/audit", Blank.Pages.AuditLogLive, :audit)
+
             get("/download", Blank.Controllers.ExportController, :download)
             get("/qrcode", Blank.Controllers.ExportController, :qr_code)
+
             admin_page("/admins", Blank.Pages.AdminsLive)
+
             unquote(block)
           end
 
@@ -126,31 +149,37 @@ defmodule Blank.Router do
       Enum.concat(options[:on_mount] || [], [
         Blank.Nav,
         {Blank.Plugs.Auth, :ensure_authenticated},
-        {Blank.Plugs.AuditContext, :load_context}
+        Blank.Plugs.AuditContext
       ])
 
     {
       options[:live_session_name] || :blank_admin_panel,
       [
-        # session: {__MODULE__, :__session__, session_args},
         on_mount: on_mount,
         root_layout: {Blank.LayoutView, :root}
       ]
     }
   end
 
-  @doc false
-  def __session__(
-        _conn,
-        ecto_repos
-      ) do
-    %{
-      "repos" => ecto_repos
-    }
-  end
-
   @doc """
   Defines an admin page for a resource
+
+  This must be used within the do block of the `blank_admin/3` function.
+
+  ## Parameters
+
+    * `path` - the path to the route
+    * `module` - the admin page module
+
+  ## Examples
+
+      blank_admin "/admin" do
+        ...
+        admin_page("/products", MyAppWeb.Admin.ProductsLive)
+        admin_page("/people", MyAppWeb.Admin.PeopleLive)
+        admin_page("/posts", MyAppWeb.Admin.PostsLive)
+        ...
+      end
   """
   defmacro admin_page(path, module) do
     quote bind_quoted: binding() do
