@@ -277,7 +277,7 @@ defmodule Blank.AdminPage do
       |> Keyword.put_new(:index_fields, default_fields)
       |> then(fn kv ->
         default_edit_fields =
-          Keyword.fetch!(kv, :index_fields)
+          default_fields
           |> Enum.reject(&(&1 in [:inserted_at, :updated_at]))
 
         kv

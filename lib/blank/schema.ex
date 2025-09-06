@@ -330,7 +330,6 @@ defimpl Blank.Schema, for: Any do
          maybe_add(acc_sort, sortable, search_name), j_opts}
       end)
 
-    # TODO: Fix non string search in compound fields
     adapter_opts = [
       join_fields: join_opts,
       compound_fields: [
