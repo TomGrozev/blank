@@ -1,4 +1,8 @@
 defmodule Blank.Fields.DateTime do
+  @moduledoc """
+  Renders a datetime field
+  """
+
   use Blank.Field
 
   @impl Blank.Field

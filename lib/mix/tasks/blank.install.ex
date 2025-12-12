@@ -138,7 +138,6 @@ defmodule Mix.Tasks.Blank.Install do
 
   @socket_regex ~r/\[connect_info: (\[.*?\])\]/is
   defp add_audit_options do
-    # TODO: Add optional audit config option
     endpoint = Application.fetch_env!(:blank, :endpoint)
     Code.ensure_compiled!(endpoint)
 

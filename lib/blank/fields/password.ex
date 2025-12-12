@@ -1,12 +1,14 @@
 defmodule Blank.Fields.Password do
+  @moduledoc """
+  Renders a password field
+  """
+
   use Blank.Field
 
   @impl Blank.Field
   def render_display(assigns) do
     ~H"""
-    <span>
-      {@value}
-    </span>
+    <span>************</span>
     """
   end
 

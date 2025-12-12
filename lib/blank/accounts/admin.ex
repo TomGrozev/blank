@@ -17,6 +17,15 @@ defmodule Blank.Accounts.Admin do
     update_changeset: &__MODULE__.password_changeset/2
   }
 
+  @type t :: %{
+          email: String.t(),
+          password: String.t(),
+          hashed_password: String.t(),
+          current_password: String.t(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "blank_admins" do
     field(:email, :string)
     field(:password, :string, virtual: true, redact: true)
@@ -51,6 +60,7 @@ defmodule Blank.Accounts.Admin do
 
     * `:repo` - The repo to use for validation
   """
+  @spec registration_changeset(t(), map(), Keyword.t()) :: Ecto.Changeset.t()
   def registration_changeset(admin, attrs, opts \\ []) do
     admin
     |> cast(attrs, [:email, :password])
@@ -119,6 +129,7 @@ defmodule Blank.Accounts.Admin do
       validations on a LiveView form), this option can be set to `false`.
       Defaults to `true`.
   """
+  @spec password_changeset(t(), map(), Keyword.t()) :: Ecto.Changeset.t()
   def password_changeset(admin, attrs, opts \\ []) do
     admin
     |> cast(attrs, [:password])
@@ -132,6 +143,7 @@ defmodule Blank.Accounts.Admin do
   If there is no admin or the admin doesn't have a password, we call
   `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
+  @spec valid_password?(t(), String.t()) :: boolean()
   def valid_password?(%Blank.Accounts.Admin{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
     Bcrypt.verify_pass(password, hashed_password)
@@ -145,6 +157,7 @@ defmodule Blank.Accounts.Admin do
   @doc """
   Validates the current password otherwise adds an error to the changeset.
   """
+  @spec validate_current_password(Ecto.Changeset.t(), String.t()) :: Ecto.Changeset.t()
   def validate_current_password(changeset, password) do
     changeset = cast(changeset, %{current_password: password}, [:current_password])
 

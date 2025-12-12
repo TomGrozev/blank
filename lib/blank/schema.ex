@@ -30,6 +30,8 @@ defprotocol Blank.Schema do
       }
   """
 
+  @type action() :: :new | :edit
+
   @doc """
   Returns the display name of a struct
 
@@ -53,7 +55,7 @@ defprotocol Blank.Schema do
   Depending on the action, this could be the `:create_changeset` option or the
   `:update_changeset` option.
   """
-  @spec changeset(any(), :new | :edit) :: function()
+  @spec changeset(any(), action()) :: function()
   def changeset(data, action)
 
   @doc """

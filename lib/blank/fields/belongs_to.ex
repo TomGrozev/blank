@@ -1,8 +1,6 @@
 defmodule Blank.Fields.BelongsTo do
   @moduledoc """
-  Belongs to field
-
-
+  Belongs to search field
   """
 
   use Blank.Field

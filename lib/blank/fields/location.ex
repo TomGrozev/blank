@@ -1,5 +1,9 @@
 if Code.ensure_loaded?(Geo) do
   defmodule Blank.Fields.Location do
+    @moduledoc """
+    Renders a location field
+    """
+
     @schema [
       address_fun: [
         type: {:fun, 1},
@@ -100,8 +104,11 @@ if Code.ensure_loaded?(Geo) do
       """
     end
 
-    defp get_lon_lat_addr(%{"coordinates" => [lon, lat], "properties" => %{"address" => address}}),
-      do: {lon, lat, address}
+    defp get_lon_lat_addr(%{
+           "coordinates" => [lon, lat],
+           "properties" => %{"address" => address}
+         }),
+         do: {lon, lat, address}
 
     defp get_lon_lat_addr(%Geo.Point{
            coordinates: {lon, lat},
@@ -122,6 +129,10 @@ end
 
 if !Code.ensure_loaded?(Geo) do
   defmodule Blank.Fields.Location do
+    @moduledoc """
+    Renders a location field
+    """
+
     use Blank.Field
 
     @impl Blank.Field

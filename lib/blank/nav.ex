@@ -38,6 +38,11 @@ defmodule Blank.Nav do
     ]
   }
 
+  @doc """
+  Mounts the nav links into the socket
+  """
+  @spec on_mount(:default, map(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:cont, Phoenix.LiveView.Socket.t()}
   def on_mount(:default, _params, _session, socket) do
     prefix = socket.router.__blank_prefix__()
     modules = socket.router.__blank_modules__()

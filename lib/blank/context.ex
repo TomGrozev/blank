@@ -4,9 +4,14 @@ defmodule Blank.Context do
 
   alias Blank.Audit
 
-  def paginate_schema(repo, schema, params, fields) do
-    dbg(params)
+  @type fields() :: [{atom(), Blank.Field.t()}]
 
+  @doc """
+  Paginates a schema with specified fields
+  """
+  @spec paginate_schema(Ecto.Repo.t(), Ecto.Schema.t(), map(), fields()) ::
+          {:ok, {[any()], Flop.Meta.t()}} | {:error, Flop.Meta.t()}
+  def paginate_schema(repo, schema, params, fields) do
     try do
       list_query(schema, fields)
       |> Flop.validate_and_run(params, repo: repo, for: schema)
@@ -16,6 +21,11 @@ defmodule Blank.Context do
     end
   end
 
+  @doc """
+  Generates an options query
+  """
+  @spec options_query(Ecto.Repo.t(), Ecto.Schema.t(), Blank.Field.t(), Ecto.Query.t()) ::
+          [struct()]
   def options_query(repo, schema, field_def, query) do
     from(item in schema)
     |> apply_search(query, schema, field_def)
@@ -23,11 +33,19 @@ defmodule Blank.Context do
     |> repo.all()
   end
 
+  @doc """
+  List all the schema ids
+  """
+  @spec list_schema_by_ids(Ecto.Repo.t(), Ecto.Schema.t(), [binary()]) :: [struct()]
   def list_schema_by_ids(repo, schema, ids) do
     from(item in schema, where: item.id in ^ids)
     |> repo.all()
   end
 
+  @doc """
+  List all items in schema
+  """
+  @spec list_schema(Ecto.Repo.t(), Ecto.Schema.t(), fields()) :: [struct()]
   def list_schema(repo, schema, fields) do
     list_query(schema, fields)
     |> repo.all()
@@ -99,6 +117,10 @@ defmodule Blank.Context do
 
   defp maybe_select(query, _), do: query
 
+  @doc """
+  Generate a query to list schemas
+  """
+  @spec list_query(Ecto.Schema.t(), fields()) :: Ecto.Query.t()
   def list_query(schema, fields) do
     {selectable, assocs} = get_associations(fields, schema)
 
@@ -115,6 +137,10 @@ defmodule Blank.Context do
     |> select(^selectable)
   end
 
+  @doc """
+  Get an item by id
+  """
+  @spec get!(Ecto.Repo.t(), Ecto.Schema.t(), integer()) :: struct()
   def get!(repo, schema, id) do
     primary_key = Blank.Schema.primary_key(struct(schema))
 
@@ -122,6 +148,10 @@ defmodule Blank.Context do
     |> repo.one!()
   end
 
+  @doc """
+  Get an item by id with fields
+  """
+  @spec get!(Ecto.Repo.t(), Ecto.Schema.t(), integer(), fields()) :: struct()
   def get!(repo, schema, id, fields) do
     primary_key = Blank.Schema.primary_key(struct(schema))
 
@@ -178,6 +208,10 @@ defmodule Blank.Context do
     end)
   end
 
+  @doc """
+  Get the primary key for a schema
+  """
+  @spec get_primary_key(struct() | module()) :: any()
   def get_primary_key(%{__struct__: struct}) when is_atom(struct),
     do: get_primary_key(struct)
 
@@ -212,6 +246,10 @@ defmodule Blank.Context do
     |> preload(^preloads)
   end
 
+  @doc """
+  Build a changeset for a schema
+  """
+  @spec change(struct(), Blank.Schema.action(), map()) :: Ecto.Changeset.t()
   def change(item, action, attrs \\ %{}) do
     changeset_function = Blank.Schema.changeset(item, action)
 
@@ -220,6 +258,11 @@ defmodule Blank.Context do
     |> changeset_function.(attrs)
   end
 
+  @doc """
+  Update an item
+  """
+  @spec update(Ecto.Repo.t(), Blank.Audit.AuditLog.t(), struct(), map()) ::
+          {:ok, struct()} | {:error, Ecto.Changeset.t()}
   def update(repo, audit_context, item, params) do
     changeset = change(item, :edit, params)
 
@@ -235,6 +278,11 @@ defmodule Blank.Context do
     end
   end
 
+  @doc """
+  Creates an item
+  """
+  @spec create(Ecto.Repo.t(), Blank.Audit.AuditLog.t(), struct(), map()) ::
+          {:ok, struct()} | {:error, Ecto.Changeset.t()}
   def create(repo, audit_context, item, params) do
     changeset = change(item, :new, params)
 
@@ -250,6 +298,11 @@ defmodule Blank.Context do
     end
   end
 
+  @doc """
+  Creates multiple items
+  """
+  @spec create_multiple(Ecto.Repo.t(), Blank.Audit.AuditLog.t(), Ecto.Schema.t(), map()) ::
+          {:ok, integer()} | {:error, Ecto.Changeset.t()}
   def create_multiple(repo, audit_context, schema, params) do
     item = struct(schema)
 
@@ -270,6 +323,11 @@ defmodule Blank.Context do
     end
   end
 
+  @doc """
+  Deletes an item
+  """
+  @spec delete(Ecto.Repo.t(), Blank.Audit.AuditLog.t(), struct()) ::
+          {:ok, struct()} | {:error, Ecto.Changeset.t()}
   def delete(repo, audit_context, item) do
     Ecto.Multi.new()
     |> Ecto.Multi.delete(:item, item)

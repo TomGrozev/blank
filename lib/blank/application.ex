@@ -3,6 +3,11 @@ defmodule Blank.Application do
 
   use Application
 
+  @doc """
+  Starts the blank application
+  """
+  @spec start(Application.start_type(), term()) ::
+          {:ok, pid()} | {:error, {:already_started, pid()} | {:shutdown, term()} | term()}
   def start(_, _) do
     children = [
       # {DynamicSupervisor, name: Blank.DynamicSupervisor, strategy: :one_for_one},

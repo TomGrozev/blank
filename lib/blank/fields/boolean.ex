@@ -1,4 +1,8 @@
 defmodule Blank.Fields.Boolean do
+  @moduledoc """
+  Renders a boolean checkmark
+  """
+
   use Blank.Field
 
   @impl Blank.Field

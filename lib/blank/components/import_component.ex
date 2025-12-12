@@ -244,18 +244,27 @@ defmodule Blank.Components.ImportComponent do
              socket.assigns.schema,
              rows
            ) do
-        count when count == total ->
+        {:ok, count} when count == total ->
           {:noreply,
            socket
            |> put_flash(:info, "Imported #{count} rows")
            |> push_patch(to: socket.assigns.patch)}
 
-        count ->
+        {:ok, count} ->
           {:noreply,
            socket
            |> put_flash(
              :error,
              "Failed to import #{socket.assigns.plural_name}, inserted (#{count}/#{total})"
+           )
+           |> push_patch(socket.assigns.patch)}
+
+        {:error, _} ->
+          {:noreply,
+           socket
+           |> put_flash(
+             :error,
+             "Failed to import #{socket.assigns.plural_name}"
            )
            |> push_patch(socket.assigns.patch)}
       end

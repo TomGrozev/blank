@@ -1,4 +1,8 @@
 defmodule Blank.Fields.QRCode do
+  @moduledoc """
+  Renders a qr code
+  """
+
   @schema [
     path: [
       type: :string,

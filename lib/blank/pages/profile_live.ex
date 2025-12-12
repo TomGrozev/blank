@@ -4,6 +4,7 @@ defmodule Blank.Pages.ProfileLive do
 
   alias Blank.Accounts
 
+  @doc false
   def render(assigns) do
     ~H"""
     <.header class="text-center">
@@ -52,6 +53,7 @@ defmodule Blank.Pages.ProfileLive do
     """
   end
 
+  @doc false
   def mount(_params, _session, socket) do
     admin = socket.assigns.current_admin
     password_changeset = Accounts.change_admin_password(admin)
@@ -67,6 +69,7 @@ defmodule Blank.Pages.ProfileLive do
     {:ok, socket}
   end
 
+  @doc false
   def handle_event("validate_password", params, socket) do
     %{"current_password" => password, "admin" => admin_params} = params
 

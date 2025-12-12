@@ -1,6 +1,7 @@
 defmodule Blank.Web do
   @moduledoc false
 
+  @doc false
   def html do
     quote do
       use Phoenix.Component
@@ -13,6 +14,7 @@ defmodule Blank.Web do
     end
   end
 
+  @doc false
   def controller do
     quote do
       use Phoenix.Controller, formats: [:json]
@@ -21,6 +23,7 @@ defmodule Blank.Web do
     end
   end
 
+  @doc false
   def live_view do
     quote do
       use Phoenix.LiveView,
@@ -31,6 +34,7 @@ defmodule Blank.Web do
     end
   end
 
+  @doc false
   def live_component do
     quote do
       use Phoenix.LiveComponent
@@ -39,6 +43,7 @@ defmodule Blank.Web do
     end
   end
 
+  @doc false
   def flash_helpers do
     quote do
       def handle_info(:clear_flash, socket) do
@@ -47,6 +52,7 @@ defmodule Blank.Web do
     end
   end
 
+  @doc false
   def field do
     quote do
       use Phoenix.Component
@@ -56,6 +62,7 @@ defmodule Blank.Web do
     end
   end
 
+  @doc false
   def stat do
     quote do
       use Phoenix.Component

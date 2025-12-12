@@ -56,6 +56,7 @@ defmodule Blank.Router do
       end
 
   """
+  @spec blank_admin(String.t(), Keyword.t(), do: Macro.t()) :: Macro.t()
   defmacro blank_admin(path, opts \\ [], do: block) do
     opts =
       if Macro.quoted_literal?(opts) do
@@ -131,9 +132,12 @@ defmodule Blank.Router do
       unless Module.get_attribute(__MODULE__, :blank_prefix) do
         @blank_prefix Phoenix.Router.scoped_path(__MODULE__, path)
                       |> String.replace_suffix("/", "")
+
+        @doc false
         def __blank_prefix__, do: @blank_prefix
       end
 
+      @doc false
       def __blank_modules__, do: @blank_admin_modules
     end
   end
@@ -181,6 +185,7 @@ defmodule Blank.Router do
         ...
       end
   """
+  @spec admin_page(String.t(), module()) :: Macro.t()
   defmacro admin_page(path, module) do
     quote bind_quoted: binding() do
       Phoenix.Router.scoped_alias(__MODULE__, module)

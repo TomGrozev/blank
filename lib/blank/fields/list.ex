@@ -1,4 +1,8 @@
 defmodule Blank.Fields.List do
+  @moduledoc """
+  Renders a list of sub fields
+  """
+
   use Blank.Field
 
   @impl Blank.Field

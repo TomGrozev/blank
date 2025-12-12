@@ -5,6 +5,10 @@ defmodule Blank.Controllers.SessionController do
   alias Blank.Accounts
   alias Blank.Plugs.Auth
 
+  @doc """
+  Creates a new session
+  """
+  @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, %{"_action" => "password_updated"} = params) do
     prefix = conn.private.phoenix_router.__blank_prefix__()
 
@@ -35,6 +39,10 @@ defmodule Blank.Controllers.SessionController do
     end
   end
 
+  @doc """
+  Deletes an existing session
+  """
+  @spec delete(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def delete(conn, _params) do
     conn
     |> put_flash(:info, "Logged out successfully.")

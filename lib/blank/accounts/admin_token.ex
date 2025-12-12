@@ -5,12 +5,21 @@ defmodule Blank.Accounts.AdminToken do
 
   import Ecto.Query
   alias Blank.Accounts.AdminToken
+  alias Blank.Accounts.Admin
+
+  @type t :: %{
+          token: binary(),
+          context: String.t(),
+          sent_to: String.t(),
+          admin: Admin.t(),
+          inserted_at: DateTime.t()
+        }
 
   schema "blank_admins_tokens" do
     field(:token, @binary_type)
     field(:context, :string)
     field(:sent_to, :string)
-    belongs_to(:admin, Blank.Accounts.Admin)
+    belongs_to(:admin, Admin)
 
     timestamps(type: :utc_datetime, updated_at: false)
   end
@@ -40,6 +49,7 @@ defmodule Blank.Accounts.AdminToken do
   and devices in the UI and allow users to explicitly expire any
   session they deem invalid.
   """
+  @spec build_session_token(Admin.t()) :: {binary(), t()}
   def build_session_token(admin) do
     token = :crypto.strong_rand_bytes(@rand_size) |> Base.encode64()
     {token, %AdminToken{token: token, context: "session", admin_id: admin.id}}
@@ -53,6 +63,7 @@ defmodule Blank.Accounts.AdminToken do
   The token is valid if it matches the value in the database and it has
   not expired (after @session_validity_in_days).
   """
+  @spec verify_session_token_query(binary()) :: {:ok, Ecto.Query.t()}
   def verify_session_token_query(token) do
     query =
       from(token in by_token_and_context_query(token, "session"),
@@ -67,6 +78,7 @@ defmodule Blank.Accounts.AdminToken do
   @doc """
   Returns the token struct for the given token value and context.
   """
+  @spec by_token_and_context_query(binary(), String.t()) :: Ecto.Query.t()
   def by_token_and_context_query(token, context) do
     from(AdminToken, where: [token: ^token, context: ^context])
   end
@@ -74,6 +86,7 @@ defmodule Blank.Accounts.AdminToken do
   @doc """
   Gets all tokens for the given admin for the given contexts.
   """
+  @spec by_admin_and_contexts_query(Admin.t(), :all | [String.t()]) :: Ecto.Query.t()
   def by_admin_and_contexts_query(admin, :all) do
     from(t in AdminToken, where: t.admin_id == ^admin.id)
   end

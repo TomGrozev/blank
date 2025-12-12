@@ -1,4 +1,8 @@
 defmodule Blank.Fields.Text do
+  @moduledoc """
+  Renders basic text
+  """
+
   use Blank.Field
 
   @impl Blank.Field

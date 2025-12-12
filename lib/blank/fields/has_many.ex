@@ -1,4 +1,8 @@
 defmodule Blank.Fields.HasMany do
+  @moduledoc """
+  Renders a has many
+  """
+
   @schema [
     children: [
       type: :non_empty_keyword_list,
