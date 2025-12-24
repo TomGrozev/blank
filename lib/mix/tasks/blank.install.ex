@@ -89,7 +89,7 @@ defmodule Mix.Tasks.Blank.Install do
   defp add_tailwind_files(blank_dir, project_dir) do
     blank_lib = Path.join(blank_dir, "lib")
 
-    Path.join(project_dir, "**/tailwind.config.js")
+    Path.join(project_dir, "assets/**/app.css")
     |> Path.wildcard()
     |> Enum.reduce_while(:ok, fn file, _acc ->
       case add_blank_to_tailwind(file, blank_lib) do
@@ -97,42 +97,35 @@ defmodule Mix.Tasks.Blank.Install do
           {:halt, {:error, reason}}
 
         :ok ->
-          Mix.Shell.IO.info(">> Added blank dir to tailwind config in #{file}")
+          Mix.Shell.IO.info(">> Added blank dir as a tailwind source in #{file}")
           {:cont, :ok}
       end
     end)
   end
 
-  @content_regex ~r/content: \[(.*?)\]/is
+  @import_regex ~r/^@import.+$/im
   defp add_blank_to_tailwind(file, blank_dir) do
     blank_path =
       blank_dir
       |> Path.relative_to(Path.dirname(file), force: true)
       |> Path.join("**/*.*ex")
 
+    path = "@source \"#{blank_path}\";"
+
     with {:ok, content} <- File.read(file),
-         true <- Regex.match?(@content_regex, content) do
+         false <- String.contains?(content, path) do
       new_content =
-        Regex.replace(@content_regex, content, fn _, inner ->
-          replace_tailwind_content(inner, blank_path, file)
+        Regex.replace(@import_regex, content, fn text, _ ->
+          text <> "\n" <> path
         end)
 
       File.write(file, new_content)
     else
-      false -> {:error, "could not read content in '#{file}'"}
-    end
-  end
+      true ->
+        :ok
 
-  defp replace_tailwind_content(inner, blank_path, file) do
-    with [first_content | _] = content <- String.split(inner, ","),
-         [_, prefix] <- Regex.run(~r/(\n?\s*).*/, first_content) do
-      path = "#{prefix}\"#{blank_path}\""
-
-      if(path in content, do: content, else: [path | content])
-      |> Enum.join(",")
-      |> then(&"content: [#{&1}]")
-    else
-      nil -> {:error, "could not read content in '#{file}'"}
+      _ ->
+        {:error, "could not read content in '#{file}'"}
     end
   end
 

@@ -130,12 +130,12 @@ defmodule Blank.Audit.Display do
 
     if is_nil(path) do
       ~H"""
-      <span class="font-medium text-gray-900 dark:text-white">{@username} ({@type})</span> {@text}
+      <span class="font-medium text-base-content">{@username} ({@type})</span> {@text}
       """
     else
       ~H"""
       <span>
-        <.link class="font-medium text-gray-900 dark:text-white" navigate={@user_path}>
+        <.link class="font-medium text-base-content" navigate={@user_path}>
           {@username} ({@type})
         </.link>
         {@text}

@@ -16,7 +16,7 @@
     schema={@schema} repo={@repo} time_zone={@time_zone} />
     <:actions>
       <% {action, actioning} = @form_btn %>
-      <.button phx-disable-with={"#{actioning} #{@name}..."} class="w-full">{action} {@name}</.button>
+      <.button phx-disable-with={"#{actioning} #{@name}..."} class="btn btn-primary w-full">{action} {@name}</.button>
     </:actions>
   </.simple_form>
 </div>

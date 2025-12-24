@@ -16,20 +16,21 @@ defmodule Blank.Pages.SettingsLive do
           <h2 class="text-2xl font-bold leading-6 text-rose-600">
             Danger Zone
           </h2>
-          <p class="mt-1 text-sm text-gray-500">
+          <p class="mt-1 text-sm text-base-content/50">
             Be careful, actions in this area <strong class="underline uppercase">will</strong>
             cause destructive actions!
           </p>
         </div>
         <div class="px-4 py-5 sm:p-6">
           <div>
-            <h4 class="text-lg font-medium text-gray-900 dark:text-white">Reset ALL logs</h4>
-            <p class="mt-1 mb-4 text-sm text-gray-500">
+            <h4 class="text-lg font-medium">Reset ALL logs</h4>
+            <p class="mt-1 mb-4 text-sm text-base-content/50">
               This will delete ALL audit logs. This will be locked down more in
               the future. Note that a new audit log will be created for this
               action to record who deleted the logs.
             </p>
             <.button
+              variant="error"
               phx-click="reset-audit-logs"
               data-confirm="Are you sure you want to reset ALL audit logs?"
             >

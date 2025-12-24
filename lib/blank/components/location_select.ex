@@ -28,7 +28,7 @@ defmodule Blank.Components.LocationSelect do
             class={[
               "hidden absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md py-1 text-base",
               "shadow-lg ring-1 ring-opacity-5 focus:outline-none sm:text-sm",
-              "bg-white dark:bg-gray-700 ring-black dark:ring-white dark:ring-opacity-30"
+              "bg-base-200 ring-base-300"
             ]}
             phx-mounted={
               JS.show(
@@ -53,8 +53,8 @@ defmodule Blank.Components.LocationSelect do
             <li
               :for={{item, idx} <- Enum.with_index(@options)}
               class={[
-                "relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 dark:text-gray-200",
-                "hover:text-white hover:bg-indigo-600 dark:hover:bg-indigo-500"
+                "relative cursor-default select-none py-2 pl-3 pr-9",
+                "hover:text-primary-content hover:bg-primary"
               ]}
               id={"#{@id}_option-#{idx}"}
               role="option"

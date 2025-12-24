@@ -12,7 +12,7 @@ defmodule Blank.Pages.AuditLogLive do
       <:subtitle>Displays the activity log of actions of the site.</:subtitle>
     </.header>
 
-    <div class="mt-12 p-10 rounded-lg bg-white dark:bg-gray-800 ring-1 ring-inset ring-gray-200 dark:ring-white/15">
+    <div class="mt-12 p-10 rounded-lg bg-base-200 ring-1 ring-inset ring-base-100">
       <.live_component
         id="audit-log-component"
         module={AuditLogComponent}

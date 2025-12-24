@@ -37,6 +37,8 @@ defmodule Mix.Tasks.Blank.Admin.New do
 
     with {:ok, email} <- Keyword.fetch(opts, :email),
          {:ok, password} <- Keyword.fetch(opts, :password) do
+      {:ok, _} = Application.ensure_all_started(:blank)
+
       repos
       |> Stream.map(&ensure_repo(&1, args))
       |> Enum.each(fn repo ->

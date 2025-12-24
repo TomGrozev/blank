@@ -34,15 +34,11 @@ defmodule Blank.Components.ImportComponent do
           ]}
         >
           <div class={@uploads.csv_file.entries != [] && "hidden"}>
-            <.icon
-              name="hero-arrow-up-tray"
-              class="mx-auto h-12 w-12 text-gray-400
-        dark:text-gray-200"
-            />
-            <p class="mb-2 text-sm text-gray-900 dark:text-gray-100">
+            <.icon name="hero-arrow-up-tray" class="mx-auto h-12 w-12 text-base-content/40" />
+            <p class="mb-2 text-sm">
               <span class="font-semibold">Click to upload</span> or drag and drop
             </p>
-            <p class="text-xs text-gray-900 dark:text-gray-100">
+            <p class="text-xs">
               CSV
             </p>
           </div>
@@ -84,7 +80,7 @@ defmodule Blank.Components.ImportComponent do
 
         <:actions>
           <.button
-            class="ml-auto"
+            class="btn btn-primary ml-auto"
             disabled={@uploads.csv_file.entries == []}
             phx-disable-with="Saving..."
           >
@@ -107,7 +103,7 @@ defmodule Blank.Components.ImportComponent do
 
         <div class="my-10">
           <table>
-            <tr class="text-gray-400">
+            <tr class="text-base-content/40">
               <td class="px-2">Model field</td>
               <td class="px-2"></td>
               <td class="px-2">CSV field</td>
@@ -144,11 +140,11 @@ defmodule Blank.Components.ImportComponent do
             <div :if={col in @mapped_fields} class="space-y-4">
               <div :for={val <- Map.get(row, col) |> List.wrap()}>
                 <div :if={is_list(val)}>
-                  <span :for={inner <- val} class="px-1 py-1 bg-indigo-500 rounded-md mr-1">
+                  <span :for={inner <- val} class="px-1 py-1 bg-primary rounded-md mr-1">
                     {inner}
                   </span>
                 </div>
-                <span :if={!is_list(val)} class="px-1 py-1 bg-indigo-500 rounded-md mr-1">
+                <span :if={!is_list(val)} class="px-1 py-1 bg-primary rounded-md mr-1">
                   {val}
                 </span>
               </div>
@@ -157,7 +153,7 @@ defmodule Blank.Components.ImportComponent do
         </.table>
 
         <:actions>
-          <.button class="ml-auto" phx-disable-with="Saving...">
+          <.button class="btn btn-primary ml-auto" phx-disable-with="Saving...">
             Import rows
           </.button>
         </:actions>

@@ -44,11 +44,11 @@ defmodule Blank.Components.ExportComponent do
           <.icon name="hero-arrow-down-tray" class="h-6 w-6 text-blue-600" />
         </div>
         <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-          <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white" id="modal-title">
+          <h3 class="text-base font-semibold leading-6" id="modal-title">
             Your download is ready!
           </h3>
           <div class="mt-2">
-            <p class="text-sm text-gray-500 dark:text-gray-200">
+            <p class="text-sm text-base-content/40">
               Your download has been generated and can now be downloaded.
               Click Download to get your export file.
             </p>
@@ -58,9 +58,9 @@ defmodule Blank.Components.ExportComponent do
       <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse sm:space-x-4
           sm:space-x-reverse">
         <.link href={elem(@download, 1)} target="_blank">
-          <.button phx-click={JS.navigate(@return)}>Download</.button>
+          <.button variant="primary" phx-click={JS.navigate(@return)}>Download</.button>
         </.link>
-        <.button secondary phx-click={JS.exec("data-cancel", to: "#export-confirm-modal")}>
+        <.button phx-click={JS.exec("data-cancel", to: "#export-confirm-modal")}>
           Cancel
         </.button>
       </div>

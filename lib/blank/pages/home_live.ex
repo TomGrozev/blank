@@ -12,7 +12,7 @@ defmodule Blank.Pages.HomeLive do
       Dashboard
     </.header>
 
-    <div class="flex flex-col-reverse xl:grid xl:grid-rows-2 xl:grid-cols-6 gap-4 mt-4">
+    <div class="flex flex-col-reverse xl:grid xl:grid-rows-1 xl:grid-cols-6 gap-4 mt-4">
       <.bento_box edge="tl" large>
         <:title>Past Activity (last 10)</:title>
         <:description>
@@ -54,14 +54,14 @@ defmodule Blank.Pages.HomeLive do
                     <div>
                       <.link
                         navigate={Path.join(Map.get(@schema_links, schema), to_string(id))}
-                        class="text-sm font-semibold leading-6 text-gray-900 dark:text-white"
+                        class="text-sm font-semibold leading-6"
                       >
                         {user}
                       </.link>
                       <p
                         :for={meta <- metas}
-                        class="mt-1 truncate text-xs leading-5 text-gray-500
-                    dark:text-gray-400"
+                        class="mt-1 truncate text-xs leading-5
+                        text-base-content/50"
                       >
                         {Phoenix.Naming.humanize(meta.current_page)}
                       </p>
@@ -70,17 +70,16 @@ defmodule Blank.Pages.HomeLive do
                       <button
                         :if={!is_nil(past_logins) and !Enum.empty?(past_logins)}
                         phx-click={toggle_history(id)}
-                        class="rounded-full bg-white dark:bg-transparent px-2.5
-                        py-1 text-xs font-semibold text-gray-900 dark:text-white
-                        shadow-sm ring-1 ring-inset ring-gray-300
-                        hover:bg-gray-50 dark:hover:text-gray-900"
+                        class="btn btn-primary btn-soft rounded-full px-2.5
+                        py-1 text-xs font-semibold 
+                        shadow-sm ring-1 ring-inset ring-base-100"
                       >
                         History
                       </button>
                     </div>
                   </div>
                   <div id={"history_#{id}"} class="mt-2 hidden">
-                    <h3 class="text-xs text-gray-600 dark:text-gray-500 uppercase font-bold tracking-tight">
+                    <h3 class="text-xs text-base-content/50 uppercase font-bold tracking-tight">
                       Past Logins
                     </h3>
                     <p :for={login <- past_logins || []} class="text-sm font-medium space-y-2">
@@ -135,13 +134,13 @@ defmodule Blank.Pages.HomeLive do
     ~H"""
     <div class={["p-1", if(@large, do: "xl:col-span-4", else: "xl:col-span-2")]}>
       <div class={[
-        "flex flex-col w-full overflow-hidden rounded-lg bg-white dark:bg-gray-800 ring-1 ring-inset ring-gray-200 dark:ring-white/15",
+        "flex flex-col w-full overflow-hidden rounded-lg bg-base-200 ring-1 ring-inset ring-base-100",
         @edge
       ]}>
         <div class="pt-8 px-8 pb-3 sm:px-10 sm:pt-10 sm:pb-0">
           <h3 class="text-lg tracking-tight font-medium
             mt-2">{render_slot(@title)}</h3>
-          <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm max-w-lg">
+          <p class="mt-2 text-sm max-w-lg text-base-content/40">
             {render_slot(@description)}
           </p>
         </div>

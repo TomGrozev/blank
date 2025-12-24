@@ -2,7 +2,7 @@ defmodule Blank do
   @moduledoc """
   ## Installation
 
-  Installation is made to be as simple as possible and can be done in 3 easy
+  Installation is made to be as simple as possible and can be done in 6 easy
   steps.
 
   1. Add the blank package in your project's hex dependencies.
@@ -17,11 +17,37 @@ defmodule Blank do
 
   And run `mix deps.get` to fetch the blank package.
 
-  2. Run the install command `mix blank.install` to copy required migrations and
+  2. Add your configuration to your config file.
+
+  ```elixir
+  config :blank,
+    endpoint: MyApp.Endpoint,
+    repo: MyApp.Repo,
+    user_module: MyApp.Accounts.User,
+    user_table: :users,
+    use_local_timezone: true
+  ```
+
+  3. Run the install command `mix blank.install` to copy required migrations and
     automatically add the required configuration options (refer to the docs for
     more info). You will need to run migrations afterwards.
 
-  3. Add the blank pages to your application router.
+  4. Add the blank schema definition to your schemas that you want blank to
+     control. See `Blank.Schema` for more info.
+
+  ```elixir
+  @derive {
+    Blank.Schema,
+    fields: [
+      title: [searchable: true],
+      price: [],
+    ],
+    identity_field: :sid,
+    order_field: :inserted_at
+  }
+  ```
+
+  5. Add the blank pages to your application router.
 
   ```elixir
   defmodule MyApp.Router do
@@ -34,18 +60,7 @@ defmodule Blank do
   end
   ```
 
-  Add your configuration to your config file.
-
-  ```elixir
-  config :blank,
-    endpoint: MyApp.Endpoint,
-    repo: MyApp.Repo,
-    user_module: MyApp.Accounts.User,
-    user_table: :users,
-    use_local_timezone: true
-  ```
-
-  And finally add your admin pages, for example:
+  6. And finally add your admin pages, for example:
 
   ```elixir
   defmodule MyApp.Admin.PostsLive do

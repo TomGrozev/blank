@@ -2,7 +2,7 @@
   {Phoenix.Naming.humanize(@name)} {@item_name}
   <:actions>
     <.link patch={"#{@active_link.url}/#{@item.id}/edit"} phx-click={JS.push_focus()}>
-      <.button secondary>Edit {String.capitalize(@name)}</.button>
+      <.button variant="primary">Edit {String.capitalize(@name)}</.button>
     </.link>
   </:actions>
 </.header>

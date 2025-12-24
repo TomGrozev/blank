@@ -44,25 +44,23 @@ defmodule Blank.MixProject do
   defp deps do
     [
       {:bcrypt_elixir, "~> 3.0"},
-      {:phoenix_live_view, "~> 1.0.0"},
+      {:phoenix_live_view, "~> 1.1.0"},
       {:arangox_ecto, "~> 2.0", optional: true},
       {:flop, "~> 0.26"},
-      {:flop_phoenix, "~> 0.24"},
-      {:gettext, "~> 0.26"},
-      {:nimble_options, "~> 1.1.0"},
-      {:eqrcode, "~> 0.2.0"},
+      {:flop_phoenix, "~> 0.25"},
+      {:gettext, "~> 1.0"},
+      {:nimble_options, "~> 1.1"},
+      {:eqrcode, "~> 0.2"},
       {:csv, "~> 3.2"},
       {:geo, "~> 3.6", optional: true},
       {:tz, "~> 0.28"},
-      {:ex_doc, "~> 0.38", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.39", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false},
-      {:git_hooks, "~> 0.8.0", only: [:dev], runtime: false},
+      {:git_hooks, "~> 0.8", only: [:dev], runtime: false},
       {:doctor, "~> 0.22.0", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.18", only: :test}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
   end
 

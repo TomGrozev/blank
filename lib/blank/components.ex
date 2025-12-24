@@ -40,7 +40,7 @@ defmodule Blank.Components do
     >
       <div
         id={"#{@id}-bg"}
-        class="bg-gray-50/90 dark:bg-gray-700/90 fixed inset-0 transition-opacity"
+        class="bg-base-200/90 fixed inset-0 transition-opacity"
         aria-hidden="true"
       />
       <div
@@ -64,7 +64,7 @@ defmodule Blank.Components do
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-gray-700/10 dark:shadow-gray-500/10 ring-gray-700/10 dark:ring-gray-500/10 relative hidden rounded-2xl bg-white dark:bg-gray-800 p-10 shadow-lg ring-1 transition"
+              class="shadow-base-300/20 ring-base-300/20 relative hidden rounded-2xl bg-base-100 p-10 shadow-lg ring-1 transition"
             >
               <div class="absolute top-6 right-5">
                 <button
@@ -112,22 +112,25 @@ defmodule Blank.Components do
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
-      class={[
-        "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
-        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
-        @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
-      ]}
+      class="toast toast-top toast-end z-50"
       {@rest}
     >
-      <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
-        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="h-4 w-4" />
-        {@title}
-      </p>
-      <p class="mt-2 text-sm leading-5">{msg}</p>
-      <button type="button" class="group absolute top-1 right-1 p-2" aria-label={gettext("close")}>
-        <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
-      </button>
+      <div class={[
+        "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
+        @kind == :info && "alert-info",
+        @kind == :error && "alert-error"
+      ]}>
+        <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0" />
+        <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
+        <div>
+          <p :if={@title} class="font-semibold">{@title}</p>
+          <p>{msg}</p>
+        </div>
+        <div class="flex-1" />
+        <button type="button" class="group self-start cursor-pointer" aria-label={gettext("close")}>
+          <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
+        </button>
+      </div>
     </div>
     """
   end
@@ -145,30 +148,32 @@ defmodule Blank.Components do
 
   def flash_group(assigns) do
     ~H"""
-    <div id={@id}>
-      <.flash kind={:info} title={gettext("Success!")} flash={@flash} />
-      <.flash kind={:error} title={gettext("Error!")} flash={@flash} />
+    <div id={@id} aria-live="polite">
+      <.flash kind={:info} flash={@flash} />
+      <.flash kind={:error} flash={@flash} />
+
       <.flash
         id="client-error"
         kind={:error}
-        title="We can't find the internet"
-        phx-disconnected={show(".phx-client-error #client-error")}
-        phx-connected={hide("#client-error")}
+        title={gettext("We can't find the internet")}
+        phx-disconnected={show(".phx-client-error #client-error") |> JS.remove_attribute("hidden")}
+        phx-connected={hide("#client-error") |> JS.set_attribute({"hidden", ""})}
         hidden
       >
-        Attempting to reconnect <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+        {gettext("Attempting to reconnect")}
+        <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
 
       <.flash
         id="server-error"
         kind={:error}
-        title="Something went wrong!"
-        phx-disconnected={show(".phx-server-error #server-error")}
-        phx-connected={hide("#server-error")}
+        title={gettext("Something went wrong!")}
+        phx-disconnected={show(".phx-server-error #server-error") |> JS.remove_attribute("hidden")}
+        phx-connected={hide("#server-error") |> JS.set_attribute({"hidden", ""})}
         hidden
       >
-        Hang in there while we get back on track
-        <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+        {gettext("Attempting to reconnect")}
+        <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
     </div>
     """
@@ -193,7 +198,7 @@ defmodule Blank.Components do
       <.icon name="hero-arrow-path" class="ml-1 w-3 h-3 animate-spin" />
   """
   attr :name, :string, required: true
-  attr :class, :string, default: nil
+  attr :class, :any, default: "size-4"
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
@@ -231,10 +236,10 @@ defmodule Blank.Components do
     ~H"""
     <header class={[@actions != [] && "flex flex-wrap items-center justify-between gap-6", @class]}>
       <div class="w-full md:w-auto">
-        <h1 class="text-2xl/7 font-bold text-gray-900 dark:text-white sm:truncate sm:text-3xl sm:tracking-tight">
+        <h1 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">
+        <p :if={@subtitle != []} class="mt-2 text-sm leading-6">
           {render_slot(@subtitle)}
         </p>
       </div>
@@ -251,45 +256,37 @@ defmodule Blank.Components do
       <.button>Send!</.button>
       <.button phx-click="go" class="ml-2">Send!</.button>
   """
-  attr :type, :string, default: nil
-  attr :class, :string, default: nil
-  attr :rest, :global, include: ~w(disabled form name value)
-  attr :secondary, :boolean, default: false
-
+  attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
+  attr :class, :any
+  attr :variant, :string, values: ~w(primary neutral error)
   slot :inner_block, required: true
 
-  def button(assigns) do
-    ~H"""
-    <button
-      type={@type}
-      class={[
-        "phx-submit-loading:opacity-75 rounded-md px-3 py-2 text-sm font-semibold shadow-sm",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
-        "disabled:bg-gray-500 disabled:text-white disabled:hover:bg-gray-500",
-        button_colour(@secondary),
-        @class
-      ]}
-      {@rest}
-    >
-      {render_slot(@inner_block)}
-    </button>
-    """
-  end
+  def button(%{rest: rest} = assigns) do
+    variants = %{
+      "primary" => "btn-primary",
+      "neutral" => "btn-neutral",
+      "error" => "btn-error",
+      nil => "btn-primary btn-soft"
+    }
 
-  defp button_colour(true) do
-    """
-    text-gray-900 dark:text-white
-    ring-1 ring-inset ring-gray-300 dark:ring-0
-    bg-white dark:bg-white/10 hover:bg-gray-50 dark:hover:bg-white/20 
-    """
-  end
+    assigns =
+      assign_new(assigns, :class, fn ->
+        ["btn", Map.fetch!(variants, assigns[:variant])]
+      end)
 
-  defp button_colour(false) do
-    """
-    text-white 
-    bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-500 dark:hover:bg-indigo-400 
-    focus-visible:outline-indigo-600 dark:focus-visible:outline-indigo-500
-    """
+    if rest[:href] || rest[:navigate] || rest[:patch] do
+      ~H"""
+      <.link class={@class} {@rest}>
+        {render_slot(@inner_block)}
+      </.link>
+      """
+    else
+      ~H"""
+      <button class={@class} {@rest}>
+        {render_slot(@inner_block)}
+      </button>
+      """
+    end
   end
 
   @doc """
@@ -308,16 +305,14 @@ defmodule Blank.Components do
 
   def list(assigns) do
     ~H"""
-    <div class="mt-6 border-t border-gray-100 dark:border-white/10">
-      <dl class="divide-y divide-gray-100 dark:divide-white/10">
-        <div :for={item <- @item} class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-          <dt class="text-sm/6 font-medium text-gray-900 dark:text-white">{item.title}</dt>
-          <dd class="mt-1 text-sm/6 text-gray-700 dark:text-gray-400 sm:col-span-2 sm:mt-0">
-            {render_slot(item)}
-          </dd>
+    <ul class="list">
+      <li :for={item <- @item} class="list-row">
+        <div class="list-col-grow">
+          <div class="font-bold">{item.title}</div>
+          <div>{render_slot(item)}</div>
         </div>
-      </dl>
-    </div>
+      </li>
+    </ul>
     """
   end
 
@@ -354,58 +349,33 @@ defmodule Blank.Components do
 
     ~H"""
     <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+      <table class="table">
         <thead>
           <tr>
-            <th
-              :for={{col, idx} <- Enum.with_index(@col)}
-              scope="col"
-              class={[
-                "py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white",
-                if(idx == 0, do: "pl-4 pr-3 sm:pl-0", else: "px-3")
-              ]}
-            >
+            <th :for={col <- @col} scope="col">
               {col[:label]}
             </th>
-            <th :if={@action != []} class="relative py-3.5 pl-3 pr-4 sm:pr-0">
+            <th :if={@action != []}>
               <span class="sr-only">Actions</span>
             </th>
           </tr>
         </thead>
-        <tbody
-          id={@id}
-          phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
-          class="divide-y divide-gray-200 dark:divide-gray-800"
-        >
-          <tr
-            :for={row <- @rows}
-            id={@row_id && @row_id.(row)}
-            class="group hover:bg-gray-50 dark:hover:bg-gray-800"
-          >
+        <tbody id={@id} phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}>
+          <tr :for={row <- @rows} id={@row_id && @row_id.(row)}>
             <td
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={@row_click && @row_click.(row)}
-              class={[
-                "relative whitespace-nowrap py-4 text-sm text-gray-500 dark:text-gray-300",
-                @row_click && "hover:cursor-pointer"
-              ]}
+              class={@row_click && "hover:cursor-pointer"}
             >
-              <div class={["block py-4 px-3", i == 0 && "pl-4 sm:pl-0"]}>
-                <span class={[
-                  "absolute -inset-y-px -left-4 group-hover:bg-gray-50 dark:group-hover:bg-gray-800 sm:rounded-l-xl",
-                  if(@action == [], do: "sm:rounded-r-xl -right-4", else: "right-0")
-                ]} />
-                <span class={["relative", i == 0 && "font-medium text-gray-900 dark:text-white"]}>
-                  {render_slot(col, @row_item.(row))}
-                </span>
-              </div>
+              <span class={["relative", i == 0 && "font-medium"]}>
+                {render_slot(col, @row_item.(row))}
+              </span>
             </td>
-            <td :if={@action != []} class="relative">
-              <div class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-gray-50 dark:group-hover:bg-gray-800 sm:rounded-r-xl" />
+            <td :if={@action != []}>
+              <div class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                 <span
                   :for={action <- @action}
-                  class="relative ml-4 font-semibold leading-6 text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
+                  class="relative ml-4 font-semibold leading-6 text-primary/80 hover:text-primary"
                 >
                   {render_slot(action, @row_item.(row))}
                 </span>
@@ -508,44 +478,27 @@ defmodule Blank.Components do
           row_click={@row_click}
           row_item={@row_item}
           opts={[
-            table_attrs: [class: "min-w-full mt-11 sm:w-full"],
-            thead_attrs: [class: "text-sm text-left leading-6 text-gray-900 dark:text-white"],
-            thead_th_attrs: [class: "p-0 pr-6 pb-4 font-semibold"],
-            tbody_attrs: [
-              class:
-                "relative divide-y divide-gray-300 dark:divide-gray-700 border-t border-gray-300 dark:border-gray-600 text-sm leading-6 text-gray-50"
-            ],
-            tbody_tr_attrs: [class: "group hover:bg-gray-100 hover:dark:bg-gray-800"],
-            tbody_td_attrs: [class: "relative p-0 hover:cursor-pointer"]
+            table_attrs: [class: "table"],
+            tbody_tr_attrs: [class: "hover:bg-base-200/60"],
+            tbody_td_attrs: [class: "hover:cursor-pointer"]
           ]}
           {@rest}
         >
           <:col
             :let={row}
             :for={{col, i} <- Enum.with_index(@col)}
-            thead_th_attrs={[class: ["p-0 pr-6 pb-4 font-semibold", i > 0 && " hidden sm:table-cell"]]}
-            tbody_td_attrs={[
-              class: [
-                "relative p-0 hover:cursor-pointer",
-                if(i > 0, do: "hidden sm:table-cell", else: "w-full sm:w-auto")
-              ]
-            ]}
             label={col.field_def.label}
             field={col.field_def.filter_key}
           >
-            <div class="block py-4 pr-6">
-              <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-gray-100 group-hover:dark:bg-gray-800 rounded-l-xl" />
-              <span class={["relative text-gray-900 dark:text-gray-300", i == 0 && " font-semibold"]}>
-                {render_slot(col, row)}
-              </span>
-            </div>
+            <span class={["relative", i == 0 && " font-semibold"]}>
+              {render_slot(col, row)}
+            </span>
           </:col>
           <:action :let={row} col_class="relative w-14 p-0">
-            <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-              <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-gray-100 group-hover:dark:bg-gray-800 rounded-r-xl" />
+            <div class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
               <span
                 :for={action <- @action}
-                class="relative ml-4 font-semibold leading-6 text-gray-900 dark:text-gray-100 hover:text-gray-700 hover:dark:text-gray-200"
+                class="relative ml-4 font-semibold leading-6 text-primary/80 hover:text-primary"
               >
                 {render_slot(action, row)}
               </span>
@@ -553,31 +506,34 @@ defmodule Blank.Components do
           </:action>
         </Flop.Phoenix.table>
       </div>
-      <div class="flex items-center justify-between border-t border-gray-400 px-4 py-3 sm:px-6">
+      <div class="flex items-center justify-between border-t border-base-content/20 px-4 py-3 sm:px-6">
         <Flop.Phoenix.pagination
           meta={@meta}
           path={@path}
           page_links={:none}
-          opts={[
-            wrapper_attrs: [class: "flex flex-1 justify-between sm:hidden"],
-            disabled_class: "!text-gray-400 select-none hover:bg-gray-900",
-            next_link_attrs: [
-              class:
-                "relative inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 leading-6 active:text-white/80"
-            ],
-            previous_link_attrs: [
-              class:
-                "relative inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 leading-6 active:text-white/80"
-            ]
+          disabled_link_attrs={[
+            class: "btn-disabled"
           ]}
-        />
+          class="flex flex-1 justify-between sm:hidden"
+        >
+          <:previous attrs={[
+            class: "btn btn-soft btn-secondary"
+          ]}>
+            Previous
+          </:previous>
+          <:next attrs={[
+            class: "btn btn-soft btn-secondary"
+          ]}>
+            Next
+          </:next>
+        </Flop.Phoenix.pagination>
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
           <div>
-            <p class="text-sm text-gray-900 dark:text-gray-200">
+            <p class="text-sm text-base-content/50">
               Showing
               <select
                 name="limit"
-                class="mt-1 inline-block rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50/10 dark:bg-gray-800 shadow-sm shadow-gray-200 dark:shadow-gray-900 focus:border-gray-200 focus:dark:border-gray-700 focus:ring-0 sm:text-sm"
+                class="mt-1 p-1 inline-block rounded-md border border-base-300 bg-base-100 shadow-sm shadow-base-100 focus:border-base-200 focus:ring-0 sm:text-sm"
               >
                 <option
                   :for={val <- [10, 20, 50, 75, 100]}
@@ -606,39 +562,35 @@ defmodule Blank.Components do
             <Flop.Phoenix.pagination
               meta={@meta}
               path={@path}
-              opts={[
-                wrapper_attrs: [class: "isolate inline-flex -space-x-px rounded-md shadow-sm"],
-                current_link_attrs: [
-                  class:
-                    "relative z-10 inline-flex items-center border border-indigo-600 dark:border-indigo-500 bg-indigo-600 dark:bg-indigo-900/50 px-4 py-2 text-sm font-medium text-white focus:z-20",
-                  aria: [current: "page"]
-                ],
-                disabled_class: "!text-gray-400 select-none hover:bg-gray-700 hover:dark:bg-gray-800",
-                next_link_attrs: [
-                  class:
-                    "order-3 relative inline-flex items-center rounded-r-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-2 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
-                ],
-                previous_link_attrs: [
-                  class:
-                    "order-1 relative inline-flex items-center rounded-l-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-2 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
-                ],
-                next_link_content:
-                  {:safe,
-                   "<span class=\"sr-only\">Next</span><div class=\"flex items-center justify-center w-5 h-5\">&rsaquo;</div>"},
-                previous_link_content:
-                  {:safe,
-                   "<span class=\"sr-only\">Previous</span><div class=\"flex items-center justify-center w-5 h-5\">&lsaquo;</div>"},
-                pagination_list_attrs: [class: "order-2 flex"],
-                ellipsis_attrs: [
-                  class:
-                    "relative inline-flex items-center border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
-                ],
-                pagination_link_attrs: [
-                  class:
-                    "relative inline-flex items-center border border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-700 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-200 focus:z-20"
-                ]
+              page_list_attrs={[class: "order-2 inline-flex"]}
+              disabled_link_attrs={[
+                class: "btn-disabled"
               ]}
-            />
+              current_page_link_attrs={[
+                class: "btn btn-primary rounded-none",
+                aria: [current: "page"]
+              ]}
+              page_link_attrs={[
+                class: "btn rounded-none"
+              ]}
+              class="inline-flex"
+            >
+              <:ellipsis>
+                <span class="join-item btn btn-disabled rounded-none">&hellip;</span>
+              </:ellipsis>
+              <:next attrs={[
+                class: "join-item btn order-3 rounded-l-none"
+              ]}>
+                <span class="sr-only">Next</span>
+                <div class="flex items-center justify-center w-5 h-5">&rsaquo;</div>
+              </:next>
+              <:previous attrs={[
+                class: "join-item btn order-1 rounded-r-none"
+              ]}>
+                <span class="sr-only">Previous</span>
+                <div class="flex items-center justify-center w-5 h-5">&lsaquo;</div>
+              </:previous>
+            </Flop.Phoenix.pagination>
           </div>
         </div>
       </div>
@@ -708,6 +660,9 @@ defmodule Blank.Components do
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
 
+  attr :class, :any, default: nil, doc: "the input class to use over defaults"
+  attr :error_class, :any, default: nil, doc: "the input error class to use over defaults"
+
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
@@ -723,6 +678,12 @@ defmodule Blank.Components do
     |> input()
   end
 
+  def input(%{type: "hidden"} = assigns) do
+    ~H"""
+    <input type="hidden" id={@id} name={@name} value={@value} {@rest} />
+    """
+  end
+
   def input(%{type: "checkbox"} = assigns) do
     assigns =
       assign_new(assigns, :checked, fn ->
@@ -730,20 +691,26 @@ defmodule Blank.Components do
       end)
 
     ~H"""
-    <div>
-      <label class="flex items-center gap-4 text-sm leading-6 text-gray-600
-        dark:text-gray-400">
-        <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
+    <div class="fieldset mb-2">
+      <label>
         <input
-          type="checkbox"
-          id={@id}
+          type="hidden"
           name={@name}
-          value="true"
-          checked={@checked}
-          class="rounded border-gray-300 dark:border-white/10 text-gray-900 dark:text-indigo-600 dark:bg-white/5 focus:ring-0"
-          {@rest}
+          value="false"
+          disabled={@rest[:disabled]}
+          form={@rest[:form]}
         />
-        {@label}
+        <span class="label">
+          <input
+            type="checkbox"
+            id={@id}
+            name={@name}
+            value="true"
+            checked={@checked}
+            class={@class || "checkbox checkbox-sm"}
+            {@rest}
+          />{@label}
+        </span>
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
@@ -752,26 +719,20 @@ defmodule Blank.Components do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div>
-      <.label for={@id}>{@label}</.label>
-      <select
-        id={@id}
-        name={@name}
-        class={[
-          "mt-2 block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset sm:text-sm sm:leading-6",
-          "dark:bg-white/5 focus:ring-2 focus:ring-inset",
-          @disabled &&
-            "disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-white/10 disabled:text-gray-500 dark:disabled:text-gray-100 disabled:ring-gray-200 dark:disabled:ring-white/5",
-          @errors == [] &&
-            "text-gray-900 dark:text-white ring-gray-300 dark:ring-white/10 focus:ring-indigo-600 dark:focus:ring-indigo-500 placeholder:text-gray-400",
-          @errors != [] && "text-red-900 ring-red-300 placeholder:text-red-300 focus:ring-red-500"
-        ]}
-        multiple={@multiple}
-        {@rest}
-      >
-        <option :if={@prompt} value="">{@prompt}</option>
-        {Phoenix.HTML.Form.options_for_select(@options, @value)}
-      </select>
+    <div class="fieldset mb-2">
+      <label>
+        <span :if={@label} class="label mb-1">{@label}</span>
+        <select
+          id={@id}
+          name={@name}
+          class={[@class || "w-full select", @errors != [] && (@error_class || "select-error")]}
+          multiple={@multiple}
+          {@rest}
+        >
+          <option :if={@prompt} value="">{@prompt}</option>
+          {Phoenix.HTML.Form.options_for_select(@options, @value)}
+        </select>
+      </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
@@ -779,18 +740,19 @@ defmodule Blank.Components do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div>
-      <.label for={@id}>{@label}</.label>
-      <textarea
-        id={@id}
-        name={@name}
-        class={[
-          "mt-2 block w-full rounded-lg text-gray-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem]",
-          @errors == [] && "border-gray-300 focus:border-gray-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
-        ]}
-        {@rest}
-      >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
+    <div class="fieldset mb-2">
+      <label>
+        <span :if={@label} class="label mb-1">{@label}</span>
+        <textarea
+          id={@id}
+          name={@name}
+          class={[
+            @class || "w-full textarea",
+            @errors != [] && (@error_class || "textarea-error")
+          ]}
+          {@rest}
+        >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
+      </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
@@ -798,27 +760,24 @@ defmodule Blank.Components do
 
   def input(%{type: "search"} = assigns) do
     ~H"""
-    <div class="relative flex-1 min-w-64 mt-2">
-      <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-        <.icon name="hero-magnifying-glass" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-      </div>
-      <input
-        type="text"
-        name={@name}
-        id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={[
-          "block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset sm:text-sm sm:leading-6 pl-10",
-          "dark:bg-white/5 focus:ring-2 focus:ring-inset",
-          @disabled &&
-            "disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-white/10 disabled:text-gray-500 dark:disabled:text-gray-100 disabled:ring-gray-200 dark:disabled:ring-white/5",
-          @errors == [] &&
-            "text-gray-900 dark:text-white ring-gray-300 dark:ring-white/10 focus:ring-indigo-600 dark:focus:ring-indigo-500 placeholder:text-gray-400",
-          @errors != [] && "text-red-900 ring-red-300 placeholder:text-red-300 focus:ring-red-500"
-        ]}
-        disabled={@disabled}
-        {@rest}
-      />
+    <div class="fieldset mb-2 w-full">
+      <label class="relative">
+        <div class="absolute inset-y-0 left-0 z-10 flex items-center pl-3 pointer-events-none">
+          <.icon name="hero-magnifying-glass" class="w-5 h-5 text-base-content/50" />
+        </div>
+        <input
+          type="text"
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={[
+            @class || "w-full input pl-10",
+            @errors != [] && (@error_class || "input-error")
+          ]}
+          disabled={@disabled}
+          {@rest}
+        />
+      </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
@@ -827,41 +786,23 @@ defmodule Blank.Components do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div class="w-full">
-      <.label for={@id}>{@label}</.label>
-      <input
-        type={@type}
-        name={@name}
-        id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={[
-          "mt-2 block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset sm:text-sm sm:leading-6",
-          "dark:bg-white/5 focus:ring-2 focus:ring-inset",
-          @disabled &&
-            "disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-white/10 disabled:text-gray-500 dark:disabled:text-gray-100 disabled:ring-gray-200 dark:disabled:ring-white/5",
-          @errors == [] &&
-            "text-gray-900 dark:text-white ring-gray-300 dark:ring-white/10 focus:ring-indigo-600 dark:focus:ring-indigo-500 placeholder:text-gray-400",
-          @errors != [] && "text-red-900 ring-red-300 placeholder:text-red-300 focus:ring-red-500"
-        ]}
-        disabled={@disabled}
-        {@rest}
-      />
+    <div class="fieldset mb-2">
+      <label>
+        <span :if={@label} class="label mb-1">{@label}</span>
+        <input
+          type={@type}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={[
+            @class || "w-full input",
+            @errors != [] && (@error_class || "input-error")
+          ]}
+          {@rest}
+        />
+      </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
-    """
-  end
-
-  @doc """
-  Renders a label.
-  """
-  attr :for, :string, default: nil
-  slot :inner_block, required: true
-
-  def label(assigns) do
-    ~H"""
-    <label for={@for} class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">
-      {render_slot(@inner_block)}
-    </label>
     """
   end
 
@@ -872,8 +813,8 @@ defmodule Blank.Components do
 
   def error(assigns) do
     ~H"""
-    <p class="mt-2 flex gap-3 text-sm leading-6 text-rose-600">
-      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" />
+    <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
+      <.icon name="hero-exclamation-circle" class="size-5" />
       {render_slot(@inner_block)}
     </p>
     """

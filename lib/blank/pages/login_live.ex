@@ -8,14 +8,14 @@ defmodule Blank.Pages.LoginLive do
     ~H"""
     <div class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <.logo class="mx-auto h-10 w-auto dark:text-gray-200" />
-        <h2 class="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900 dark:text-white">
+        <.logo class="mx-auto h-10 w-auto" />
+        <h2 class="mt-6 text-center text-2xl font-bold leading-9 tracking-tight">
           Sign in to Blank admin
         </h2>
       </div>
 
       <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-        <div class="bg-white dark:bg-gray-800 ring-1 ring-inset ring-gray-200 dark:ring-white/15 px-6 pt-1 pb-12 shadow sm:rounded-lg sm:px-12">
+        <div class="bg-base-300 ring-1 ring-inset ring-base-100 px-6 pt-1 pb-12 shadow sm:rounded-lg sm:px-12">
           <.simple_form
             for={@form}
             id="login_form"
@@ -35,16 +35,13 @@ defmodule Blank.Pages.LoginLive do
             <:actions>
               <.input field={@form[:remember_me]} type="checkbox" label="Keep me logged in" />
               <div class="text-sm leading-6">
-                <a
-                  href="#"
-                  class="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300"
-                >
+                <a href="#" class="font-semibold text-primary opacity-75 hover:opacity-100">
                   Forgot password?
                 </a>
               </div>
             </:actions>
             <:actions>
-              <.button phx-disable-with="Logging in..." class="w-full">
+              <.button phx-disable-with="Logging in..." class="btn btn-primary w-full">
                 Log in <span aria-hidden="true">→</span>
               </.button>
             </:actions>
@@ -53,18 +50,17 @@ defmodule Blank.Pages.LoginLive do
           <div>
             <div class="relative mt-10">
               <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                <div class="w-full border-t border-gray-200
-                  dark:border-gray-600"></div>
+                <div class="w-full border-t border-base-100"></div>
               </div>
               <div class="relative flex justify-center text-sm font-medium leading-6">
-                <span class="bg-white dark:bg-gray-800 px-6 text-gray-900 dark:text-white">
+                <span class="bg-base-300 px-6">
                   Or continue with
                 </span>
               </div>
             </div>
 
             <div class="mt-6 grid grid-cols-2 gap-4">
-              <.button secondary class="flex items-center justify-center gap-3">
+              <.button variant="neutral">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
                   <path
                     d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z"
@@ -83,12 +79,12 @@ defmodule Blank.Pages.LoginLive do
                     fill="#34A853"
                   />
                 </svg>
-                <span class="text-sm font-semibold leading-6">Google</span>
+                <span class="text-neutral-content text-sm font-semibold leading-6">Google</span>
               </.button>
 
-              <.button secondary class="flex items-center justify-center gap-3">
+              <.button variant="neutral">
                 <svg
-                  class="h-5 w-5 fill-[#24292F] dark:fill-white"
+                  class="h-5 w-5 fill-base-content"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                   aria-hidden="true"
@@ -99,7 +95,7 @@ defmodule Blank.Pages.LoginLive do
                     clip-rule="evenodd"
                   />
                 </svg>
-                <span class="text-sm font-semibold leading-6">GitHub</span>
+                <span class="text-neutral-content text-sm font-semibold leading-6">GitHub</span>
               </.button>
             </div>
           </div>

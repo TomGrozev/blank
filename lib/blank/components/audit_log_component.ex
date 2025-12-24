@@ -12,22 +12,22 @@ defmodule Blank.Components.AuditLogComponent do
         <li :for={{dom_id, log} <- @streams.logs} id={dom_id} class="group">
           <div class="relative pb-8">
             <span
-              class="absolute group-last:hidden left-4 top-4 -ml-px h-full w-0.5 bg-gray-200 dark:bg-gray-600"
+              class="absolute group-last:hidden left-4 top-4 -ml-px h-full w-0.5 bg-base-200"
               aria-hidden="true"
             >
             </span>
             <div class="relative flex space-x-3">
               <div>
-                <span class={"h-8 w-8 rounded-full #{Blank.Audit.Display.colour(log)} flex items-center justify-center ring-8 ring-white dark:ring-gray-800"}>
+                <span class={"h-8 w-8 rounded-full #{Blank.Audit.Display.colour(log)} flex items-center justify-center"}>
                   <.icon class="h-5 w-5" name={Blank.Audit.Display.icon(log)} />
                 </span>
               </div>
               <details class="flex flex-col min-w-0 flex-1 pt-1.5">
                 <summary class="flex flex-col lg:flex-row justify-between lg:space-x-4">
-                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                  <p class="text-sm text-base-content/60">
                     {Blank.Audit.Display.text(log, @path_prefix, @schema_links)}
                   </p>
-                  <div class="whitespace-nowrap text-left lg:text-right text-sm italic lg:not-italic text-gray-500 dark:text-gray-400">
+                  <div class="whitespace-nowrap text-left lg:text-right text-sm italic lg:not-italic text-base-content/60">
                     <time datetime={log.inserted_at}>
                       {format_datetime(log.inserted_at, @time_zone)}
                     </time>
@@ -35,16 +35,16 @@ defmodule Blank.Components.AuditLogComponent do
                 </summary>
                 <table class="mt-2">
                   <tr>
-                    <td class="text-gray-900 dark:text-gray-200 font-medium whitespace-nowrap pr-4">
+                    <td class="font-medium whitespace-nowrap pr-4">
                       User Agent:
                     </td>
-                    <td class="text-sm text-gray-500 dark:text-gray-400">{log.user_agent}</td>
+                    <td class="text-sm text-base-content/40">{log.user_agent}</td>
                   </tr>
                   <tr>
-                    <td class="text-gray-900 dark:text-gray-200 font-medium whitespace-nowrap pr-4">
+                    <td class="font-medium whitespace-nowrap pr-4">
                       IP:
                     </td>
-                    <td class="text-sm text-gray-500 dark:text-gray-400">
+                    <td class="text-sm text-base-content/40">
                       {format_ip(log.ip_address)}
                     </td>
                   </tr>

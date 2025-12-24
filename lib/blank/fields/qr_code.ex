@@ -50,11 +50,11 @@ defmodule Blank.Fields.QRCode do
   def render_display(assigns) do
     ~H"""
     <div class="mt-4">
-      <div class="inline-flex flex-col items-center justify-center space-y-4 p-4 bg-gray-100 dark:bg-gray-800 shadow rounded-xl">
-        <div class="rounded-lg overflow-hidden inline-block bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+      <div class="inline-flex flex-col items-center justify-center space-y-4 p-4 bg-base-200 shadow rounded-xl">
+        <div class="rounded-lg overflow-hidden inline-block bg-base-100">
           {raw(@qr_code)}
         </div>
-        <span class="text-gray-900 dark:text-white font-bold text-xl">{@value}</span>
+        <span class="font-bold text-xl">{@value}</span>
         <.link href={@download_path} target="_blank">
           <.button>
             <.icon name="hero-arrow-down-tray" class="w-5 h-5" /> Download

@@ -48,7 +48,7 @@ defmodule Blank.Fields.List do
     ~H"""
     <div>
       <div :if={@field.value}>
-        <h4 class="block text-sm font-medium leading-6 text-gray-900 dark:text-white">{@label}</h4>
+        <h4 class="block text-sm font-medium leading-6">{@label}</h4>
         <ol class="ml-4 space-y-6">
           <li :for={{val, idx} <- Enum.with_index(@field.value)} class="space-y-2">
             <.live_component

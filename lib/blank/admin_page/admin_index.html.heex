@@ -2,19 +2,19 @@
   {Phoenix.Naming.humanize(@plural_name)}
   <:actions>
     <.link patch={"#{@active_link.url}/new"}>
-      <.button>
+      <.button variant="primary">
         <.icon name="hero-plus" class="h-5 w-5 mr-2" />
         New {@name}
       </.button>
     </.link>
     <.link patch={"#{@active_link.url}/import"}>
-      <.button secondary>
+      <.button>
         <.icon name="hero-arrow-up-tray" class="h-5 w-5 mr-2" />
         Import {@plural_name}
       </.button>
     </.link>
     <.link patch={"#{@active_link.url}/export"}>
-      <.button secondary>
+      <.button>
         <.icon name="hero-arrow-down-tray" class="h-5 w-5 mr-2" />
         Export {@plural_name}
       </.button>
@@ -23,18 +23,16 @@
 </.header>
 
 <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-  <div :for={{_, stat} <- @stats} class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 py-5 shadow bg-white dark:bg-gray-800 dark:ring-1 dark:ring-inset dark:ring-white/15 sm:p-6">
+  <div :for={{_, stat} <- @stats} class="overflow-hidden rounded-lg bg-base-200 px-4 py-5 shadow ring-1 ring-inset ring-base-100 sm:p-6">
     <.stat_component stat={stat} module={@admin_page} />
   </div>
 </dl>
 
 <div class="flex justify-end mt-8">
-  <label for="search-mode" class="inline-flex items-center space-x-2 text-sm cursor-pointer dark:text-gray-200">
+  <label for="search-mode" class="inline-flex items-center space-x-2 text-sm cursor-pointer">
     <span>Simple</span>
     <span class="relative">
-      <input id="search-mode" type="checkbox" class="hidden peer" phx-click="toggle-search" checked={!Keyword.has_key?(@filter_fields, :search)}>
-      <div class="w-10 h-6 rounded-full shadow-inner bg-gray-300 dark:bg-gray-600 peer-checked:bg-indigo-600"></div>
-      <div class="absolute inset-y-0 left-0 w-4 h-4 m-1 rounded-full shadow peer-checked:right-0 peer-checked:left-auto bg-gray-100"></div>
+      <input id="search-mode" type="checkbox" class="toggle" phx-click="toggle-search" checked={!Keyword.has_key?(@filter_fields, :search)}>
     </span>
     <span>Advanced</span>
   </label>
@@ -62,7 +60,7 @@
     <.link
       phx-click={JS.push("delete", value: %{id: item.id}) |> hide("##{id}")}
       data-confirm="Are you sure?"
-      class="text-rose-500 hover:text-rose-400"
+      class="text-error hover:text-error/70"
     >
       <.icon name="hero-trash" class="w-5 h-5" />
     </.link>
