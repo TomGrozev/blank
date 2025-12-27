@@ -175,10 +175,9 @@ defmodule Mix.Tasks.Blank.Install do
           Path.join(project_dir, path)
           |> Path.expand()
 
-        case File.cp_r(migration_path, path) do
-          {:ok, _} ->
+        case copy_all_migrations(migration_path, path) do
+          :ok ->
             Mix.Shell.IO.info(">> Added blank migrations to #{path}")
-
             {:cont, :ok}
 
           {:error, reason} ->
@@ -186,4 +185,36 @@ defmodule Mix.Tasks.Blank.Install do
         end
     end)
   end
+
+  defp copy_all_migrations(migration_path, path) do
+    with {:ok, files} <- File.ls(path) do
+      existing_migrations = Enum.map(files, &String.slice(&1, 14..-1//1))
+
+      File.ls!(migration_path)
+      |> Stream.reject(fn file -> file in existing_migrations end)
+      |> Stream.with_index()
+      |> Enum.reduce_while(:ok, fn {mig, idx}, _ ->
+        stamp = timestamp(idx)
+
+        src_path = Path.join(migration_path, mig)
+        dest_path = Path.join(path, stamp <> mig)
+
+        case File.cp(src_path, dest_path) do
+          :ok ->
+            {:cont, :ok}
+
+          {:error, reason} ->
+            {:halt, {:error, reason}}
+        end
+      end)
+    end
+  end
+
+  defp timestamp(idx) do
+    {{y, m, d}, {hh, mm, ss}} = :calendar.universal_time()
+    "#{y}#{pad(m)}#{pad(d)}#{pad(hh)}#{pad(mm)}#{pad(ss + idx)}"
+  end
+
+  defp pad(i) when i < 10, do: <<?0, ?0 + i>>
+  defp pad(i), do: to_string(i)
 end
