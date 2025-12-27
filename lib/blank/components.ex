@@ -644,7 +644,7 @@ defmodule Blank.Components do
   attr :name, :any
   attr :label, :string, default: nil
   attr :value, :any
-  attr :disabled, :boolean, default: false
+  attr :prefix_icon, :string, default: nil
 
   attr :type, :string,
     default: "text",
@@ -774,7 +774,6 @@ defmodule Blank.Components do
             @class || "w-full input pl-10",
             @errors != [] && (@error_class || "input-error")
           ]}
-          disabled={@disabled}
           {@rest}
         />
       </label>
@@ -789,17 +788,25 @@ defmodule Blank.Components do
     <div class="fieldset mb-2">
       <label>
         <span :if={@label} class="label mb-1">{@label}</span>
-        <input
-          type={@type}
-          name={@name}
-          id={@id}
-          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-          class={[
-            @class || "w-full input",
-            @errors != [] && (@error_class || "input-error")
-          ]}
-          {@rest}
-        />
+        <div class="relative">
+          <div
+            :if={@prefix_icon}
+            class="absolute inset-y-0 left-0 z-10 flex items-center pl-3 pointer-events-none"
+          >
+            <.icon name={@prefix_icon} class="w-5 h-5 text-base-content/50" />
+          </div>
+          <input
+            type={@type}
+            name={@name}
+            id={@id}
+            value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+            class={[
+              @class || "w-full input #{@prefix_icon && "pl-10"}",
+              @errors != [] && (@error_class || "input-error")
+            ]}
+            {@rest}
+          />
+        </div>
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
