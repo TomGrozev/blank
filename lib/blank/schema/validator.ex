@@ -48,13 +48,12 @@ defmodule Blank.Schema.Validator do
   @schema [
     identity_field: [
       type: :atom,
-      doc: "Defines which field is used as the name for the record",
-      default: :id
-    ],
-    primary_key: [
-      type: :atom,
-      doc: "Defines which field is used to get an item",
-      default: :id
+      doc: """
+      Defines which field is used as the name for the record
+
+      A value of `nil` (default) will use the first primary_key.
+      """,
+      default: nil
     ],
     create_changeset: [
       type: {:fun, 2},
@@ -99,7 +98,7 @@ defmodule Blank.Schema.Validator do
       is the field name and the second is the direction (either `:asc`
       or `:desc`).
 
-      A value of `nil` (default) will use the primary_key.
+      A value of `nil` (default) will use the first primary_key.
       """,
       default: nil
     ],

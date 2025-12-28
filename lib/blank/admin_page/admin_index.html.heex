@@ -45,20 +45,20 @@
   rows={@streams.items}
   meta={@meta}
   path={@active_link.url}
-  row_click={fn {_id, item} -> JS.navigate("#{@active_link.url}/#{item.id}") end}
+  row_click={fn {_id, item} -> JS.navigate("#{@active_link.url}/#{id_for_item(item, @primary_keys)}") end}
 >
   <:col :for={{field, field_def} <- @fields} :let={{_, item}} field_def={field_def}>
-    <.field_list id={Map.fetch!(item, @primary_key)} definition={field_def} value={Map.get(item, field)} schema={@schema} time_zone={@time_zone} />
+    <.field_list id={id_for_item(item, @primary_keys)} definition={field_def} value={Map.get(item, field)} schema={@schema} time_zone={@time_zone} />
   </:col>
   <:action :let={{_id, item}}>
     <div class="sr-only">
-      <.link navigate={"#{@active_link.url}/#{item.id}"}>Show</.link>
+      <.link navigate={"#{@active_link.url}/#{id_for_item(item, @primary_keys)}"}>Show</.link>
     </div>
-    <.link patch={"#{@active_link.url}/#{item.id}/edit"} class="hover:text-zinc-400"><.icon name="hero-pencil" class="w-5 h-5" /></.link>
+    <.link patch={"#{@active_link.url}/#{id_for_item(item, @primary_keys)}/edit"} class="hover:text-zinc-400"><.icon name="hero-pencil" class="w-5 h-5" /></.link>
   </:action>
   <:action :let={{id, item}}>
     <.link
-      phx-click={JS.push("delete", value: %{id: item.id}) |> hide("##{id}")}
+      phx-click={JS.push("delete", value: %{id: id_for_item(item, @primary_keys)}) |> hide("##{id}")}
       data-confirm="Are you sure?"
       class="text-error hover:text-error/70"
     >

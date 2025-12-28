@@ -159,10 +159,17 @@ defmodule Blank.Audit.Display do
 
     path =
       if url = Map.get(schema_links, schema) do
-        Path.join([url, to_string(user.id)])
+        Path.join([url, get_user_id(user)])
       end
 
     {username, "user", path}
+  end
+
+  defp get_user_id(user) do
+    key = Application.get_env(:blank, :user_table_pk, :id)
+
+    Map.fetch!(user, key)
+    |> to_string()
   end
 
   @doc """

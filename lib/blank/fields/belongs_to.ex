@@ -33,7 +33,9 @@ defmodule Blank.Fields.BelongsTo do
   end
 
   def render_display(%{value: value, definition: definition} = assigns) do
-    display_field = Map.get(definition, :display_field, :id)
+    display_field =
+      Map.get_lazy(definition, :display_field, fn -> Blank.Schema.identity_field(value) end)
+
     assigns = assign(assigns, :value, Map.get(value || %{}, display_field))
 
     ~H"""

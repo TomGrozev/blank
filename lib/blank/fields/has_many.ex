@@ -42,7 +42,9 @@ defmodule Blank.Fields.HasMany do
   end
 
   def render_display(%{value: value, definition: definition} = assigns) do
-    display_field = Map.get(definition, :display_field, :id)
+    display_field =
+      Map.get_lazy(definition, :display_field, fn -> Blank.Schema.identity_field(value) end)
+
     assigns = assign(assigns, :value, Enum.map_join(value, ", ", &Map.get(&1, display_field)))
 
     ~H"""
@@ -68,7 +70,7 @@ defmodule Blank.Fields.HasMany do
                 type="text"
                 field={pf[child]}
                 label={child_def.label}
-                disabled={child_def.readonly}
+                disabled={@definition.readonly || child_def.readonly}
                 placeholder={child_def.placeholder}
               />
             </div>
@@ -88,6 +90,7 @@ defmodule Blank.Fields.HasMany do
         <input type="hidden" name={"#{drop_name(@field.name)}[]"} />
 
         <button
+          :if={not @definition.readonly}
           class="flex items-center mt-4"
           type="button"
           name={"#{sort_name(@field.name)}[]"}

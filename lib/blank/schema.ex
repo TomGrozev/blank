@@ -42,12 +42,12 @@ defprotocol Blank.Schema do
   def name(data)
 
   @doc """
-  Returns the primary key of the struct
+  Returns the primary keys of the struct
 
   By default this is usually the `:id` key.
   """
-  @spec primary_key(any()) :: atom()
-  def primary_key(data)
+  @spec primary_keys(any()) :: [atom()]
+  def primary_keys(data)
 
   @doc """
   Returns the changeset function that is to be used
@@ -133,11 +133,10 @@ defimpl Blank.Schema, for: Any do
     field_def_funcs = build_field_def_func(struct, options)
 
     identity_field = Keyword.fetch!(options, :identity_field)
-    primary_key = Keyword.fetch!(options, :primary_key)
 
     order_field =
       Keyword.fetch!(options, :order_field)
-      |> default_order(primary_key)
+      |> default_order()
 
     quote do
       unquote(flop_derive)
@@ -149,13 +148,37 @@ defimpl Blank.Schema, for: Any do
         end
 
         @impl Blank.Schema
-        def primary_key(struct), do: unquote(primary_key)
+        def primary_keys(%{__struct__: schema}) when is_atom(schema) do
+          schema.__schema__(:primary_key)
+        end
 
         @impl Blank.Schema
-        def identity_field(struct), do: unquote(identity_field)
+        def identity_field(%{__struct__: schema} = struct) when is_atom(schema) do
+          with nil <- unquote(identity_field),
+               [pk | _] <- Blank.Schema.primary_keys(struct) do
+            pk
+          else
+            res when is_atom(res) ->
+              res
+
+            _ ->
+              raise ArgumentError, "No primary keys for module #{schema}"
+          end
+        end
 
         @impl Blank.Schema
-        def order_field(struct), do: unquote(order_field)
+        def order_field(%{__struct__: schema} = struct) when is_atom(schema) do
+          with nil <- unquote(order_field),
+               [pk | _] <- Blank.Schema.primary_keys(struct) do
+            {pk, :asc}
+          else
+            {_, _} = res ->
+              res
+
+            _ ->
+              raise ArgumentError, "No primary keys for module #{schema}"
+          end
+        end
 
         @impl Blank.Schema
         def changeset(struct, :new), do: unquote(create_changeset)
@@ -178,18 +201,18 @@ defimpl Blank.Schema, for: Any do
 
   defp get_name(val, struct, identity_field) when is_map(val) do
     Blank.Schema.get_field(struct, identity_field)
-    |> Map.get(:display_field, :id)
+    |> Map.get_lazy(:display_field, fn -> Blank.Schema.identity_field(val) end)
     |> then(&Map.fetch!(val, &1))
   end
 
   defp get_name(val, _struct, _identity_field), do: val
 
-  defp default_order(nil, pk), do: {pk, :asc}
+  defp default_order(nil), do: nil
 
-  defp default_order({field, direction}, _pk) when is_atom(field) and direction in [:asc, :desc],
+  defp default_order({field, direction}) when is_atom(field) and direction in [:asc, :desc],
     do: {field, direction}
 
-  defp default_order(field, _pk) when is_atom(field), do: {field, :asc}
+  defp default_order(field) when is_atom(field), do: {field, :asc}
 
   defp get_flop_opts(module, caller, struct, options) do
     {searchable, sortable, adapter_opts} =
@@ -457,7 +480,7 @@ defimpl Blank.Schema, for: Any do
       description: @instructions
   end
 
-  def primary_key(struct) do
+  def primary_keys(struct) do
     raise Protocol.UndefinedError,
       protocol: @protocol,
       value: struct,

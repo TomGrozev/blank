@@ -134,9 +134,12 @@ defmodule Blank.Presence do
   """
   @spec track_user(user :: struct(), name :: String.t(), current_page :: String.t() | atom()) ::
           {:ok, ref :: binary()} | {:error, reason :: term()}
-  def track_user(%{id: id} = struct, name, current_page)
+  def track_user(struct, name, current_page)
       when is_struct(struct) and
              is_binary(name) and (is_binary(current_page) or is_atom(current_page)) do
+    user_pk = Application.get_env(:blank, :user_table_pk, :id)
+    id = Map.fetch!(struct, user_pk)
+
     track(self(), "online_users", id, %{
       id: id,
       schema: struct.__struct__,

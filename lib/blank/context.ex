@@ -38,7 +38,11 @@ defmodule Blank.Context do
   """
   @spec list_schema_by_ids(Ecto.Repo.t(), Ecto.Schema.t(), [binary()]) :: [struct()]
   def list_schema_by_ids(repo, schema, ids) do
-    from(item in schema, where: item.id in ^ids)
+    primary_keys = Blank.Schema.primary_keys(struct(schema))
+
+    Enum.reduce(primary_keys, schema, fn pk, query ->
+      from(item in query, or_where: field(item, ^pk) in ^ids)
+    end)
     |> repo.all()
   end
 
@@ -62,7 +66,10 @@ defmodule Blank.Context do
       case Blank.Schema.impl_for(schema_struct) do
         nil ->
           fields
-          |> Stream.reject(&(schema.__schema__(:type, &1) in [:utc_datetime, :id, :__id__]))
+          |> Stream.reject(
+            &(schema.__schema__(:type, &1) in ([:utc_datetime, :__id__] ++
+                                                 schema.__schema__(:primary_keys)))
+          )
           |> Enum.map(&{&1, nil})
 
         _ ->
@@ -122,12 +129,13 @@ defmodule Blank.Context do
   """
   @spec list_query(Ecto.Schema.t(), fields()) :: Ecto.Query.t()
   def list_query(schema, fields) do
-    {selectable, assocs} = get_associations(fields, schema)
+    {selectable, mergable, assocs} = get_associations(fields, schema)
 
     struct = struct(schema)
-    primary_key = Blank.Schema.primary_key(struct)
+    primary_keys = Blank.Schema.primary_keys(struct)
     {order_field, order_direction} = Blank.Schema.order_field(struct)
-    selectable = Enum.uniq([primary_key, order_field | selectable])
+
+    selectable = Enum.uniq(primary_keys ++ [order_field | selectable])
 
     from(item in schema, as: :item)
     |> maybe_join(assocs)
@@ -135,6 +143,7 @@ defmodule Blank.Context do
     |> distinct(true)
     |> order_by(^[{order_direction, order_field}])
     |> select(^selectable)
+    |> select_merge(^mergable)
   end
 
   @doc """
@@ -142,9 +151,11 @@ defmodule Blank.Context do
   """
   @spec get!(Ecto.Repo.t(), Ecto.Schema.t(), integer()) :: struct()
   def get!(repo, schema, id) do
-    primary_key = Blank.Schema.primary_key(struct(schema))
+    primary_keys = Blank.Schema.primary_keys(struct(schema))
 
-    from(item in schema, where: field(item, ^primary_key) == ^id)
+    Enum.reduce(primary_keys, schema, fn pk, query ->
+      from(item in query, or_where: field(item, ^pk) == ^id)
+    end)
     |> repo.one!()
   end
 
@@ -153,10 +164,13 @@ defmodule Blank.Context do
   """
   @spec get!(Ecto.Repo.t(), Ecto.Schema.t(), integer(), fields()) :: struct()
   def get!(repo, schema, id, fields) do
-    primary_key = Blank.Schema.primary_key(struct(schema))
+    primary_keys = Blank.Schema.primary_keys(struct(schema))
 
-    list_query(schema, fields)
-    |> where([i], field(i, ^primary_key) == ^id)
+    query = list_query(schema, fields)
+
+    Enum.reduce(primary_keys, query, fn pk, q ->
+      or_where(q, [i], field(i, ^pk) == ^id)
+    end)
     |> repo.one!()
   end
 
@@ -165,16 +179,19 @@ defmodule Blank.Context do
 
     fields
     |> Stream.map(fn {field, def} -> {schema.__schema__(:association, field), def} end)
-    |> Enum.reduce({[], []}, fn
-      {nil, %{key: key}}, {selectable, assocs} ->
+    |> Enum.reduce({[], %{}, []}, fn
+      {nil, %{key: key, select: nil}}, {selectable, mergable, assocs} ->
         if key in virtual do
-          {selectable, assocs}
+          {selectable, mergable, assocs}
         else
-          {[key | selectable], assocs}
+          {[key | selectable], mergable, assocs}
         end
 
-      {%{owner_key: owner_key}, _} = def, {selectable, assocs} ->
-        {[owner_key | selectable], [def | assocs]}
+      {nil, %{key: key, select: select}}, {selectable, mergable, assocs} ->
+        {selectable, Map.put(mergable, key, select), assocs}
+
+      {%{owner_key: owner_key}, _} = def, {selectable, mergable, assocs} ->
+        {[owner_key | selectable], mergable, [def | assocs]}
     end)
   end
 
@@ -206,20 +223,6 @@ defmodule Blank.Context do
           acc
       end
     end)
-  end
-
-  @doc """
-  Get the primary key for a schema
-  """
-  @spec get_primary_key(struct() | module()) :: any()
-  def get_primary_key(%{__struct__: struct}) when is_atom(struct),
-    do: get_primary_key(struct)
-
-  def get_primary_key(module) when is_atom(module) do
-    case module.__schema__(:primary_key) do
-      [id] -> id
-      _ -> raise ArgumentError, "No primary key for #{module}"
-    end
   end
 
   defp maybe_preload(query, []), do: query
@@ -266,10 +269,12 @@ defmodule Blank.Context do
   def update(repo, audit_context, item, params) do
     changeset = change(item, :edit, params)
 
+    primary_keys = Blank.Schema.primary_keys(item)
+
     Ecto.Multi.new()
     |> Ecto.Multi.update(:item, changeset)
     |> Audit.multi(audit_context, action(item, :update), fn audit_context, %{item: item} ->
-      %{audit_context | params: %{item_id: item.id}}
+      %{audit_context | params: %{item_id: item_id_from_pks(item, primary_keys)}}
     end)
     |> repo.transaction()
     |> case do
@@ -286,10 +291,12 @@ defmodule Blank.Context do
   def create(repo, audit_context, item, params) do
     changeset = change(item, :new, params)
 
+    primary_keys = Blank.Schema.primary_keys(item)
+
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:item, changeset)
     |> Audit.multi(audit_context, action(item, :create), fn audit_context, %{item: item} ->
-      %{audit_context | params: %{item_id: item.id}}
+      %{audit_context | params: %{item_id: item_id_from_pks(item, primary_keys)}}
     end)
     |> repo.transaction()
     |> case do
@@ -306,13 +313,15 @@ defmodule Blank.Context do
   def create_multiple(repo, audit_context, schema, params) do
     item = struct(schema)
 
+    primary_keys = Blank.Schema.primary_keys(item)
+
     params
     |> Stream.with_index()
     |> Enum.reduce(Ecto.Multi.new(), fn {param, idx}, acc ->
       Ecto.Multi.insert(acc, "item-#{idx}", change(item, :new, param))
     end)
     |> Audit.multi(audit_context, action(item, :create_multiple), fn audit_context, results ->
-      ids = Enum.map(Map.values(results), & &1.id)
+      ids = Enum.map(Map.values(results), &item_id_from_pks(&1, primary_keys))
 
       %{audit_context | params: %{item_ids: ids}}
     end)
@@ -329,10 +338,12 @@ defmodule Blank.Context do
   @spec delete(Ecto.Repo.t(), Blank.Audit.AuditLog.t(), struct()) ::
           {:ok, struct()} | {:error, Ecto.Changeset.t()}
   def delete(repo, audit_context, item) do
+    primary_keys = Blank.Schema.primary_keys(item)
+
     Ecto.Multi.new()
     |> Ecto.Multi.delete(:item, item)
     |> Audit.multi(audit_context, action(item, :delete), fn audit_context, %{item: item} ->
-      %{audit_context | params: %{item_id: item.id}}
+      %{audit_context | params: %{item_id: item_id_from_pks(item, primary_keys)}}
     end)
     |> repo.transaction()
     |> case do
@@ -345,5 +356,11 @@ defmodule Blank.Context do
     schema = item.__struct__
 
     Phoenix.Naming.resource_name(schema) <> "." <> to_string(action)
+  end
+
+  defp item_id_from_pks(item, [pk]), do: Map.get(item, pk)
+
+  defp item_id_from_pks(item, primary_keys) do
+    for pk <- primary_keys, do: Map.get(item, pk)
   end
 end

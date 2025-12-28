@@ -346,7 +346,8 @@ defmodule Blank.AdminPage do
       schema.__schema__(:associations)
       |> Stream.map(fn field -> schema.__schema__(:association, field) end)
       |> Stream.reject(&is_nil/1)
-      |> Enum.map(& &1.owner_key)
+      |> Stream.map(& &1.owner_key)
+      |> Enum.reject(&(&1 in schema.__schema__(:primary_key)))
 
     (schema.__schema__(:fields) ++
        schema.__schema__(:associations) ++ schema.__schema__(:virtual_fields))
@@ -402,7 +403,7 @@ defmodule Blank.AdminPage do
   attr(:filter_fields, :list, required: true)
   attr(:streams, :map, required: true)
   attr(:meta, Flop.Meta, required: true)
-  attr(:primary_key, :atom, required: true)
+  attr(:primary_keys, :atom, required: true)
   attr(:live_action, :atom, required: true)
   attr(:modal_fields, :list)
   attr(:fields, :list, required: true)
@@ -417,7 +418,7 @@ defmodule Blank.AdminPage do
   attr(:active_link, :map, required: true)
   attr(:item, :map, required: true)
   attr(:fields, :list, required: true)
-  attr(:primary_key, :atom, required: true)
+  attr(:primary_keys, :atom, required: true)
   attr(:schema, :atom, required: true)
   attr(:time_zone, :string, required: true)
   def admin_show(assigns)
@@ -427,7 +428,9 @@ defmodule Blank.AdminPage do
     admin_page = socket.view
 
     schema = admin_page.config(:schema)
-    primary_key = Blank.Schema.primary_key(struct(schema))
+    struct = struct(schema)
+    primary_keys = Blank.Schema.primary_keys(struct)
+    identity_field = Blank.Schema.identity_field(struct)
 
     time_zone =
       with true <- connected?(socket),
@@ -447,9 +450,14 @@ defmodule Blank.AdminPage do
      |> assign(:name, admin_page.config(:name))
      |> assign(:plural_name, admin_page.config(:plural_name))
      |> assign(:schema, admin_page.config(:schema))
-     |> assign(:primary_key, primary_key)
+     |> assign(:primary_keys, primary_keys)
      |> assign(:repo, admin_page.repo())
      |> assign(:meta, nil)
+     |> stream_configure(:items,
+       dom_id:
+         &"items-#{Map.fetch!(&1,
+         identity_field)}"
+     )
      |> stream(:items, [])}
   end
 
@@ -864,4 +872,10 @@ defmodule Blank.AdminPage do
   end
 
   defp decode_value(value) when is_map(value), do: value
+
+  defp id_for_item(item, [pk]), do: Map.fetch!(item, pk)
+
+  defp id_for_item(item, pks) do
+    Enum.map_join(pks, "_", &Map.fetch!(item, &1))
+  end
 end

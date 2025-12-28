@@ -9,7 +9,7 @@ defmodule Blank.Fields.Currency do
   def render_display(assigns) do
     ~H"""
     <span>
-      ${:io_lib.format("~.2f", [@value]) |> to_string()}
+      ${:io_lib.format("~.2f", [@value || 0.0]) |> to_string()}
     </span>
     """
   end

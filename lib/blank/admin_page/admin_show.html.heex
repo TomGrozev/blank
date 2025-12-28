@@ -1,7 +1,7 @@
 <.header>
   {Phoenix.Naming.humanize(@name)} {@item_name}
   <:actions>
-    <.link patch={"#{@active_link.url}/#{@item.id}/edit"} phx-click={JS.push_focus()}>
+    <.link patch={"#{@active_link.url}/#{id_for_item(@item, @primary_keys)}/edit"} phx-click={JS.push_focus()}>
       <.button variant="primary">Edit {String.capitalize(@name)}</.button>
     </.link>
   </:actions>
@@ -9,6 +9,6 @@
 
 <.list>
   <:item :for={{field, field_def} <- @fields} title={field_def.label}>
-    <.field_display id={Map.get(@item, @primary_key)} definition={field_def} value={Map.get(@item, field)} schema={@schema} time_zone={@time_zone} />
+    <.field_display id={id_for_item(@item, @primary_keys)} definition={field_def} value={Map.get(@item, field)} schema={@schema} time_zone={@time_zone} />
   </:item>
 </.list>

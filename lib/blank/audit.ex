@@ -63,14 +63,19 @@ defmodule Blank.Audit do
   """
   @doc group: "Query"
   @spec list_all_for_user(
-          user_or_id :: %{id: String.t() | integer()} | String.t() | integer(),
+          user_or_id :: map() | String.t() | integer(),
           opts :: Keyword.t()
         ) :: [AuditLog.t()]
   def list_all_for_user(user_or_id, opts \\ [])
-  def list_all_for_user(%{id: id}, opts), do: list_all_for_user(id, opts)
+
+  def list_all_for_user(user, opts) when is_map(user) do
+    list_all_for_user(Map.fetch!(user, Application.get_env(:blank, :user_table_pk, :id)), opts)
+  end
 
   def list_all_for_user(id, opts) when is_binary(id) or is_integer(id) do
     user_schema = Application.get_env(:blank, :user_module, Blank.Accounts.Admin)
+    user_pk = Application.get_env(:blank, :user_table_pk, :id)
+
     struct = struct(user_schema)
     identity_field = Blank.Schema.identity_field(struct)
 
@@ -82,7 +87,7 @@ defmodule Blank.Audit do
     repo().all(
       from(a in AuditLog,
         join: u in assoc(a, :user),
-        where: u.id == ^id,
+        where: field(u, ^user_pk) == ^id,
         where: ^Keyword.get(opts, :where, []),
         order_by: [desc: :inserted_at],
         preload: [:admin, [user: ^Blank.Context.list_query(user_schema, fields)]],
