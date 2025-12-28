@@ -35,9 +35,15 @@ defmodule Blank.Fields.HasMany do
   end
 
   @impl Blank.Field
+  def render_display(%{value: []} = assigns) do
+    render_display(%{assigns | value: %Ecto.Association.NotLoaded{}})
+  end
+
   def render_display(%{value: %Ecto.Association.NotLoaded{}} = assigns) do
     ~H"""
-    nil
+    <div class="mt-2 rounded-md border-dashed border-4 border-base-content/40 text-base-content/80 text-center p-4 italic">
+      Nothing here yet
+    </div>
     """
   end
 
