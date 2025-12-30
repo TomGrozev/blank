@@ -34,6 +34,94 @@ defmodule Blank.AdminPage do
       source (i.e. the table name).
       """
     ],
+    index_buttons: [
+      type: :keyword_list,
+      doc: """
+      buttons to show on the index page.
+
+      By default the new, import and export buttons are present but each can be
+      disabled by setting `:new`, `:import` or `:export` keys respectively to
+      `nil`.
+      """,
+      keys: [
+        *: [
+          type:
+            {:or,
+             [
+               nil,
+               non_empty_keyword_list: [
+                 icon: [
+                   type: {:or, [nil, :string]},
+                   doc: """
+                   hero icon to display
+
+                   Defaults to no icon.
+                   """,
+                   default: nil
+                 ],
+                 text: [
+                   type: :string,
+                   doc: """
+                   button text to display.
+
+                   You can use `{name}` and `{plural_name}` as template values
+                   for the name and plural name respectively of the view.
+                   """
+                 ],
+                 variant: [
+                   type: {:or, [nil, :string]},
+                   doc: """
+                   button style variant.
+
+                   Accepts all options for the blank button component, e.g.
+                   `primary`, `secondary`, `error`, etc. Defaults to a soft
+                   primary style.
+                   """,
+                   default: nil
+                 ],
+                 action: [
+                   type:
+                     {:or,
+                      [
+                        {:custom, Blank.Utils.OptsValidators, :validate_fun_ast, [1]},
+                        {:in, [:patch, :navigate]}
+                      ]},
+                   doc: """
+                   the action to run when the button is clicked.
+
+                   To navigate to another route set this to either `:patch` or
+                   `:navigate` for whether you want a patch or navigate action. You
+                   will also need to set the `:path` option also.
+
+                   The supplied function receives the socket and  must return 
+                   `{:noreply, socket}`.
+                   """
+                 ],
+                 path: [
+                   type: {:or, [nil, :string]},
+                   doc: """
+                   path to navigate to if action is set to `:patch` or `:navigate`.
+
+                   If the path starts with `/` then it will navigate to the base of
+                   the webapp, e.g. if you set the path to `/food` then it will
+                   navigate to `http://<your_app>:<your_port>/food`.
+
+                   If the path starts with `http://` or `https://` then it will
+                   navigate directly to that url.
+
+                   Otherwise, if the path starts with anythign else it will navigate
+                   relatively, e.g. if you set the path to `food` and you are current
+                   at `http://<your_app>:<your_port>/meals` then it will navigate to
+                   `http://<your_app>:<your_port>/meals/food`.
+                   """,
+                   default: nil
+                 ]
+               ]
+             ]}
+        ]
+      ],
+      default: []
+    ],
     index_fields: [
       type: {:list, :atom},
       doc: """
@@ -249,19 +337,24 @@ defmodule Blank.AdminPage do
               {:query, Ecto.Query.t()}
               | {:value, (Phoenix.LiveView.Socket.assigns() -> {:ok, any()} | :loading | :error)}
 
-  @optional_callbacks stat_query: 2
+  @doc """
+  Override the view for creation
+
+  This is an optional callback that will override the view for when a new item
+  is created (i.e. when on `/new`). All the same assigns are passed including
+  the form and field definitions.
+  """
+  @callback render_new(assigns :: Phoenix.LiveView.Socket.assigns()) ::
+              %Phoenix.LiveView.Rendered{}
+
+  @optional_callbacks stat_query: 2, render_new: 1
 
   alias Phoenix.LiveView.AsyncResult
   alias Blank.Context
   use Blank.Web, :live_view
 
   defmacro __using__(opts) do
-    opts =
-      if Macro.quoted_literal?(opts) do
-        Macro.prewalk(opts, &expand_alias(&1, __CALLER__))
-      else
-        opts
-      end
+    opts = Macro.prewalk(opts, &expand_alias(&1, __CALLER__))
 
     opts =
       opts
@@ -470,7 +563,16 @@ defmodule Blank.AdminPage do
     admin_index(assigns)
   end
 
-  def render(%{live_action: action} = assigns) when action in [:new, :edit] do
+  def render(%{live_action: :new, admin_page: module} = assigns) do
+    try do
+      module.render_new(assigns)
+    rescue
+      _ ->
+        admin_edit(assigns)
+    end
+  end
+
+  def render(%{live_action: :edit} = assigns) do
     admin_edit(assigns)
   end
 
@@ -573,14 +675,96 @@ defmodule Blank.AdminPage do
         advanced_search(fields)
       end
 
+    index_buttons =
+      process_index_buttons(
+        admin_page.config(:index_buttons),
+        socket.assigns.name,
+        socket.assigns.plural_name,
+        socket.assigns.active_link.url
+      )
+
     socket
     |> assign(:item, nil)
     |> assign(:fields, fields)
     |> assign(:filter_fields, filter_fields)
     |> assign(:modal_fields, modal_fields)
+    |> assign(:index_buttons, index_buttons)
     |> assign_stats(repo, schema, fields, admin_page)
     |> assign(:items, AsyncResult.loading())
     |> start_async(:items, fn -> Context.paginate_schema(repo, schema, params, fields) end)
+  end
+
+  @index_buttons [
+    new: [
+      icon: "hero-plus",
+      text: "New {name}",
+      variant: "primary",
+      action: :patch,
+      path: "new"
+    ],
+    import: [
+      icon: "hero-arrow-up-tray",
+      text: "Import {plural_name}",
+      variant: nil,
+      action: :patch,
+      path: "import"
+    ],
+    export: [
+      icon: "hero-arrow-down-tray",
+      text: "Export {plural_name}",
+      variant: nil,
+      action: :patch,
+      path: "export"
+    ]
+  ]
+  defp process_index_buttons(index_buttons, name, plural_name, active_url) do
+    @index_buttons
+    |> Keyword.merge(index_buttons, fn
+      _k, _v1, nil ->
+        nil
+
+      _k, v1, v2 ->
+        Keyword.merge(v1, v2)
+    end)
+    |> Stream.reject(fn {_k, v} -> is_nil(v) end)
+    |> Stream.map(fn {k, v} ->
+      new_val =
+        Keyword.update!(v, :text, fn text ->
+          text
+          |> String.replace("{name}", name)
+          |> String.replace("{plural_name}", plural_name)
+        end)
+        |> Map.new()
+
+      {k, new_val}
+    end)
+    |> Stream.map(fn {k, v} ->
+      new_val = Map.update!(v, :path, &format_path(&1, active_url))
+
+      {k, new_val}
+    end)
+    |> Enum.map(fn {k, v} ->
+      attrs =
+        case v.action do
+          :patch -> [patch: v.path]
+          :navigate -> [navigate: v.path]
+          _action -> [{:"phx-click", "idx-btn-click"}, {:"phx-value-key", k}]
+        end
+
+      new_val = Map.put(v, :attrs, attrs)
+
+      {k, new_val}
+    end)
+  end
+
+  defp format_path(nil, _active_url), do: nil
+
+  defp format_path(path, active_url) do
+    if String.match?(path, ~r/^\/.*|(?:https?:\/\/).*/) do
+      path
+    else
+      active_url <> "/" <> path
+    end
   end
 
   defp assign_stats(socket, repo, schema, fields, module) do
@@ -720,6 +904,14 @@ defmodule Blank.AdminPage do
   end
 
   @impl Phoenix.LiveView
+  def handle_event("idx-btn-click", %{"key" => key}, socket) do
+    action =
+      Keyword.fetch!(socket.assigns.index_buttons, String.to_existing_atom(key))
+      |> Map.fetch!(:action)
+
+    apply(action, [socket])
+  end
+
   def handle_event("validate", %{"item_params" => params}, socket) do
     changeset =
       Context.change(

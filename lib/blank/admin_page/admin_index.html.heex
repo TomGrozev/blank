@@ -1,24 +1,10 @@
 <.header>
   {Phoenix.Naming.humanize(@plural_name)}
   <:actions>
-    <.link patch={"#{@active_link.url}/new"}>
-      <.button variant="primary">
-        <.icon name="hero-plus" class="h-5 w-5 mr-2" />
-        New {@name}
-      </.button>
-    </.link>
-    <.link patch={"#{@active_link.url}/import"}>
-      <.button>
-        <.icon name="hero-arrow-up-tray" class="h-5 w-5 mr-2" />
-        Import {@plural_name}
-      </.button>
-    </.link>
-    <.link patch={"#{@active_link.url}/export"}>
-      <.button>
-        <.icon name="hero-arrow-down-tray" class="h-5 w-5 mr-2" />
-        Export {@plural_name}
-      </.button>
-    </.link>
+    <.button :for={{_, button} <- @index_buttons} {button.attrs} variant={button.variant}>
+      <.icon name={button.icon} class="h-5 w-5 mr-2" />
+      {button.text}
+    </.button>
   </:actions>
 </.header>
 
