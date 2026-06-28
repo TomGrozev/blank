@@ -34,7 +34,7 @@
   row_click={fn {_id, item} -> JS.navigate("#{@active_link.url}/#{id_for_item(item, @primary_keys)}") end}
 >
   <:col :for={{field, field_def} <- @fields} :let={{_, item}} field_def={field_def}>
-    <.field_list id={id_for_item(item, @primary_keys)} definition={field_def} value={Map.get(item, field)} schema={@schema} time_zone={@time_zone} />
+    <.field_list id={id_for_item(item, @primary_keys)} definition={field_def} value={Map.get(item, field)} schema={@schema} time_zone={@time_zone} path_prefix={@path_prefix} />
   </:col>
   <:action :let={{_id, item}}>
     <div class="sr-only">

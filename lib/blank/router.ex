@@ -69,7 +69,7 @@ defmodule Blank.Router do
       quote do
         import Phoenix.LiveView.Router
         import Blank.Plugs.Auth
-        import Blank.Plugs.AuditContext
+        import Blank.Audit.Context
 
         {session_name, session_opts} =
           Blank.Router.__options__(unquote(opts))
@@ -95,7 +95,7 @@ defmodule Blank.Router do
             layout: {Blank.LayoutView, :basic},
             on_mount: [
               {Blank.Plugs.Auth, :redirect_if_admin_is_authenticated},
-              Blank.Plugs.AuditContext
+              Blank.Audit.Context
             ] do
             live("/log_in", Blank.Pages.LoginLive, :new)
           end
@@ -153,7 +153,7 @@ defmodule Blank.Router do
       Enum.concat(options[:on_mount] || [], [
         Blank.Nav,
         {Blank.Plugs.Auth, :ensure_authenticated},
-        Blank.Plugs.AuditContext
+        Blank.Audit.Context
       ])
 
     {

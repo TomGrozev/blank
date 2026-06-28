@@ -90,7 +90,8 @@ defmodule Blank.MixProject do
       groups_for_modules: [
         "Audit Logging": [
           Blank.Audit,
-          Blank.Audit.AuditLog
+          Blank.Audit.AuditLog,
+          Blank.Audit.Context
         ],
         "Ecto Types": [
           Blank.Types.IP
@@ -106,9 +107,6 @@ defmodule Blank.MixProject do
           Blank.Fields.Password,
           Blank.Fields.QRCode,
           Blank.Fields.Text
-        ],
-        Plugs: [
-          Blank.Plugs.AuditContext
         ],
         Statistics: [
           Blank.Stats,

@@ -1,4 +1,60 @@
 defmodule Blank.Field do
+  @field_schema [
+    filter_key: [
+      type: :atom,
+      doc: "Key for filtering (auto generated)"
+    ],
+    module: [
+      type: :atom,
+      doc: "The rendering module, see `Blank.Field` for more info"
+    ],
+    label: [
+      type: :string,
+      doc: "The label to use when rendering"
+    ],
+    placeholder: [
+      type: :string,
+      doc: "The placeholder to use when rendering"
+    ],
+    searchable: [
+      type: :boolean,
+      doc: "Defines whether the field is searchable"
+    ],
+    sortable: [
+      type: :boolean,
+      doc: "Defines whether the field can be sorted by"
+    ],
+    viewable: [
+      type: :boolean,
+      doc: "Defines whether a field can be viewed on admin pages"
+    ],
+    readonly: [
+      type: :boolean,
+      doc: "Makes the field readonly and cannot be edited"
+    ],
+    display_field: [
+      type: :atom,
+      doc: "The field to use when displaying an association"
+    ],
+    select: [
+      type: :any,
+      # type: {:struct, Ecto.Query.DynamicExpr},
+      doc: "Defines a select to be added when the field is loaded"
+    ]
+  ]
+
+  @fields [
+    Blank.Fields.BelongsTo,
+    Blank.Fields.Boolean,
+    Blank.Fields.DateTime,
+    Blank.Fields.HasMany,
+    Blank.Fields.Location,
+    Blank.Fields.List,
+    Blank.Fields.Password,
+    Blank.Fields.QRCode,
+    Blank.Fields.Text
+  ]
+
   @moduledoc """
   Field definition for rendering fields
 
@@ -54,16 +110,14 @@ defmodule Blank.Field do
         @impl Phoenix.LiveComponent
         def update(%{value: value} = assigns, socket) do
           path = Map.get(assigns.definition, :path, "/")
+          path_prefix = Map.get(assigns, :path_prefix, "/")
 
-          qr_path =
-            socket.router.__blank_prefix__()
+          download_path =
+            path_prefix
             |> URI.parse()
             |> URI.append_path("/qrcode")
             |> URI.append_query(URI.encode_query(%{code: value, path: path}))
             |> URI.to_string()
-
-          download_path =
-            Phoenix.VerifiedRoutes.unverified_path(socket, socket.router, qr_path)
 
           {:ok,
           socket
@@ -117,7 +171,7 @@ defmodule Blank.Field do
   ## Schema
 
   The default field schema is:
-  #{NimbleOptions.docs(Blank.Schema.Validator.field_schema())}
+  #{NimbleOptions.docs(@field_schema)}
 
   A field's definition is validated using the field schema merged with
   the default field schema.
@@ -196,6 +250,33 @@ defmodule Blank.Field do
 
   @optional_callbacks render_list: 1
 
+  @doc false
+  def field_schema, do: @field_schema
+
+  @doc false
+  def __aggregate_field_schemas__ do
+    @fields
+    |> Stream.map(&apply(&1, :__schema__, []))
+    |> Enum.concat()
+  end
+
+  @doc false
+  def validate_field!(schema, caller, opts) do
+    field_schema = Keyword.merge(@field_schema, schema)
+
+    case NimbleOptions.validate(opts, field_schema) do
+      {:ok, opts} ->
+        opts
+
+      {:error, err} ->
+        raise Blank.Errors.InvalidConfigError.from_nimble(err,
+                caller: caller,
+                module: Blank.Schema,
+                usage: "@derive"
+              )
+    end
+  end
+
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts] do
       @schema opts[:schema] || []
@@ -209,7 +290,7 @@ defmodule Blank.Field do
 
       @doc false
       def validate_field!(opts) do
-        Blank.Schema.Validator.validate_field!(@schema, unquote(__MODULE__), opts)
+        Blank.Field.validate_field!(@schema, unquote(__MODULE__), opts)
       end
     end
   end

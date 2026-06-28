@@ -1,5 +1,5 @@
 if Code.ensure_loaded?(ArangoXEcto.Schema) do
-  defmodule Blank.Schema.Ecto do
+  defmodule Blank.EctoSchema do
     @moduledoc false
     defmacro __using__(_opts) do
       quote do
@@ -10,7 +10,7 @@ if Code.ensure_loaded?(ArangoXEcto.Schema) do
     end
   end
 else
-  defmodule Blank.Schema.Ecto do
+  defmodule Blank.EctoSchema do
     @moduledoc false
     defmacro __using__(_opts) do
       quote do

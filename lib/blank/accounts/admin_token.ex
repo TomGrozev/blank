@@ -1,7 +1,7 @@
 defmodule Blank.Accounts.AdminToken do
   @moduledoc false
 
-  use Blank.Schema.Ecto
+  use Blank.EctoSchema
 
   import Ecto.Query
   alias Blank.Accounts.AdminToken

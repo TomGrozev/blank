@@ -1,4 +1,4 @@
-defmodule Blank.Plugs.AuditContext do
+defmodule Blank.Audit.Context do
   @moduledoc """
   Plug to apply the audit context
 
@@ -15,7 +15,7 @@ defmodule Blank.Plugs.AuditContext do
   To do this you need to add the plug in two places, the conn pipeline and the
   live_session. For example, see below.
 
-      import Blank.Plugs.AuditContext
+      import Blank.Audit.Context
 
       pipeline :browser do
         ...
@@ -25,7 +25,7 @@ defmodule Blank.Plugs.AuditContext do
       live_session :default,
         on_mount: [
           ...
-          Blank.Plugs.AuditContext
+          Blank.Audit.Context
         ] do
 
   Make sure that you add the audit context options **after** your user plug.

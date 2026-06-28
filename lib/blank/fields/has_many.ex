@@ -9,7 +9,7 @@ defmodule Blank.Fields.HasMany do
       keys: [
         *: [
           type: :keyword_list,
-          keys: Blank.Schema.Validator.field_schema()
+          keys: Blank.Field.field_schema()
         ]
       ]
     ]

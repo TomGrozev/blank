@@ -6,6 +6,8 @@ defmodule Blank.Components do
   alias Phoenix.LiveView.AsyncResult
   alias Phoenix.LiveView.JS
 
+  import Blank.Components.JS
+
   @doc """
   Renders a modal.
 
@@ -864,76 +866,6 @@ defmodule Blank.Components do
   end
 
   @doc """
-  Renders the list display of a field
-  """
-  attr :definition, :list, required: true, doc: "the field definition"
-  attr :value, :any, required: true, doc: "the value of the field"
-  attr :id, :any, required: true, doc: "the id value"
-  attr :schema, :atom, doc: "the schema to use"
-  attr :time_zone, :string, doc: "the timezone to use for datetime"
-
-  def field_list(assigns) do
-    ~H"""
-    <.live_component
-      id={"field_#{@definition.key}_#{@id}"}
-      module={@definition.module}
-      type={:list}
-      definition={@definition}
-      schema={@schema}
-      value={@value}
-      time_zone={@time_zone}
-    />
-    """
-  end
-
-  @doc """
-  Renders the display of a field
-  """
-  attr :definition, :list, required: true, doc: "the field definition"
-  attr :value, :any, required: true, doc: "the value of the field"
-  attr :id, :any, required: true, doc: "the id value"
-  attr :schema, :atom, doc: "the schema to use"
-  attr :time_zone, :string, doc: "the timezone to use for datetime"
-
-  def field_display(assigns) do
-    ~H"""
-    <.live_component
-      id={"field_#{@definition.key}_#{@id}"}
-      module={@definition.module}
-      type={:display}
-      definition={@definition}
-      schema={@schema}
-      value={@value}
-      time_zone={@time_zone}
-    />
-    """
-  end
-
-  @doc """
-  Renders a form version of the field
-  """
-  attr :definition, :list, required: true, doc: "the field definition"
-
-  attr :field, Phoenix.HTML.FormField,
-    required: true,
-    doc: "a form field struct retrieved from the form, for example: @form[:email]"
-
-  attr :repo, :atom, doc: "the repo used for querying"
-  attr :schema, :atom, doc: "the schema to use"
-  attr :time_zone, :string, doc: "the timezone to use for datetime"
-
-  def field_form(assigns) do
-    ~H"""
-    <.live_component
-      id={"field_#{@definition.key}_form"}
-      module={@definition.module}
-      type={:form}
-      {Map.take(assigns, [:definition, :field, :schema, :repo, :time_zone])}
-    />
-    """
-  end
-
-  @doc """
   Renders a stat
   """
 
@@ -989,52 +921,5 @@ defmodule Blank.Components do
   """
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
-  end
-
-  def show(js \\ %JS{}, selector) do
-    JS.show(js,
-      to: selector,
-      time: 300,
-      transition:
-        {"transition-all transform ease-out duration-300",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
-         "opacity-100 translate-y-0 sm:scale-100"}
-    )
-  end
-
-  def hide(js \\ %JS{}, selector) do
-    JS.hide(js,
-      to: selector,
-      time: 200,
-      transition:
-        {"transition-all transform ease-in duration-200",
-         "opacity-100 translate-y-0 sm:scale-100",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
-    )
-  end
-
-  def show_modal(js \\ %JS{}, id) when is_binary(id) do
-    js
-    |> JS.show(to: "##{id}")
-    |> JS.show(
-      to: "##{id}-bg",
-      time: 300,
-      transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
-    )
-    |> show("##{id}-container")
-    |> JS.add_class("overflow-hidden", to: "body")
-    |> JS.focus_first(to: "##{id}-content")
-  end
-
-  def hide_modal(js \\ %JS{}, id) do
-    js
-    |> JS.hide(
-      to: "##{id}-bg",
-      transition: {"transition-all transform ease-in duration-200", "opacity-100", "opacity-0"}
-    )
-    |> hide("##{id}-container")
-    |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
-    |> JS.remove_class("overflow-hidden", to: "body")
-    |> JS.pop_focus()
   end
 end

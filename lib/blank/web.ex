@@ -77,6 +77,8 @@ defmodule Blank.Web do
 
       import Phoenix.HTML
       import Blank.Components
+      import Blank.Components.Field
+      import Blank.Components.JS
 
       alias Phoenix.LiveView.JS
     end

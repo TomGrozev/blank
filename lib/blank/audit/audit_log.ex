@@ -5,7 +5,7 @@ defmodule Blank.Audit.AuditLog do
   This stores information about the user that performed the action, such as
   their ip address, user agent and either their admin or user account.
   """
-  use Blank.Schema.Ecto
+  use Blank.EctoSchema
   @timestamps_opts [type: :utc_datetime]
 
   defmodule InvalidParameterError do

@@ -13,7 +13,7 @@
     phx-submit="save"
   >
     <.field_form :for={{field, field_def} <- @fields} field={f[field]} definition={field_def} 
-    schema={@schema} repo={@repo} time_zone={@time_zone} />
+    schema={@schema} repo={@repo} time_zone={@time_zone} path_prefix={@path_prefix} />
     <:actions>
       <% {action, actioning} = @form_btn %>
       <.button phx-disable-with={"#{actioning} #{@name}..."} class="btn btn-primary w-full">{action} {@name}</.button>

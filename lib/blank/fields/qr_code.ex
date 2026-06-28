@@ -15,16 +15,14 @@ defmodule Blank.Fields.QRCode do
   @impl Phoenix.LiveComponent
   def update(%{value: value} = assigns, socket) do
     path = Map.get(assigns.definition, :path, "/")
+    path_prefix = Map.get(assigns, :path_prefix, "/")
 
-    qr_path =
-      socket.router.__blank_prefix__()
+    download_path =
+      path_prefix
       |> URI.parse()
       |> URI.append_path("/qrcode")
       |> URI.append_query(URI.encode_query(%{code: value, path: path}))
       |> URI.to_string()
-
-    download_path =
-      Phoenix.VerifiedRoutes.unverified_path(socket, socket.router, qr_path)
 
     {:ok,
      socket
