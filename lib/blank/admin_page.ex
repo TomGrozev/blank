@@ -347,7 +347,25 @@ defmodule Blank.AdminPage do
   @callback render_new(assigns :: Phoenix.LiveView.Socket.assigns()) ::
               %Phoenix.LiveView.Rendered{}
 
-  @optional_callbacks stat_query: 2, render_new: 1
+  @type hook() ::
+          :mount
+          | :handle_params
+          | {:handle_async, any()}
+          | {:handle_event, any()}
+          | {:handle_info, any()}
+
+  @doc """
+
+
+  ## Hook types
+
+
+  """
+  # TODO: docs
+  @callback admin_hook(type :: hook(), params :: tuple(), socket :: Phoenix.LiveView.Socket.t()) ::
+              Phoenix.LiveView.Socket.t()
+
+  @optional_callbacks stat_query: 2, render_new: 1, admin_hook: 3
 
   alias Phoenix.LiveView.AsyncResult
   alias Blank.Context
@@ -517,7 +535,7 @@ defmodule Blank.AdminPage do
   def admin_show(assigns)
 
   @impl Phoenix.LiveView
-  def mount(_params, _session, socket) do
+  def mount(params, session, socket) do
     admin_page = socket.view
 
     schema = admin_page.config(:schema)
@@ -535,23 +553,39 @@ defmodule Blank.AdminPage do
           "Etc/UTC"
       end
 
-    {:ok,
-     socket
-     |> assign(:time_zone, time_zone)
-     |> assign(:admin_page, admin_page)
-     |> assign(:key, admin_page.config(:key))
-     |> assign(:name, admin_page.config(:name))
-     |> assign(:plural_name, admin_page.config(:plural_name))
-     |> assign(:schema, admin_page.config(:schema))
-     |> assign(:primary_keys, primary_keys)
-     |> assign(:repo, admin_page.repo())
-     |> assign(:meta, nil)
-     |> stream_configure(:items,
-       dom_id:
-         &"items-#{Map.fetch!(&1,
-         identity_field)}"
-     )
-     |> stream(:items, [])}
+    socket =
+      socket
+      |> assign(:time_zone, time_zone)
+      |> assign(:admin_page, admin_page)
+      |> assign(:key, admin_page.config(:key))
+      |> assign(:name, admin_page.config(:name))
+      |> assign(:plural_name, admin_page.config(:plural_name))
+      |> assign(:schema, admin_page.config(:schema))
+      |> assign(:primary_keys, primary_keys)
+      |> assign(:repo, admin_page.repo())
+      |> assign(:meta, nil)
+      |> stream_configure(:items,
+        dom_id:
+          &"items-#{Map.fetch!(&1,
+          identity_field)}"
+      )
+      |> stream(:items, [])
+      |> apply_hook(:mount, admin_page, {params, session})
+
+    {:ok, socket}
+  end
+
+  defp apply_hook(socket, {type, key}, admin_page, params) do
+    admin_page.admin_hook({type, key}, params, socket)
+  end
+
+  defp apply_hook(socket, type, admin_page, params) do
+    try do
+      admin_page.admin_hook(type, params, socket)
+    rescue
+      _ ->
+        socket
+    end
   end
 
   @impl Phoenix.LiveView
@@ -577,8 +611,13 @@ defmodule Blank.AdminPage do
   end
 
   @impl Phoenix.LiveView
-  def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  def handle_params(params, url, socket) do
+    socket =
+      socket
+      |> apply_action(socket.assigns.live_action, params)
+      |> apply_hook(socket, socket.view, {params, url})
+
+    {:noreply, socket}
   end
 
   defp apply_action(socket, :show, %{"id" => id}) do
@@ -903,6 +942,10 @@ defmodule Blank.AdminPage do
      end)}
   end
 
+  def handle_async(key, params, socket) do
+    {:noreply, apply_hook(socket, {:handle_async, key}, socket.view, params)}
+  end
+
   @impl Phoenix.LiveView
   def handle_event("idx-btn-click", %{"key" => key}, socket) do
     action =
@@ -968,6 +1011,10 @@ defmodule Blank.AdminPage do
     {:noreply, assign(socket, :filter_fields, filter_fields)}
   end
 
+  def handle_event(key, params, socket) do
+    {:noreply, apply_hook(socket, {:handle_event, key}, socket.view, params)}
+  end
+
   defp advanced_search(fields) do
     fields
     |> Stream.filter(fn {_, def} -> def.searchable end)
@@ -1031,8 +1078,8 @@ defmodule Blank.AdminPage do
   end
 
   @impl Phoenix.LiveView
-  def handle_info(_event, socket) do
-    {:noreply, socket}
+  def handle_info(key, socket) do
+    {:noreply, apply_hook(socket, {:handle_info, key}, socket.view, nil)}
   end
 
   @decode_fields [Blank.Fields.BelongsTo, Blank.Fields.Location]
