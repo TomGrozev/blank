@@ -1,0 +1,34 @@
+{
+  "name": "blank",
+  "image": "ghcr.io/tomgrozev/devcontainer-elixir:v0.2.7-elixir-1.19.4-otp-28.5.0.1",
+  "remoteEnv": {
+    "MIX_BUILD_PATH": "/workspace/_build/devcontainer",
+    "MIX_DEPS_PATH": "/workspace/deps/devcontainer"
+  },
+  "containerEnv": {
+    "DEVCONTAINER": "true",
+    "EDITOR": "nvim",
+    "VISUAL": "nvim"
+  },
+  "remoteUser": "dev",
+  "userEnvProbe": "none",
+  "forwardPorts": [4000, 4096],
+  "portsAttributes": {
+    "4000": {
+      "label": "Phoenix",
+      "onAutoForward": "notify"
+    },
+    "4096": {
+      "label": "Opencode",
+      "onAutoForward": "notify"
+    }
+  },
+  "mounts": [
+    "source=shhai-commandhistory,target=/commandhistory,type=volume",
+    "type=tmpfs,target=${localEnv:HOME}/.gnupg,size=10Mi"
+  ],
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "mix deps.get",
+  "postStartCommand": "git config --global --add safe.directory /workspace && /start-opencode.sh"
+}

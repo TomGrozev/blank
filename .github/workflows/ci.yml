@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - release/*
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+
+jobs:
+  test:
+    name: "[${{matrix.otp}}/${{matrix.elixir}}] CI Tests on blank [OTP/Elixir]"
+    runs-on: ubuntu-latest
+    env:
+      FORCE_COLOR: 1
+    strategy:
+      matrix:
+        otp: [25.3.2.12, 26.2.5, 27.2]
+        elixir: [1.16.3, 1.17.3, 1.18.1]
+        exclude:
+          - otp: 27.2
+            elixir: 1.16.3
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+      - uses: actions/cache@v4
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+      - run: mix deps.get
+      - run: mix deps.compile
+      - run: mix format --check-formatted
+      - run: mix compile --warnings-as-errors
+      - run: mix credo
+      - run: mix doctor --summary
+      - run: mix sobelow
+      - run: mix test
