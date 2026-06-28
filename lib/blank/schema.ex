@@ -17,7 +17,7 @@ defmodule Blank.Schema.Options do
     ],
     update_changeset: [
       type: {:fun, 2},
-      doc: "The changeset to use when edition an object"
+      doc: "The changeset to use when updating an object"
     ],
     include_foreign_keys: [
       type: :boolean,

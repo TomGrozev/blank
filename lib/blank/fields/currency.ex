@@ -1,6 +1,20 @@
 defmodule Blank.Fields.Currency do
   @moduledoc """
-  Renders currency text
+  Currency field that formats numeric values with a dollar sign.
+
+  In display mode the value is formatted as `$X.XX` (two decimal places,
+  defaulting to `$0.00` when nil). The form renders as a number input with a
+  banknotes icon prefix.
+
+  ## Example
+
+      fields: [
+        price: [module: Blank.Fields.Currency],
+        tax: [module: Blank.Fields.Currency, label: "Tax amount"]
+      ]
+
+  See `Blank.Field` for shared options (`:searchable`, `:sortable`, `:viewable`,
+  `:readonly`, `:label`, `:placeholder`, etc.).
   """
 
   use Blank.Field

@@ -1,24 +1,20 @@
 # Blank
 
-Blank is a drop-in admin panel for your elixir projects. Blank fits in with your
-elixir projects without needing to do much configuration to get a fully features
-admin panel.
+Blank is a drop-in admin panel for your Elixir projects. Derive `Blank.Schema` on your Ecto schemas, declare admin pages with `use Blank.AdminPage`, and you get CRUD, filtering, audit logging, and exports with minimal configuration.
 
 ## Why make Blank?
 
 Whatever project I made, I would always have to make an admin panel and it got
 quite annoying remaking the same thing time and time again. So for one project I
-decided that I would just make an easy to setup and use admin panel. At that is
+decided that I would just make an easy to setup and use admin panel. And that is
 where Blank comes in.
 
-## Installation
+## Quick Start
 
-Installation is made to be as simple as possible and can be done in 6 easy
-steps.
-
-1. Add the blank package in your project's hex dependencies.
+Add the dependency and config:
 
 ```elixir
+# mix.exs
 def deps do
   [
     {:blank, "~> 0.1.0"}
@@ -26,11 +22,8 @@ def deps do
 end
 ```
 
-And run `mix deps.get` to fetch the blank package.
-
-2. Add your configuration to your config file.
-
 ```elixir
+# config/config.exs
 config :blank,
   endpoint: MyApp.Endpoint,
   repo: MyApp.Repo,
@@ -39,51 +32,18 @@ config :blank,
   use_local_timezone: true
 ```
 
-3. Run the install command `mix blank.install` to copy required migrations and
-   automatically add the required configuration options (refer to the docs for
-   more info). You will need to run migrations afterwards.
+Then run `mix blank.install` and `mix ecto.migrate`. Derive `Blank.Schema` on your Ecto schemas, set up routing with `blank_admin` and `admin_page`, and create an admin page module with `use Blank.AdminPage`.
 
-4. Add the blank schema definition to your schemas that you want blank to
-   control. See `Blank.Schema` for more info.
+See the [HexDocs](https://hexdocs.pm/blank) for the full installation walkthrough.
 
-```elixir
-@derive {
-  Blank.Schema,
-  fields: [
-    title: [searchable: true],
-    price: [],
-  ],
-  identity_field: :sid,
-  order_field: :inserted_at
-}
-```
+## Documentation
 
-5. Add the blank pages to your application router.
+Full documentation is available on [HexDocs](https://hexdocs.pm/blank).
 
-```elixir
-defmodule MyApp.Router do
-  import Blank.Router
+## Contributing
 
-  blank_admin "/admin" do
-    admin_page "/posts", MyApp.Admin.PostsLive
-    admin_page "/products", MyApp.Admin.ProductsLive
-  end
-end
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing to Blank.
 
-6. And finally add your admin pages, for example:
+## License
 
-```elixir
-defmodule MyApp.Admin.PostsLive do
-  import Ecto.Query
-  alias MyApp.Products.Product
-
-  use Blank.AdminPage,
-    schema: Product,
-    icon: "hero-archive-box",
-    index_fields: [:title, :price]
-end
-```
-
-Checkout [the docs](https://hexdocs.pm/blank) for more info on configuring
-Blank.
+See [LICENSE](LICENSE) for details.

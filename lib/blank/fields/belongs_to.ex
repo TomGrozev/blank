@@ -1,6 +1,22 @@
 defmodule Blank.Fields.BelongsTo do
   @moduledoc """
-  Belongs to search field
+  Searchable select field for `belongs_to` associations.
+
+  This field is applied automatically to any `belongs_to` association. In the
+  form it renders a `Blank.Components.SearchableSelect` live component that
+  lets the Admin search and pick from the related schema's records.
+
+  The `:display_field` option controls which field is shown as the selected
+  label. If omitted, the related schema's `identity_field` is used.
+
+  ## Example
+
+      fields: [
+        author: [display_field: :full_name, searchable: true]
+      ]
+
+  See `Blank.Field` for shared options (`:searchable`, `:sortable`, `:viewable`,
+  `:readonly`, `:label`, `:placeholder`, etc.).
   """
 
   use Blank.Field

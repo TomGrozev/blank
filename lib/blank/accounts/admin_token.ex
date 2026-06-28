@@ -1,5 +1,10 @@
 defmodule Blank.Accounts.AdminToken do
-  @moduledoc false
+  @moduledoc """
+  Schema for password reset / session tokens used by Blank.
+
+  Stores hashed tokens in the `blank_admins_tokens` table. Each token has a
+  `:context` (`"session"`) and a `:sent_to` field, and belongs to an Admin.
+  """
 
   use Blank.EctoSchema
 

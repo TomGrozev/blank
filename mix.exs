@@ -149,6 +149,10 @@ defmodule Blank.MixProject do
   defp extras do
     [
       "guides/introduction/Getting Started.md",
+      "guides/cheatsheets/Field Options.md",
+      "guides/cheatsheets/AdminPage Options.md",
+      "guides/howtos/Custom Field.md",
+      "guides/howtos/Custom Exporter.md",
       "CHANGELOG.md"
     ]
   end
@@ -158,7 +162,7 @@ defmodule Blank.MixProject do
   defp groups_for_extras do
     [
       Introduction: ~r/guides\/introduction\/.?/,
-      Cheatsheets: ~r/guides\/cheetsheets\/.?/,
+      Cheatsheets: ~r/guides\/cheatsheets\/.?/,
       "How-To's": ~r/guides\/howtos\/.?/
     ]
   end

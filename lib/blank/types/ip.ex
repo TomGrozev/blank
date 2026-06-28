@@ -1,5 +1,12 @@
 defmodule Blank.Types.IP do
-  @moduledoc false
+  @moduledoc """
+  Ecto type for storing IP addresses (v4 or v6).
+
+  Stores IPs as strings in the database and casts them to/from
+  `:inet` tuples (`{a, b, c, d}` for IPv4, `{a, b, c, d, e, f, g, h}` for
+  IPv6) for in-memory use.
+  """
+
   ### Implements Ecto.Type behavior for storing IP (either v4 or v6) data that originally comes as tuples.
 
   use Ecto.Type

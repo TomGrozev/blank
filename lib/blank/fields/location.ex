@@ -1,7 +1,31 @@
 if Code.ensure_loaded?(Geo) do
   defmodule Blank.Fields.Location do
     @moduledoc """
-    Renders a location field
+    Geo-location field for storing coordinates and addresses.
+
+    Requires the optional `:geo` dependency. Renders coordinates with
+    cardinal-direction formatting (e.g. `33.8688 N, 151.2093 E`) and
+    displays the address when available.
+
+    ## Schema options
+
+      * `:address_fun` — a 1-arity function that receives a search query string
+        and returns `{:ok, [addresses]}`. When provided, a searchable address
+        picker is rendered in the form.
+
+    The underlying value is expected to be a `Geo.Point` struct (or a map with
+    `"coordinates"` and `"properties"` keys).
+
+    ## Example
+
+        fields: [
+          location: [
+            address_fun: &MyApp.Geocoder.search/1
+          ]
+        ]
+
+    See `Blank.Field` for shared options (`:searchable`, `:sortable`, `:viewable`,
+    `:readonly`, `:label`, `:placeholder`, etc.).
     """
 
     @schema [
@@ -130,7 +154,10 @@ end
 if !Code.ensure_loaded?(Geo) do
   defmodule Blank.Fields.Location do
     @moduledoc """
-    Renders a location field
+    Fallback location field when the `:geo` dependency is not installed.
+
+    Both display and form views show a "GEO DEPENDENCY NOT INSTALLED" message.
+    Add `{:geo, "~> 3.6"}` to your deps to enable full location support.
     """
 
     use Blank.Field

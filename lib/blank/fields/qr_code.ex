@@ -1,6 +1,23 @@
 defmodule Blank.Fields.QRCode do
   @moduledoc """
-  Renders a qr code
+  QR code field that renders a value as a downloadable QR code image.
+
+  In the list view the raw value is shown as text. In the display view a QR
+  code SVG is rendered along with a download button.
+
+  ## Schema options
+
+    * `:path` — a path component appended to the field value when generating
+      the QR code URL (defaults to `"/"`).
+
+  ## Example
+
+      fields: [
+        barcode: [module: Blank.Fields.QRCode, path: "/items"]
+      ]
+
+  See `Blank.Field` for shared options (`:searchable`, `:sortable`, `:viewable`,
+  `:readonly`, `:label`, `:placeholder`, etc.).
   """
 
   @schema [

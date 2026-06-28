@@ -5,7 +5,7 @@ defmodule Blank.Exporter do
   ]
 
   @moduledoc """
-  Exports a model's data into specific formats
+  Exports a schema's data into specific formats
 
   This module will use an exporter module (a module that implements the behaviour
   in this module) to export a schema's data into some output format.
@@ -127,7 +127,7 @@ defmodule Blank.Exporter do
   Process each item
 
   This function is applied for each record in the database. This function will
-  be streamed and won't be processed until actioned in the `save/3` function.
+  be streamed and won't be processed until actioned in the `save/2` function.
   """
   @callback process(item :: map(), fields :: [{atom(), Blank.Schema.t()}]) ::
               Enumerable.t()
@@ -135,9 +135,10 @@ defmodule Blank.Exporter do
   @doc """
   Saves the export file
 
-  Takes the streamed output, the location for the file to be saved and the name
-  of the file to be saved. The function should return the path where the
-  file is to be saved.
+  Takes the streamed output (the result of `process/2` applied across all items) and
+  the absolute path where the file should be written. The function should return `:ok`
+  on success or `{:error, reason}` on failure. Blank uses the return value to register
+  the file with the `Download Agent` under a short-lived download ID.
   """
   @callback save(stream :: Enumerable.t(), path :: Path.t()) :: :ok | {:error, any()}
 
@@ -163,7 +164,7 @@ defmodule Blank.Exporter do
   @doc """
   Exports using an exporter
 
-  Will use an exporter module to export all data of a schema model.
+  Will use an exporter module to export all data of a schema.
 
   ## Parameters
 

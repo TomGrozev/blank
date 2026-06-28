@@ -1,5 +1,13 @@
 defmodule Blank.Accounts.Admin do
-  @moduledoc false
+  @moduledoc """
+  Default Admin Ecto schema for the Blank panel.
+
+  Override by setting `config :blank, :user_module, MyApp.Accounts.User` in
+  your app config. Fields: `:email`, `:password` (virtual), `:hashed_password`,
+  `:current_password` (virtual), plus `:inserted_at` and `:updated_at`
+  timestamps. Uses `Blank.EctoSchema` for `@binary_type` and related
+  configuration.
+  """
 
   use Blank.EctoSchema
   import Ecto.Changeset

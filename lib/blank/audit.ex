@@ -58,7 +58,7 @@ defmodule Blank.Audit do
   @doc """
   Lists all audit logs for a supplied user
 
-  Similarlly to `list_all/1`, this defaults to 50 logs returned and available
+  Similarly to `list_all/1`, this defaults to 50 logs returned and available
   options are the same as in that function.
   """
   @doc group: "Query"
@@ -126,11 +126,12 @@ defmodule Blank.Audit do
 
   ## Parameters
 
-    * `audit_context` - this is passed from the user's session and contains
-      details of the user
+    * `audit_context` - an audit context map, the same struct shape as
+      returned by `Blank.Audit.Context.fetch_audit_context/2` /
+      `on_mount/4`
   """
   @doc group: "Management"
-  @spec delete_all(AuditLog.t()) :: :ok | {:error, any()}
+  @spec delete_all(map()) :: :ok | {:error, any()}
   def delete_all(audit_context) do
     Ecto.Multi.new()
     |> Ecto.Multi.delete_all(:delete_all, AuditLog)
@@ -152,13 +153,13 @@ defmodule Blank.Audit do
     * `action` - the action that this log is reporting (see below for more
       info)
     * `params` - the additional information to be stored in the log, for blank
-      events this is validatied against the action
+      events this is validated against the action
 
   ## Actions
 
-  There are some built-in actions (referr to `AuditLog` for more info) but you
+  There are some built-in actions (refer to `AuditLog` for more info) but you
   can also add your own, custom actions. Custom actions should be prefixed with
-  `app.`, for example you could do `app.send_email` for an send email action.
+  `app.`, for example you could do `app.send_email` for a send email action.
   """
   @doc group: "Create"
   @spec log!(AuditLog.t(), String.t(), map()) :: AuditLog.t()
@@ -176,7 +177,7 @@ defmodule Blank.Audit do
   This operates the same as `log!/3` the first argument is an `Ecto.Multi`.
   However, the fourth parameter can either be a map of parameters (such as in
   the `log!/3` function) or a two argument function. The first argument of the
-  function is the `aduit_context` and the second is the multi state, which will
+  function is the `audit_context` and the second is the multi state, which will
   allow you to get info of the actions on an item before this function.
 
   ## Example

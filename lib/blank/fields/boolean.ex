@@ -1,6 +1,20 @@
 defmodule Blank.Fields.Boolean do
   @moduledoc """
-  Renders a boolean checkmark
+  Boolean field rendered as a checkbox.
+
+  In list and display views, a `true` value shows a green check-circle icon
+  and `false` shows a red x-circle icon. The form renders as a checkbox
+  input.
+
+  ## Example
+
+      fields: [
+        active: [],
+        featured: [label: "Featured on homepage"]
+      ]
+
+  See `Blank.Field` for shared options (`:searchable`, `:sortable`, `:viewable`,
+  `:readonly`, `:label`, `:placeholder`, etc.).
   """
 
   use Blank.Field

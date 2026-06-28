@@ -2,7 +2,7 @@ defmodule Blank.Router do
   @moduledoc """
   Provides routing options for blank admin panel.
 
-  The two macros in this function are mearly wrappers around regular Phoenix
+  The two macros in this function are merely wrappers around regular Phoenix
   routing. Below is an example of how it can be used.
 
       defmodule MyAppWeb.Router do
@@ -166,7 +166,7 @@ defmodule Blank.Router do
   end
 
   @doc """
-  Defines an admin page for a resource
+  Defines an admin page for a schema
 
   This must be used within the do block of the `blank_admin/3` function.
 

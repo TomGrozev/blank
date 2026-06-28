@@ -1,6 +1,23 @@
 defmodule Blank.Fields.List do
   @moduledoc """
-  Renders a list of sub fields
+  Array field for `{:array, type}` Ecto types.
+
+  This field is applied automatically when the schema field has type
+  `{:array, inner_type}`. It renders a list of items in display mode and
+  provides add/remove buttons in the form so the Admin can manage the array
+  contents.
+
+  ## Example
+
+      fields: [
+        tags: [label: "Tags"]
+      ]
+
+  The inner type determines the per-item rendering — e.g. `{:array, :string}`
+  renders each item as text.
+
+  See `Blank.Field` for shared options (`:searchable`, `:sortable`, `:viewable`,
+  `:readonly`, `:label`, `:placeholder`, etc.).
   """
 
   use Blank.Field

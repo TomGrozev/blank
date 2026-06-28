@@ -1,6 +1,21 @@
 defmodule Blank.Fields.Text do
   @moduledoc """
-  Renders basic text
+  Default field for plain text values.
+
+  This is the fallback field module — any `:string`, `:integer`, `:float`,
+  `:decimal`, `:naive_datetime`, or `:date` type that isn't matched by a
+  more specific field adapter renders as a simple text input. The label
+  defaults to a humanized version of the field name.
+
+  ## Example
+
+      fields: [
+        title: [],
+        description: [label: "Description", placeholder: "Write something…"]
+      ]
+
+  See `Blank.Field` for shared options (`:searchable`, `:sortable`, `:viewable`,
+  `:readonly`, `:label`, `:placeholder`, etc.).
   """
 
   use Blank.Field

@@ -1,3 +1,3 @@
 %Doctor.Config{
-  ignore_modules: [Blank.Router]
+  ignore_modules: [Blank.Components.JS, Blank.Router]
 }

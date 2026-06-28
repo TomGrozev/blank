@@ -99,7 +99,7 @@ defmodule Blank.Components.ImportComponent do
       >
         <h2 class="text-xl font-bold mb-4">Map the fields</h2>
         <p class="mb-8">Below is a sample of the data in your spreadsheet file. Please map
-          the fields in the spreadsheet to the fields in the {@name} model.</p>
+          the fields in the spreadsheet to the fields in the {@name} schema.</p>
 
         <div class="my-10">
           <table>

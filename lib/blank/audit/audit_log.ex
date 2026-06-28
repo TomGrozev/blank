@@ -1,9 +1,33 @@
 defmodule Blank.Audit.AuditLog do
   @moduledoc """
-  Schema modile for audit logs
+  Ecto schema for the `blank_audit_logs` table.
 
-  This stores information about the user that performed the action, such as
-  their ip address, user agent and either their admin or user account.
+  Each record captures a mutation (create, update, or delete) along with
+  metadata about who performed it:
+
+    * `:action` — the action string (e.g. `"posts.create"`, `"app.send_email"`).
+    * `:ip_address` — the Admin's IP address (stored as a `Blank.Types.IP`).
+    * `:user_agent` — the browser user agent string (or `"SYSTEM"` for
+      automated logs).
+    * `:params` — a map of additional context (e.g. `%{item_id: 123}`).
+    * `:admin` — the `belongs_to` association for the acting Admin.
+    * `:user` — the `belongs_to` association for the host app's user, configured
+      via `config :blank, :user_module, MyApp.Accounts.User`.
+
+  ## System logs
+
+  Use `system/0` to create an audit log with no associated user and a
+  `"SYSTEM"` user agent — useful for background jobs or automated actions.
+
+  ## Building logs
+
+  Use `build!/3` with an audit context, an action string, and a params map.
+  The params map is validated against `@allowed_params` for built-in actions.
+  Wildcard actions (e.g. `"*.create"`) accept any prefix — the validation
+  only checks the suffix.
+
+  Custom app actions prefixed with `"app."` (e.g. `"app.send_email"`) skip
+  parameter validation entirely.
   """
   use Blank.EctoSchema
   @timestamps_opts [type: :utc_datetime]
@@ -59,7 +83,7 @@ defmodule Blank.Audit.AuditLog do
   }
 
   @doc """
-  Builds a audit log
+  Builds an audit log
 
   ## Available actions
 

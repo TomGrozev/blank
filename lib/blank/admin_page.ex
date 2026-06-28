@@ -109,7 +109,7 @@ defmodule Blank.AdminPage do
                    If the path starts with `http://` or `https://` then it will
                    navigate directly to that url.
 
-                   Otherwise, if the path starts with anythign else it will navigate
+                    Otherwise, if the path starts with anything else it will navigate
                    relatively, e.g. if you set the path to `food` and you are current
                    at `http://<your_app>:<your_port>/meals` then it will navigate to
                    `http://<your_app>:<your_port>/meals/food`.
@@ -163,7 +163,7 @@ defmodule Blank.AdminPage do
 
               Defaults to a humanized name based on the key and the plural name. 
               E.g. for a key of `:total` and a plural name of `products` the
-              generated name would be `Total proucts`.
+              generated name would be `Total products`.
               """
             ],
             display: [
@@ -197,14 +197,14 @@ defmodule Blank.AdminPage do
   ]
 
   @moduledoc """
-  Configures an admin page for some resource.
+  Configures an admin page for some schema.
 
   An admin page is actually a group of three pages, an index page where all the
   records are listed, a show page where a specific item can be viewed, and an
   edit page where an item can be edited.
 
-  Each admin page is configured by using this module. A seperate usage of this
-  module is needed per resource. For example, you would need one for an admin
+  Each admin page is configured by using this module. A separate usage of this
+  module is needed per schema. For example, you would need one for an admin
   page for posts and one for products.
 
   ## Basic Example
@@ -235,24 +235,24 @@ defmodule Blank.AdminPage do
   as below.
 
       [
-        ...
+        total: [],
         in_stock: [
           name: "Total in-stock",
         ]
-        ...
+        # add more stats here
       ]
 
   Here we have only configured the name of the stat and left all of the other
-  options as the defaults. Make sure to include the total stat, otherwise it 
-  won't be included. So for the above example we could include it by setting
-  `:total` to `[]` (i.e. all defaults are used).
+  options as the defaults. If you don't include a `:total` entry, the default
+  total stat will not appear. So for the above example we could include it by
+  setting `:total` to `[]` (i.e. all defaults are used).
 
       [
         total: [],
         in_stock: [
           name: "Total in-stock",
         ]
-        ...
+        # add more stats here
       ]
 
   To configure how the stat queries data, you need to add a `c:stat_query/2`
@@ -355,13 +355,72 @@ defmodule Blank.AdminPage do
           | {:handle_info, any()}
 
   @doc """
+  Intercepts LiveView lifecycle events without overriding the generated callbacks.
 
+  This optional callback lets you hook into `mount/3`, `handle_params/3`,
+  `handle_event/3`, `handle_async/3`, and `handle_info/2` without overriding the
+  generated implementations. It fires after Blank's own processing, so you can
+  add custom logic on top of the default behaviour.
+
+  ## Parameters
+
+    * `type` — which lifecycle event fired (see hook types below).
+    * `params` — the parameters LiveView passed to the matching callback. The
+      shape depends on the hook type.
+    * `socket` — the current `Phoenix.LiveView.Socket.t()`.
+
+  Returns the (possibly modified) socket.
 
   ## Hook types
 
+  ### `:mount`
 
+  Fires at the end of `mount/3`. `params` is `{params, session}` where `params`
+  is the route params map and `session` is the Plug session map.
+
+  ### `:handle_params`
+
+  Fires at the end of `handle_params/3`. `params` is `{params, url}` where
+  `params` is the route params map and `url` is the current URL string.
+
+  ### `{:handle_event, event_name}`
+
+  Fires for every `handle_event/3` that isn't handled internally by Blank (i.e.
+  not `"save"`, `"validate"`, `"delete"`, etc.). `params` is the event params
+  map that LiveView received.
+
+  ### `{:handle_async, key}`
+
+  Fires at the end of `handle_async/3` for async results not handled internally
+  by Blank. `params` is the async result value.
+
+  ### `{:handle_info, message}`
+
+  Fires for every `handle_info/2` message. `params` is the message itself.
+
+  ## Example
+
+  Add a side-effect like a flash, log, or a non-blocking notification:
+
+      @impl Blank.AdminPage
+      def admin_hook({:handle_event, "save"}, params, socket) do
+        if socket.assigns.item.price < 0 do
+          socket
+          |> Phoenix.LiveView.put_flash(:error, "Price cannot be negative")
+        else
+          socket
+        end
+      end
+
+  def admin_hook(_type, _params, socket), do: socket
+
+  The hook runs *after* Blank's defaults and can return a modified socket.
+  It cannot prevent the default action from completing — to abort, `raise`
+  (the save will fail with a LiveView error).
+
+  This callback is optional. If not implemented, Blank's default lifecycle
+  handling applies.
   """
-  # TODO: docs
   @callback admin_hook(type :: hook(), params :: tuple(), socket :: Phoenix.LiveView.Socket.t()) ::
               Phoenix.LiveView.Socket.t()
 

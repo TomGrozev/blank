@@ -1,6 +1,23 @@
 defmodule Blank.Fields.DateTime do
   @moduledoc """
-  Renders a datetime field
+  DateTime field with timezone-aware display.
+
+  In display mode the value is shifted to the Admin's local timezone (set via
+  the `@time_zone` assign during mount) and formatted as
+  `"%Y-%m-%d %I:%M %p %Z"`. When `use_local_timezone` is disabled in the app
+  config, `"Etc/UTC"` is used as the default.
+
+  The form renders as a `datetime-local` input.
+
+  ## Example
+
+      fields: [
+        inserted_at: [],
+        published_at: [label: "Published at"]
+      ]
+
+  See `Blank.Field` for shared options (`:searchable`, `:sortable`, `:viewable`,
+  `:readonly`, `:label`, `:placeholder`, etc.).
   """
 
   use Blank.Field

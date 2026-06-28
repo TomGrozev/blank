@@ -1,6 +1,21 @@
 defmodule Blank.Fields.Password do
   @moduledoc """
-  Renders a password field
+  Password field with masked display.
+
+  In list and display views the value is replaced with asterisks (`************`)
+  so the actual hash is never shown. The form renders as a `password` input.
+  The underlying Ecto type is `:string` — use the `:hashed_password` field
+  from `Blank.Accounts.Admin` as a reference for how hashed values are stored.
+
+  ## Example
+
+      fields: [
+        password: [module: Blank.Fields.Password],
+        current_password: [module: Blank.Fields.Password, viewable: false]
+      ]
+
+  See `Blank.Field` for shared options (`:searchable`, `:sortable`, `:viewable`,
+  `:readonly`, `:label`, `:placeholder`, etc.).
   """
 
   use Blank.Field

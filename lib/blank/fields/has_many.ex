@@ -1,6 +1,31 @@
 defmodule Blank.Fields.HasMany do
   @moduledoc """
-  Renders a has many
+  Has-many / has-one association field with inline child editing.
+
+  This field is applied automatically to `has_many` and `has_one` associations.
+  It renders a list of child items in the form, with buttons to add and remove
+  entries. Use the `:children` option to define which sub-fields appear for each
+  child.
+
+  ## Schema options
+
+    * `:children` — a keyword list of child field definitions. Each key is a
+      field name on the child schema and the value is a keyword list of field
+      options (same shape as the top-level `fields:` option in `Blank.Schema`).
+
+  ## Example
+
+      fields: [
+        line_items: [
+          children: [
+            product_name: [label: "Product"],
+            quantity: [label: "Qty"]
+          ]
+        ]
+      ]
+
+  See `Blank.Field` for shared options (`:searchable`, `:sortable`, `:viewable`,
+  `:readonly`, `:label`, `:placeholder`, etc.).
   """
 
   @schema [

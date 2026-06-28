@@ -95,7 +95,7 @@ defmodule Blank.Field do
   ### Example custom field
 
   Below is an example of how you could implement your own QRCode field. This is
-  losely based on how Blank implements the QRCode field.
+  loosely based on how Blank implements the QRCode field.
 
       defmodule MyApp.Fields.QRCode do
         @schema [
