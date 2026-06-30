@@ -1,6 +1,11 @@
-if Code.ensure_loaded?(ArangoXEcto.Schema) do
-  defmodule Blank.EctoSchema do
-    @moduledoc false
+defmodule Blank.EctoSchema do
+  @moduledoc false
+
+  use_arango =
+    not Application.compile_env(:blank, :force_ecto_schema, false) and
+      Code.ensure_loaded?(ArangoXEcto.Schema)
+
+  if use_arango do
     defmacro __using__(_opts) do
       quote do
         use ArangoXEcto.Schema
@@ -8,10 +13,7 @@ if Code.ensure_loaded?(ArangoXEcto.Schema) do
         @binary_type :string
       end
     end
-  end
-else
-  defmodule Blank.EctoSchema do
-    @moduledoc false
+  else
     defmacro __using__(_opts) do
       quote do
         use Ecto.Schema

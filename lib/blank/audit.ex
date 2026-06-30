@@ -131,14 +131,14 @@ defmodule Blank.Audit do
       `on_mount/4`
   """
   @doc group: "Management"
-  @spec delete_all(map()) :: :ok | {:error, any()}
+  @spec delete_all(map()) :: {:ok, non_neg_integer()} | {:error, any()}
   def delete_all(audit_context) do
     Ecto.Multi.new()
     |> Ecto.Multi.delete_all(:delete_all, AuditLog)
     |> multi(audit_context, "audit_logs.delete_all", %{})
     |> repo().transaction()
     |> case do
-      {:ok, _} -> :ok
+      {:ok, %{delete_all: {count, _}}} -> {:ok, count}
       error -> error
     end
   end
@@ -212,7 +212,10 @@ defmodule Blank.Audit do
     |> Ecto.Multi.insert(:audit, fn _ ->
       AuditLog.build!(audit_context, action, params)
     end)
-    |> Ecto.Multi.run(:broadcast, fn _repo, %{audit: log} -> push_pubsub(log) end)
+    |> Ecto.Multi.run(:broadcast, fn _repo, %{audit: log} ->
+      push_pubsub(log)
+      {:ok, log}
+    end)
   end
 
   defp repo, do: Application.fetch_env!(:blank, :repo)

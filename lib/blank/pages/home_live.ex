@@ -32,7 +32,10 @@ defmodule Blank.Pages.HomeLive do
         <:description>Below is a list of active users on your site.</:description>
         <div class="flex flex-col justify-between h-full">
           <ul id="online-users" role="list" class="flex-1" phx-update="stream">
-            <span class="hidden only:block text-sm text-center italic text-gray-400 pb-6">
+            <span
+              id="online-users-empty"
+              class="hidden only:block text-sm text-center italic text-gray-400 pb-6"
+            >
               There are no users online :(
             </span>
             <li

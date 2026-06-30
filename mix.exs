@@ -9,6 +9,7 @@ defmodule Blank.MixProject do
       app: :blank,
       version: @version,
       elixir: "~> 1.18",
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
@@ -36,7 +37,7 @@ defmodule Blank.MixProject do
   def application do
     [
       mod: {Blank.Application, []},
-      extra_applications: [:logger]
+      extra_applications: [:logger, :ecto_sql, :ecto_sqlite3]
     ]
   end
 
@@ -45,6 +46,7 @@ defmodule Blank.MixProject do
     [
       {:bcrypt_elixir, "~> 3.0"},
       {:phoenix_live_view, "~> 1.1.0"},
+      {:phoenix_ecto, "~> 4.5"},
       {:arangox_ecto, "~> 2.0", optional: true},
       {:flop, "~> 0.26"},
       {:flop_phoenix, "~> 0.25"},
@@ -60,7 +62,10 @@ defmodule Blank.MixProject do
       {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false},
       {:git_hooks, "~> 0.8", only: [:dev], runtime: false},
       {:doctor, "~> 0.22.0", only: [:dev, :test], runtime: false},
-      {:excoveralls, "~> 0.18", only: :test}
+      {:excoveralls, "~> 0.18", only: :test},
+      {:ecto_sql, "~> 3.10", only: :test},
+      {:ecto_sqlite3, "~> 0.15", only: :test},
+      {:lazy_html, ">= 0.1.0", only: :test}
     ]
   end
 
@@ -166,4 +171,7 @@ defmodule Blank.MixProject do
       "How-To's": ~r/guides\/howtos\/.?/
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 end

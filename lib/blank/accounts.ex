@@ -18,8 +18,9 @@ defmodule Blank.Accounts do
 
   ## Examples
 
-      iex> get_admin_by_email("foo@example.com")
-      %Admin{}
+      iex> {:ok, admin} = register_admin(%{email: "foo@example.com", password: "Str0ng!Passw0rd"})
+      iex> get_admin_by_email("foo@example.com") |> is_struct(Blank.Accounts.Admin)
+      true
 
       iex> get_admin_by_email("unknown@example.com")
       nil
@@ -35,10 +36,11 @@ defmodule Blank.Accounts do
 
   ## Examples
 
-      iex> get_admin_by_email_and_password("foo@example.com", "correct_password")
-      %Admin{}
+      iex> {:ok, admin} = register_admin(%{email: "auth@example.com", password: "Str0ng!Passw0rd"})
+      iex> get_admin_by_email_and_password("auth@example.com", "Str0ng!Passw0rd") |> is_struct(Blank.Accounts.Admin)
+      true
 
-      iex> get_admin_by_email_and_password("foo@example.com", "invalid_password")
+      iex> get_admin_by_email_and_password("auth@example.com", "invalid_password")
       nil
 
   """
@@ -58,11 +60,9 @@ defmodule Blank.Accounts do
 
   ## Examples
 
-      iex> get_admin!(123)
-      %Admin{}
-
-      iex> get_admin!(456)
-      ** (Ecto.NoResultsError)
+      iex> {:ok, admin} = register_admin(%{email: "get_admin@example.com", password: "Str0ng!Passw0rd"})
+      iex> get_admin!(admin.id) |> is_struct(Blank.Accounts.Admin)
+      true
 
   """
   @spec get_admin!(integer()) :: Admin.t()
@@ -78,11 +78,13 @@ defmodule Blank.Accounts do
 
   ## Examples
 
-      iex> register_admin(%{field: value})
-      {:ok, %Admin{}}
+      iex> {:ok, admin} = register_admin(%{email: "admin@example.com", password: "Str0ng!Passw0rd"})
+      iex> match?(%Blank.Accounts.Admin{}, admin)
+      true
 
-      iex> register_admin(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+      iex> {:error, changeset} = register_admin(%{email: "bad"})
+      iex> changeset.valid?
+      false
 
   """
   @spec register_admin(map(), Keyword.t()) :: {:ok, Admin.t()} | {:error, Ecto.Changeset.t()}
@@ -97,8 +99,8 @@ defmodule Blank.Accounts do
 
   ## Examples
 
-      iex> change_admin_registration(admin)
-      %Ecto.Changeset{data: %Admin}}
+      iex> change_admin_registration(%Blank.Accounts.Admin{}) |> is_struct(Ecto.Changeset)
+      true
 
   """
   @spec change_admin_registration(Admin.t(), map()) :: Ecto.Changeset.t()
@@ -111,11 +113,10 @@ defmodule Blank.Accounts do
 
   ## Examples
 
-      iex> delete_admin(admin)
-      {:ok, %Admin{}}
-
-      iex> delete_admin(admin)
-      {:error, %Ecto.Changeset{}}
+      iex> {:ok, admin} = register_admin(%{email: "to_delete@example.com", password: "Str0ng!Passw0rd"})
+      iex> {:ok, deleted} = delete_admin(admin)
+      iex> match?(%Blank.Accounts.Admin{}, deleted)
+      true
 
   """
   @spec delete_admin(Admin.t()) :: {:ok, Admin.t()} | {:error, Ecto.Changeset.t()}
@@ -130,8 +131,8 @@ defmodule Blank.Accounts do
 
   ## Examples
 
-      iex> change_admin_password(admin)
-      %Ecto.Changeset{data: %Admin{}}
+      iex> change_admin_password(%Blank.Accounts.Admin{}) |> is_struct(Ecto.Changeset)
+      true
 
   """
   @spec change_admin_password(Admin.t(), map()) :: Ecto.Changeset.t()
@@ -144,11 +145,10 @@ defmodule Blank.Accounts do
 
   ## Examples
 
-      iex> update_admin_password(admin, "valid password", %{password: ...})
-      {:ok, %Admin{}}
-
-      iex> update_admin_password(admin, "invalid password", %{password: ...})
-      {:error, %Ecto.Changeset{}}
+      iex> {:ok, admin} = register_admin(%{email: "pw_update@example.com", password: "OldP4ssword123!"})
+      iex> {:ok, updated} = update_admin_password(admin, "OldP4ssword123!", %{password: "N3w!Password123"})
+      iex> match?(%Blank.Accounts.Admin{}, updated)
+      true
 
   """
   @spec update_admin_password(Admin.t(), String.t(), map()) ::

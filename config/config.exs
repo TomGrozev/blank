@@ -1,5 +1,9 @@
 import Config
 
+if File.exists?("config/#{config_env()}.exs") do
+  import_config "#{config_env()}.exs"
+end
+
 if Mix.env() != :prod do
   config :git_hooks,
     auto_install: true,
