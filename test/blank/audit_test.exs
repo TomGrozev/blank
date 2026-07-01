@@ -92,7 +92,7 @@ defmodule Blank.AuditTest do
 
       results = Audit.list_all_for_user(user)
 
-      assert length(results) >= 1
+      assert not Enum.empty?(results)
       assert Enum.any?(results, &(&1.id == log.id))
     end
 
@@ -104,7 +104,7 @@ defmodule Blank.AuditTest do
 
       results = Audit.list_all_for_user(user.id)
 
-      assert length(results) >= 1
+      assert not Enum.empty?(results)
       assert Enum.any?(results, &(&1.id == log.id))
     end
   end

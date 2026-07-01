@@ -42,7 +42,7 @@ defmodule Blank.PresenceTest do
       Process.sleep(100)
 
       users = Blank.Presence.list_online_users()
-      assert length(users) >= 1
+      assert not Enum.empty?(users)
 
       presence = Enum.find(users, &(&1.id == 2))
       assert presence != nil

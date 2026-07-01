@@ -11,7 +11,7 @@ defmodule Blank.RouterTest do
     test "returns a list of admin page modules" do
       modules = TestAppWeb.Router.__blank_modules__()
       assert is_list(modules)
-      assert length(modules) > 0
+      assert not Enum.empty?(modules)
     end
 
     test "includes the PostLive admin page" do

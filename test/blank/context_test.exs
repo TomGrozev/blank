@@ -46,7 +46,7 @@ defmodule Blank.ContextTest do
 
       {:ok, {posts, meta}} = Context.paginate_schema(TestApp.Repo, Post, %{}, [])
 
-      assert length(posts) > 0
+      assert not Enum.empty?(posts)
       assert %Flop.Meta{} = meta
     end
   end

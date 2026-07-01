@@ -110,7 +110,7 @@ defmodule Mix.Tasks.Blank.InstallTest do
       ])
 
       copied_files = File.ls!(migrations_dir)
-      assert length(copied_files) > 0, "Expected migrations to be copied"
+      assert not Enum.empty?(copied_files), "Expected migrations to be copied"
       assert Enum.any?(copied_files, &String.contains?(&1, "create_admins_auth_tables"))
       assert Enum.any?(copied_files, &String.contains?(&1, "create_audit_log"))
     end
@@ -142,7 +142,7 @@ defmodule Mix.Tasks.Blank.InstallTest do
       Mix.Tasks.Blank.Install.run(["--migrations-path", migrations_dir])
 
       copied_files = File.ls!(migrations_dir)
-      assert length(copied_files) > 0
+      assert not Enum.empty?(copied_files)
     end
   end
 end

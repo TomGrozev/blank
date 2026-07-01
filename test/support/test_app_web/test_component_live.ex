@@ -21,6 +21,12 @@ defmodule TestAppWeb.TestSearchableSelectLive do
 
   alias Blank.Components.SearchableSelect
 
+  @items [
+    %{label: "Apple", value: "apple"},
+    %{label: "Banana", value: "banana"},
+    %{label: "Cherry", value: "cherry"}
+  ]
+
   def render(assigns) do
     ~H"""
     <div id="test-select-wrapper">
@@ -38,22 +44,6 @@ defmodule TestAppWeb.TestSearchableSelectLive do
   end
 
   def mount(_params, _session, socket) do
-    search_fun = fn term ->
-      items = [
-        %{label: "Apple", value: "apple"},
-        %{label: "Banana", value: "banana"},
-        %{label: "Cherry", value: "cherry"}
-      ]
-
-      if term == "" or is_nil(term) do
-        items
-      else
-        Enum.filter(items, fn item ->
-          String.contains?(String.downcase(item.label), String.downcase(term))
-        end)
-      end
-    end
-
     field = %Phoenix.HTML.FormField{
       id: "test-field",
       name: "test[field]",
@@ -69,6 +59,16 @@ defmodule TestAppWeb.TestSearchableSelectLive do
      socket
      |> assign(:field, field)
      |> assign(:definition, definition)
-     |> assign(:search_fun, search_fun)}
+     |> assign(:search_fun, &search_items/1)}
+  end
+
+  defp search_items(term) when term in [nil, ""], do: @items
+
+  defp search_items(term) do
+    downcased_term = String.downcase(term)
+
+    Enum.filter(@items, fn item ->
+      String.contains?(String.downcase(item.label), downcased_term)
+    end)
   end
 end

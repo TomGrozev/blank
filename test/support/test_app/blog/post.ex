@@ -1,4 +1,5 @@
 defmodule TestApp.Blog.Post do
+  @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
 
