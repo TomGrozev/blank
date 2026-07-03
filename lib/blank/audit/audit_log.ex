@@ -39,8 +39,11 @@ defmodule Blank.Audit.AuditLog do
 
   @type t :: %{
           action: String.t(),
+          actor_display_name: String.t() | nil,
+          actor_email: String.t() | nil,
           admin: Blank.Accounts.Admin.t(),
           admin_id: String.t() | integer(),
+          extra: map(),
           id: String.t() | integer(),
           inserted_at: DateTime.t(),
           ip_address: String.t(),
@@ -55,6 +58,9 @@ defmodule Blank.Audit.AuditLog do
     field(:ip_address, Blank.Types.IP)
     field(:user_agent, :string)
     field(:params, :map, default: %{})
+    field(:actor_display_name, :string)
+    field(:actor_email, :string)
+    field(:extra, :map, default: %{})
 
     belongs_to(:admin, Blank.Accounts.Admin)
     belongs_to(:user, Application.compile_env(:blank, :user_module, Blank.Accounts.Admin))
@@ -69,7 +75,7 @@ defmodule Blank.Audit.AuditLog do
   """
   @spec system() :: t()
   def system do
-    %__MODULE__{user: nil, admin: nil, user_agent: "SYSTEM"}
+    %__MODULE__{user: nil, admin: nil, user_agent: "SYSTEM", extra: %{}}
   end
 
   @allowed_params %{

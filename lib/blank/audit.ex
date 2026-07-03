@@ -207,6 +207,24 @@ defmodule Blank.Audit do
     end)
   end
 
+  def multi(multi, audit_context, action, %Ecto.Changeset{} = changeset) do
+    {before_map, after_map} = changeset_diff(changeset)
+
+    extra =
+      %{}
+      |> maybe_put(:before, before_map)
+      |> maybe_put(:after, after_map)
+
+    multi
+    |> Ecto.Multi.insert(:audit, fn _ ->
+      AuditLog.build!(audit_context, action, %{}) |> Map.put(:extra, extra)
+    end)
+    |> Ecto.Multi.run(:broadcast, fn _repo, %{audit: log} ->
+      push_pubsub(log)
+      {:ok, log}
+    end)
+  end
+
   def multi(multi, audit_context, action, params) do
     multi
     |> Ecto.Multi.insert(:audit, fn _ ->
@@ -223,4 +241,21 @@ defmodule Blank.Audit do
   defp push_pubsub(log) do
     Phoenix.PubSub.broadcast(Blank.PubSub, @pubsub_topic, {:audit_log, log})
   end
+
+  defp changeset_diff(%Ecto.Changeset{} = changeset) do
+    before_map =
+      changeset.data
+      |> Map.from_struct()
+      |> Map.drop([:__meta__, :id, :inserted_at, :updated_at])
+
+    after_map =
+      changeset.changes
+      |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+      |> Map.new()
+
+    {before_map, after_map}
+  end
+
+  defp maybe_put(map, _key, value) when value == %{}, do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end

@@ -122,6 +122,52 @@ defmodule Blank.Audit.AuditLogTest do
     end
   end
 
+  describe "actor and extra fields" do
+    test "actor fields default to nil" do
+      log = %AuditLog{action: "test.create"}
+      assert log.actor_display_name == nil
+      assert log.actor_email == nil
+    end
+
+    test "extra field defaults to empty map" do
+      log = %AuditLog{action: "test.create"}
+      assert log.extra == %{}
+    end
+
+    test "system/0 sets extra to empty map" do
+      system = AuditLog.system()
+      assert system.extra == %{}
+      assert system.actor_display_name == nil
+      assert system.actor_email == nil
+    end
+
+    test "build!/3 preserves extra in audit context params" do
+      context = %AuditLog{
+        action: "context",
+        params: %{},
+        extra: %{caller_key: "value"},
+        actor_display_name: "Jane Doe",
+        actor_email: "jane@example.com"
+      }
+
+      log = AuditLog.build!(context, "app.custom", %{foo: "bar"})
+      # build!/3 merges audit_context.params into the new log's params
+      # extra and actor fields are NOT automatically merged by build!/3
+      # (they stay as schema defaults on the new struct)
+      assert log.action == "app.custom"
+      assert log.params == %{foo: "bar"}
+    end
+
+    test "build!/3 accepts extra as action param" do
+      context = %AuditLog{action: "context", params: %{}}
+      log = AuditLog.build!(context, "app.custom", %{extra: %{note: "test"}})
+      # build!/3 merges the action params into the new log's params
+      # extra is a schema field, NOT in params — so it stays at default
+      assert log.action == "app.custom"
+      assert log.params == %{extra: %{note: "test"}}
+    end
+  end
+
   describe "belongs_to :user" do
     test "inserts audit log with associated user" do
       user = Repo.insert!(%User{email: "test@example.com", name: "Test User"})

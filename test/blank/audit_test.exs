@@ -154,4 +154,84 @@ defmodule Blank.AuditTest do
     # which causes Ecto.Multi.run to raise a RuntimeError. This is a source bug
     # in Blank.Audit — the :broadcast callback should wrap its return value.
   end
+
+  describe "multi/4 with changeset" do
+    defmodule TestPost do
+      use Ecto.Schema
+
+      schema "test_posts" do
+        field(:title, :string)
+        field(:body, :string)
+      end
+    end
+
+    test "computes before/after from changeset and stores in extra" do
+      Phoenix.PubSub.subscribe(Blank.PubSub, "audit:logs")
+
+      existing = %TestPost{id: 1, title: "Old Title", body: "Old Body"}
+      changeset = Ecto.Changeset.change(existing, %{title: "New Title"})
+
+      context = AuditLog.system()
+
+      result =
+        Ecto.Multi.new()
+        |> Audit.multi(context, "app.update_post", changeset)
+        |> Repo.transaction()
+
+      assert {:ok, %{audit: %AuditLog{} = log}} = result
+      assert log.action == "app.update_post"
+
+      before_map = log.extra[:before] || log.extra["before"]
+      after_map = log.extra[:after] || log.extra["after"]
+
+      assert before_map[:title] == "Old Title" or before_map["title"] == "Old Title"
+      assert before_map[:body] == "Old Body" or before_map["body"] == "Old Body"
+      assert after_map[:title] == "New Title" or after_map["title"] == "New Title"
+      refute Map.has_key?(after_map || %{}, :body) or Map.has_key?(after_map || %{}, "body")
+
+      assert_received {:audit_log, ^log}
+    end
+
+    test "changeset with no changed fields omits after but keeps before" do
+      Phoenix.PubSub.subscribe(Blank.PubSub, "audit:logs")
+
+      existing = %TestPost{id: 2, title: "Same", body: "Same"}
+      changeset = Ecto.Changeset.change(existing, %{})
+
+      context = AuditLog.system()
+
+      result =
+        Ecto.Multi.new()
+        |> Audit.multi(context, "app.noop", changeset)
+        |> Repo.transaction()
+
+      assert {:ok, %{audit: %AuditLog{} = log}} = result
+
+      # before is always present (it's the original record data)
+      before_map = log.extra[:before] || log.extra["before"]
+      assert before_map
+
+      # after is omitted because no fields changed
+      refute Map.has_key?(log.extra, :after) or Map.has_key?(log.extra, "after")
+
+      assert_received {:audit_log, ^log}
+    end
+
+    test "changeset with item_id in params works with app action" do
+      Phoenix.PubSub.subscribe(Blank.PubSub, "audit:logs")
+
+      context = AuditLog.system()
+
+      # Passing a map (not a changeset) hits the map clause
+      result =
+        Ecto.Multi.new()
+        |> Audit.multi(context, "app.update_post", %{item_id: 5})
+        |> Repo.transaction()
+
+      assert {:ok, %{audit: %AuditLog{} = log}} = result
+      assert log.params[:item_id] == 5
+
+      assert_received {:audit_log, ^log}
+    end
+  end
 end
