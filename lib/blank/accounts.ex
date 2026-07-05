@@ -18,7 +18,7 @@ defmodule Blank.Accounts do
 
   ## Examples
 
-      iex> {:ok, user} = register_user(%{email: "foo@example.com", password: "Str0ng!Passw0rd"})
+      iex> {:ok, _user} = register_user(%{email: "foo@example.com", password: "Str0ng!Passw0rd"})
       iex> get_user_by_email("foo@example.com") |> is_struct(Blank.Accounts.User)
       true
 
@@ -36,7 +36,7 @@ defmodule Blank.Accounts do
 
   ## Examples
 
-      iex> {:ok, user} = register_user(%{email: "auth@example.com", password: "Str0ng!Passw0rd"})
+      iex> {:ok, _user} = register_user(%{email: "auth@example.com", password: "Str0ng!Passw0rd"})
       iex> get_user_by_email_and_password("auth@example.com", "Str0ng!Passw0rd") |> is_struct(Blank.Accounts.User)
       true
 

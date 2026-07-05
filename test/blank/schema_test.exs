@@ -241,7 +241,7 @@ defmodule Blank.SchemaTest do
       tag = %TestApp.Blog.Tag{id: 1, name: "elixir"}
 
       assert_raise Protocol.UndefinedError, fn ->
-        Blank.Schema.name(tag)
+        apply(Blank.Schema, :name, [tag])
       end
     end
 
@@ -249,7 +249,7 @@ defmodule Blank.SchemaTest do
       comment = %TestApp.Blog.Comment{id: 1, body: "Great!"}
 
       assert_raise Protocol.UndefinedError, fn ->
-        Blank.Schema.name(comment)
+        apply(Blank.Schema, :name, [comment])
       end
     end
 
@@ -257,7 +257,7 @@ defmodule Blank.SchemaTest do
       tag = %TestApp.Blog.Tag{id: 1, name: "elixir"}
 
       assert_raise Protocol.UndefinedError, fn ->
-        Blank.Schema.primary_keys(tag)
+        apply(Blank.Schema, :primary_keys, [tag])
       end
     end
 
@@ -265,7 +265,7 @@ defmodule Blank.SchemaTest do
       tag = %TestApp.Blog.Tag{id: 1, name: "elixir"}
 
       assert_raise Protocol.UndefinedError, fn ->
-        Blank.Schema.identity_field(tag)
+        apply(Blank.Schema, :identity_field, [tag])
       end
     end
 
@@ -273,7 +273,7 @@ defmodule Blank.SchemaTest do
       tag = %TestApp.Blog.Tag{id: 1, name: "elixir"}
 
       assert_raise Protocol.UndefinedError, fn ->
-        Blank.Schema.order_field(tag)
+        apply(Blank.Schema, :order_field, [tag])
       end
     end
 
@@ -281,7 +281,7 @@ defmodule Blank.SchemaTest do
       tag = %TestApp.Blog.Tag{id: 1, name: "elixir"}
 
       assert_raise Protocol.UndefinedError, fn ->
-        Blank.Schema.changeset(tag, :new)
+        apply(Blank.Schema, :changeset, [tag, :new])
       end
     end
 
@@ -289,7 +289,7 @@ defmodule Blank.SchemaTest do
       tag = %TestApp.Blog.Tag{id: 1, name: "elixir"}
 
       assert_raise Protocol.UndefinedError, fn ->
-        Blank.Schema.get_field(tag, :name)
+        apply(Blank.Schema, :get_field, [tag, :name])
       end
     end
   end

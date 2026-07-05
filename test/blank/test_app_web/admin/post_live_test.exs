@@ -46,7 +46,7 @@ defmodule TestAppWeb.Admin.PostLiveTest do
 
   # ── helpers ────────────────────────────────────────────────────────
 
-  defp post_fixture(attrs \\ %{}) do
+  defp post_fixture(attrs) do
     %Post{}
     |> Post.changeset(Enum.into(attrs, %{title: "Test Post"}))
     |> Repo.insert!()
