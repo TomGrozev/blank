@@ -1,20 +1,20 @@
-defmodule Blank.Accounts.AdminTest do
+defmodule Blank.Accounts.UserTest do
   use TestApp.DataCase
 
-  alias Blank.Accounts.Admin
+  alias Blank.Accounts.User
 
-  @valid_email "admin@example.com"
+  @valid_email "user@example.com"
   @valid_password "Str0ng!Passw0rd"
 
-  defp admin_fixture(attrs \\ %{}) do
-    {:ok, admin} =
-      %Admin{}
-      |> Admin.registration_changeset(
+  defp user_fixture(attrs \\ %{}) do
+    {:ok, user} =
+      %User{}
+      |> User.registration_changeset(
         Map.merge(%{email: @valid_email, password: @valid_password}, attrs)
       )
       |> TestApp.Repo.insert()
 
-    admin
+    user
   end
 
   # ── registration_changeset/2,3 ──
@@ -22,13 +22,13 @@ defmodule Blank.Accounts.AdminTest do
   describe "registration_changeset/2,3" do
     test "valid email + valid password produces a valid changeset" do
       changeset =
-        Admin.registration_changeset(%Admin{}, %{email: @valid_email, password: @valid_password})
+        User.registration_changeset(%User{}, %{email: @valid_email, password: @valid_password})
 
       assert changeset.valid?
     end
 
     test "missing email produces an error" do
-      changeset = Admin.registration_changeset(%Admin{}, %{password: @valid_password})
+      changeset = User.registration_changeset(%User{}, %{password: @valid_password})
       refute changeset.valid?
       assert errors_on(changeset)[:email]
     end
@@ -37,7 +37,7 @@ defmodule Blank.Accounts.AdminTest do
       long_email = String.duplicate("a", 161) <> "@example.com"
 
       changeset =
-        Admin.registration_changeset(%Admin{}, %{email: long_email, password: @valid_password})
+        User.registration_changeset(%User{}, %{email: long_email, password: @valid_password})
 
       refute changeset.valid?
       assert errors_on(changeset)[:email]
@@ -45,7 +45,7 @@ defmodule Blank.Accounts.AdminTest do
 
     test "invalid email format (no @ sign) produces an error" do
       changeset =
-        Admin.registration_changeset(%Admin{}, %{email: "notanemail", password: @valid_password})
+        User.registration_changeset(%User{}, %{email: "notanemail", password: @valid_password})
 
       refute changeset.valid?
       assert errors_on(changeset)[:email]
@@ -53,7 +53,7 @@ defmodule Blank.Accounts.AdminTest do
 
     test "password too short (<12 chars) produces an error" do
       changeset =
-        Admin.registration_changeset(%Admin{}, %{email: @valid_email, password: "Short1!"})
+        User.registration_changeset(%User{}, %{email: @valid_email, password: "Short1!"})
 
       refute changeset.valid?
       assert errors_on(changeset)[:password]
@@ -63,7 +63,7 @@ defmodule Blank.Accounts.AdminTest do
       long_password = String.duplicate("A", 73) <> "1a!"
 
       changeset =
-        Admin.registration_changeset(%Admin{}, %{email: @valid_email, password: long_password})
+        User.registration_changeset(%User{}, %{email: @valid_email, password: long_password})
 
       refute changeset.valid?
       assert errors_on(changeset)[:password]
@@ -71,7 +71,7 @@ defmodule Blank.Accounts.AdminTest do
 
     test "password missing lowercase produces an error" do
       changeset =
-        Admin.registration_changeset(%Admin{}, %{
+        User.registration_changeset(%User{}, %{
           email: @valid_email,
           password: "NOLOWERCASE1234!"
         })
@@ -82,7 +82,7 @@ defmodule Blank.Accounts.AdminTest do
 
     test "password missing uppercase produces an error" do
       changeset =
-        Admin.registration_changeset(%Admin{}, %{
+        User.registration_changeset(%User{}, %{
           email: @valid_email,
           password: "nouppercase1234!"
         })
@@ -93,17 +93,17 @@ defmodule Blank.Accounts.AdminTest do
 
     test "password missing digit-or-punct produces an error" do
       changeset =
-        Admin.registration_changeset(%Admin{}, %{email: @valid_email, password: "NoDigitsHereABC"})
+        User.registration_changeset(%User{}, %{email: @valid_email, password: "NoDigitsHereABC"})
 
       refute changeset.valid?
       assert errors_on(changeset)[:password]
     end
 
     test "duplicate email produces a unique constraint error" do
-      _admin = admin_fixture()
+      _user = user_fixture()
 
       changeset =
-        Admin.registration_changeset(%Admin{}, %{email: @valid_email, password: @valid_password})
+        User.registration_changeset(%User{}, %{email: @valid_email, password: @valid_password})
 
       assert {:error, changeset} = TestApp.Repo.insert(changeset)
       assert %{email: _} = errors_on(changeset)
@@ -111,14 +111,14 @@ defmodule Blank.Accounts.AdminTest do
 
     test "hashed_password is set when hash_password: true (default)" do
       changeset =
-        Admin.registration_changeset(%Admin{}, %{email: @valid_email, password: @valid_password})
+        User.registration_changeset(%User{}, %{email: @valid_email, password: @valid_password})
 
       assert Ecto.Changeset.get_change(changeset, :hashed_password)
     end
 
     test "hashed_password is not set when hash_password: false" do
       changeset =
-        Admin.registration_changeset(%Admin{}, %{email: @valid_email, password: @valid_password},
+        User.registration_changeset(%User{}, %{email: @valid_email, password: @valid_password},
           hash_password: false
         )
 
@@ -130,10 +130,10 @@ defmodule Blank.Accounts.AdminTest do
 
   describe "password_changeset/2,3" do
     test "matching password and password_confirmation is valid" do
-      admin = admin_fixture()
+      user = user_fixture()
 
       changeset =
-        Admin.password_changeset(admin, %{
+        User.password_changeset(user, %{
           password: "N3w!Password123",
           password_confirmation: "N3w!Password123"
         })
@@ -142,10 +142,10 @@ defmodule Blank.Accounts.AdminTest do
     end
 
     test "non-matching password and password_confirmation produces an error" do
-      admin = admin_fixture()
+      user = user_fixture()
 
       changeset =
-        Admin.password_changeset(admin, %{
+        User.password_changeset(user, %{
           password: "N3w!Password123",
           password_confirmation: "D1ff3rent!Pass"
         })
@@ -159,13 +159,13 @@ defmodule Blank.Accounts.AdminTest do
 
   describe "valid_password?/2" do
     test "returns true with the correct password" do
-      admin = admin_fixture()
-      assert Admin.valid_password?(admin, @valid_password)
+      user = user_fixture()
+      assert User.valid_password?(user, @valid_password)
     end
 
     test "returns false with the wrong password" do
-      admin = admin_fixture()
-      refute Admin.valid_password?(admin, "WRONG_password123!")
+      user = user_fixture()
+      refute User.valid_password?(user, "WRONG_password123!")
     end
   end
 
@@ -173,16 +173,16 @@ defmodule Blank.Accounts.AdminTest do
 
   describe "validate_current_password/2" do
     test "returns changeset without error when password is correct" do
-      admin = admin_fixture()
-      changeset = Ecto.Changeset.change(admin)
-      result = Admin.validate_current_password(changeset, @valid_password)
+      user = user_fixture()
+      changeset = Ecto.Changeset.change(user)
+      result = User.validate_current_password(changeset, @valid_password)
       refute result.errors[:current_password]
     end
 
     test "adds error to changeset when password is wrong" do
-      admin = admin_fixture()
-      changeset = Ecto.Changeset.change(admin)
-      result = Admin.validate_current_password(changeset, "WRONG_password123!")
+      user = user_fixture()
+      changeset = Ecto.Changeset.change(user)
+      result = User.validate_current_password(changeset, "WRONG_password123!")
       assert {"is not valid", _} = result.errors[:current_password]
     end
   end

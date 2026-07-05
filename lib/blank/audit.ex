@@ -36,20 +36,11 @@ defmodule Blank.Audit do
   @doc group: "Query"
   @spec list_all(opts :: Keyword.t()) :: [AuditLog.t()]
   def list_all(opts \\ []) do
-    user_schema = Application.get_env(:blank, :user_module, Blank.Accounts.Admin)
-    struct = struct(user_schema)
-    identity_field = Blank.Schema.identity_field(struct)
-
-    fields =
-      [identity_field]
-      |> Stream.uniq()
-      |> Enum.map(&{&1, Blank.Schema.get_field(struct, &1)})
-
     repo().all(
       from(a in AuditLog,
         where: ^Keyword.get(opts, :where, []),
         order_by: [desc: :inserted_at],
-        preload: [:admin, [user: ^Blank.Context.list_query(user_schema, fields)]],
+        preload: [:user],
         limit: ^Keyword.get(opts, :limit, 50)
       )
     )
@@ -69,28 +60,17 @@ defmodule Blank.Audit do
   def list_all_for_user(user_or_id, opts \\ [])
 
   def list_all_for_user(user, opts) when is_map(user) do
-    list_all_for_user(Map.fetch!(user, Application.get_env(:blank, :user_table_pk, :id)), opts)
+    list_all_for_user(Map.fetch!(user, :id), opts)
   end
 
   def list_all_for_user(id, opts) when is_binary(id) or is_integer(id) do
-    user_schema = Application.get_env(:blank, :user_module, Blank.Accounts.Admin)
-    user_pk = Application.get_env(:blank, :user_table_pk, :id)
-
-    struct = struct(user_schema)
-    identity_field = Blank.Schema.identity_field(struct)
-
-    fields =
-      [identity_field]
-      |> Stream.uniq()
-      |> Enum.map(&{&1, Blank.Schema.get_field(struct, &1)})
-
     repo().all(
       from(a in AuditLog,
         join: u in assoc(a, :user),
-        where: field(u, ^user_pk) == ^id,
+        where: field(u, :id) == ^id,
         where: ^Keyword.get(opts, :where, []),
         order_by: [desc: :inserted_at],
-        preload: [:admin, [user: ^Blank.Context.list_query(user_schema, fields)]],
+        preload: [:user],
         limit: ^Keyword.get(opts, :limit, 50)
       )
     )
@@ -107,13 +87,10 @@ defmodule Blank.Audit do
   def list_all_from_system(clauses \\ []) do
     repo().all(
       from(a in AuditLog,
-        where:
-          is_nil(a.admin_id) and is_nil(a.user_id) and
-            a.user_agent ==
-              "SYSTEM",
+        where: is_nil(a.user_id) and a.user_agent == "SYSTEM",
         where: ^clauses,
         order_by: [desc: :inserted_at],
-        preload: [:admin, :user]
+        preload: [:user]
       )
     )
   end
@@ -239,7 +216,11 @@ defmodule Blank.Audit do
   defp repo, do: Application.fetch_env!(:blank, :repo)
 
   defp push_pubsub(log) do
-    Phoenix.PubSub.broadcast(Blank.PubSub, @pubsub_topic, {:audit_log, log})
+    try do
+      Phoenix.PubSub.broadcast(Blank.PubSub, @pubsub_topic, {:audit_log, log})
+    catch
+      :exit, _ -> :ok
+    end
   end
 
   defp changeset_diff(%Ecto.Changeset{} = changeset) do

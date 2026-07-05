@@ -7,13 +7,14 @@ defmodule TestApp.Repo.Migrations.CreateBlankAuditLogs do
       add(:ip_address, :string)
       add(:user_agent, :string)
       add(:params, :map, null: false)
-      add(:user_id, references(:test_app_users, on_delete: :nothing))
-      add(:admin_id, references(:blank_admins, on_delete: :nilify_all))
+      add(:user_id, references(:blank_users, on_delete: :nilify_all))
+      add(:actor_display_name, :string)
+      add(:actor_email, :string)
+      add(:extra, :map)
 
       timestamps(updated_at: false)
     end
 
     create(index(:blank_audit_logs, [:user_id]))
-    create(index(:blank_audit_logs, [:admin_id]))
   end
 end

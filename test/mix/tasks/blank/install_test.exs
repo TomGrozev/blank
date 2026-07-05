@@ -111,7 +111,7 @@ defmodule Mix.Tasks.Blank.InstallTest do
 
       copied_files = File.ls!(migrations_dir)
       assert not Enum.empty?(copied_files), "Expected migrations to be copied"
-      assert Enum.any?(copied_files, &String.contains?(&1, "create_admins_auth_tables"))
+      assert Enum.any?(copied_files, &String.contains?(&1, "create_users_auth_tables"))
       assert Enum.any?(copied_files, &String.contains?(&1, "create_audit_log"))
     end
 

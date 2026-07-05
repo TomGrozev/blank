@@ -1,12 +1,12 @@
-defmodule Blank.Accounts.Admin do
+defmodule Blank.Accounts.User do
   @moduledoc """
-  Default Admin Ecto schema for the Blank panel.
+  Default User Ecto schema for the Blank panel.
 
   Override by setting `config :blank, :user_module, MyApp.Accounts.User` in
-  your app config. Fields: `:email`, `:password` (virtual), `:hashed_password`,
-  `:current_password` (virtual), plus `:inserted_at` and `:updated_at`
-  timestamps. Uses `Blank.EctoSchema` for `@binary_type` and related
-  configuration.
+  your app config. Fields: `:email`, `:name`, `:password` (virtual), `:hashed_password`,
+  `:current_password` (virtual), `:provider`, `:external_uid`, `:roles`,
+  plus `:inserted_at` and `:updated_at` timestamps. Uses `Blank.EctoSchema` for
+  `@binary_type` and related configuration.
   """
 
   use Blank.EctoSchema
@@ -27,24 +27,32 @@ defmodule Blank.Accounts.Admin do
 
   @type t :: %{
           email: String.t(),
+          name: String.t() | nil,
           password: String.t(),
           hashed_password: String.t(),
           current_password: String.t(),
+          provider: String.t() | nil,
+          external_uid: String.t() | nil,
+          roles: [String.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
 
-  schema "blank_admins" do
+  schema "blank_users" do
     field(:email, :string)
+    field(:name, :string)
     field(:password, :string, virtual: true, redact: true)
     field(:hashed_password, :string, redact: true)
     field(:current_password, :string, virtual: true, redact: true)
+    field(:provider, :string)
+    field(:external_uid, :string)
+    field(:roles, {:array, :string}, default: [])
 
     timestamps(type: :utc_datetime)
   end
 
   @doc """
-  A admin changeset for registration.
+  A user changeset for registration.
 
   It is important to validate the length of both email and password.
   Otherwise databases may truncate the email without warnings, which
@@ -69,8 +77,8 @@ defmodule Blank.Accounts.Admin do
     * `:repo` - The repo to use for validation
   """
   @spec registration_changeset(t(), map(), Keyword.t()) :: Ecto.Changeset.t()
-  def registration_changeset(admin, attrs, opts \\ []) do
-    admin
+  def registration_changeset(user, attrs, opts \\ []) do
+    user
     |> cast(attrs, [:email, :password])
     |> validate_email(opts)
     |> validate_password(opts)
@@ -126,7 +134,7 @@ defmodule Blank.Accounts.Admin do
   end
 
   @doc """
-  A admin changeset for changing the password.
+  A user changeset for changing the password.
 
   ## Options
 
@@ -138,8 +146,8 @@ defmodule Blank.Accounts.Admin do
       Defaults to `true`.
   """
   @spec password_changeset(t(), map(), Keyword.t()) :: Ecto.Changeset.t()
-  def password_changeset(admin, attrs, opts \\ []) do
-    admin
+  def password_changeset(user, attrs, opts \\ []) do
+    user
     |> cast(attrs, [:password])
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_password(opts)
@@ -148,11 +156,11 @@ defmodule Blank.Accounts.Admin do
   @doc """
   Verifies the password.
 
-  If there is no admin or the admin doesn't have a password, we call
+  If there is no user or the user doesn't have a password, we call
   `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
   @spec valid_password?(t(), String.t()) :: boolean()
-  def valid_password?(%Blank.Accounts.Admin{hashed_password: hashed_password}, password)
+  def valid_password?(%Blank.Accounts.User{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
     Bcrypt.verify_pass(password, hashed_password)
   end

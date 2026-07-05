@@ -2,7 +2,7 @@ defmodule Blank.Components.ExportComponentTest do
   use Blank.LiveViewCase
 
   setup %{conn: conn} do
-    {:ok, admin: admin_fixture(), conn: log_in_admin(conn)}
+    {:ok, user: user_fixture(), conn: log_in_user(conn)}
   end
 
   test "mounting the posts export page shows export options", %{conn: conn} do

@@ -137,8 +137,7 @@ defmodule Blank.Presence do
   def track_user(struct, name, current_page)
       when is_struct(struct) and
              is_binary(name) and (is_binary(current_page) or is_atom(current_page)) do
-    user_pk = Application.get_env(:blank, :user_table_pk, :id)
-    id = Map.fetch!(struct, user_pk)
+    id = Map.fetch!(struct, :id)
 
     track(self(), "online_users", id, %{
       id: id,

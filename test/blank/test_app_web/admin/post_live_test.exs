@@ -31,17 +31,17 @@ defmodule TestAppWeb.Admin.PostLiveTest do
       _ -> :ok
     end
 
-    # Register an admin and build a logged-in conn
-    {:ok, admin} =
-      Blank.Accounts.register_admin(%{
-        email: "admin@example.com",
+    # Register a user and build a logged-in conn
+    {:ok, user} =
+      Blank.Accounts.register_user(%{
+        email: "user@example.com",
         password: "Str0ng!Passw0rd"
       })
 
     conn = Phoenix.ConnTest.build_conn()
-    conn = log_in_admin(conn, admin)
+    conn = log_in_user(conn, user)
 
-    {:ok, conn: conn, admin: admin}
+    {:ok, conn: conn, user: user}
   end
 
   # ── helpers ────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@ defmodule Blank.Components.AuditLogComponentTest do
   alias Blank.Audit.AuditLog
 
   setup %{conn: conn} do
-    {:ok, conn: log_in_admin(conn)}
+    {:ok, conn: log_in_user(conn)}
   end
 
   test "mounting the audit log page renders the component with logs", %{conn: conn} do

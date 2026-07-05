@@ -4,12 +4,11 @@ defmodule Blank.Audit.AuditLogTest do
   alias Blank.Audit.AuditLog
 
   describe "system/0" do
-    test "returns a struct with user: nil, admin: nil, user_agent: SYSTEM" do
+    test "returns a struct with user: nil and user_agent: SYSTEM" do
       log = AuditLog.system()
 
       assert %AuditLog{} = log
       assert log.user == nil
-      assert log.admin == nil
       assert log.user_agent == "SYSTEM"
       assert log.params == %{}
     end
@@ -28,10 +27,14 @@ defmodule Blank.Audit.AuditLogTest do
       context = AuditLog.system()
 
       log =
-        AuditLog.build!(context, "accounts.login", %{email: "user@example.com", type: "password"})
+        AuditLog.build!(context, "accounts.login", %{
+          email: "user@example.com",
+          type: "password",
+          provider: nil
+        })
 
       assert log.action == "accounts.login"
-      assert log.params == %{email: "user@example.com", type: "password"}
+      assert log.params == %{email: "user@example.com", type: "password", provider: nil}
     end
 
     test "posts.create with item_id" do
@@ -170,7 +173,7 @@ defmodule Blank.Audit.AuditLogTest do
 
   describe "belongs_to :user" do
     test "inserts audit log with associated user" do
-      user = Repo.insert!(%User{email: "test@example.com", name: "Test User"})
+      user = Repo.insert!(%Blank.Accounts.User{email: "test@example.com", name: "Test User"})
 
       log = AuditLog.system()
       log = %{log | action: "app.test", user_id: user.id}

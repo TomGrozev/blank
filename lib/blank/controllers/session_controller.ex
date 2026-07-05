@@ -13,7 +13,7 @@ defmodule Blank.Controllers.SessionController do
     prefix = conn.private.phoenix_router.__blank_prefix__()
 
     conn
-    |> put_session(:admin_return_to, Path.join(prefix, "/profile/settings"))
+    |> put_session(:user_return_to, Path.join(prefix, "/profile/settings"))
     |> create(params, "Password updated successfully!")
   end
 
@@ -21,15 +21,23 @@ defmodule Blank.Controllers.SessionController do
     create(conn, params, "Welcome back!")
   end
 
-  defp create(conn, %{"admin" => admin_params}, info) do
-    %{"email" => email, "password" => password} = admin_params
+  defp create(conn, %{"user" => user_params}, info) do
+    %{"email" => email, "password" => password} = user_params
 
-    if admin = Accounts.get_admin_by_email_and_password(email, password) do
+    if user = Accounts.get_user_by_email_and_password(email, password) do
       conn
       |> put_flash(:info, info)
-      |> Auth.log_in(admin, admin_params)
+      |> Auth.log_in(user, user_params)
     else
       prefix = conn.private.phoenix_router.__blank_prefix__()
+
+      audit_context = conn.assigns[:audit_context] || Blank.Audit.AuditLog.system()
+
+      Blank.Audit.log!(audit_context, "accounts.login_failed", %{
+        email: email,
+        reason: "wrong_password",
+        provider: nil
+      })
 
       # In order to prevent user enumeration attacks, don't disclose whether the email is registered.
       conn

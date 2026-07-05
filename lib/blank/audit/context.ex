@@ -2,7 +2,7 @@ defmodule Blank.Audit.Context do
   @moduledoc """
   Plug to apply the audit context
 
-  This fetches the user's ip address, user agent and their user/admin struct and
+  This fetches the user's ip address, user agent and their user struct and
   applies it to the `audit_context` assign. This is then used later for when
   logs are created so it is clear who performs an action.
 
@@ -62,8 +62,7 @@ defmodule Blank.Audit.Context do
     %AuditLog{
       user_agent: user_agent,
       ip_address: get_ip(conn),
-      user: conn.assigns[Application.get_env(:blank, :user_assigns, :current_user)],
-      admin: conn.assigns[:current_admin]
+      user: conn.assigns[:current_user]
     }
   end
 
@@ -71,8 +70,7 @@ defmodule Blank.Audit.Context do
     %AuditLog{
       user_agent: Phoenix.LiveView.get_connect_info(socket, :user_agent),
       ip_address: get_ip(socket),
-      user: socket.assigns[Application.get_env(:blank, :user_assigns, :current_user)],
-      admin: socket.assigns[:current_admin]
+      user: socket.assigns[:current_user]
     }
   end
 

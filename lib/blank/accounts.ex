@@ -3,170 +3,170 @@ defmodule Blank.Accounts do
 
   import Ecto.Query, warn: false
 
-  alias Blank.Accounts.{Admin, AdminToken}
+  alias Blank.Accounts.{User, UserToken}
 
   @doc """
-  Get all admins
+  Get all users
   """
-  @spec list_admins() :: [Admin.t()]
-  def list_admins do
-    repo().all(Admin)
+  @spec list_users() :: [User.t()]
+  def list_users do
+    repo().all(User)
   end
 
   @doc """
-  Gets an admin by email.
+  Gets a user by email.
 
   ## Examples
 
-      iex> {:ok, admin} = register_admin(%{email: "foo@example.com", password: "Str0ng!Passw0rd"})
-      iex> get_admin_by_email("foo@example.com") |> is_struct(Blank.Accounts.Admin)
+      iex> {:ok, user} = register_user(%{email: "foo@example.com", password: "Str0ng!Passw0rd"})
+      iex> get_user_by_email("foo@example.com") |> is_struct(Blank.Accounts.User)
       true
 
-      iex> get_admin_by_email("unknown@example.com")
+      iex> get_user_by_email("unknown@example.com")
       nil
 
   """
-  @spec get_admin_by_email(String.t()) :: Admin.t() | nil
-  def get_admin_by_email(email) when is_binary(email) do
-    repo().get_by(Admin, email: email)
+  @spec get_user_by_email(String.t()) :: User.t() | nil
+  def get_user_by_email(email) when is_binary(email) do
+    repo().get_by(User, email: email)
   end
 
   @doc """
-  Gets an admin by email and password.
+  Gets a user by email and password.
 
   ## Examples
 
-      iex> {:ok, admin} = register_admin(%{email: "auth@example.com", password: "Str0ng!Passw0rd"})
-      iex> get_admin_by_email_and_password("auth@example.com", "Str0ng!Passw0rd") |> is_struct(Blank.Accounts.Admin)
+      iex> {:ok, user} = register_user(%{email: "auth@example.com", password: "Str0ng!Passw0rd"})
+      iex> get_user_by_email_and_password("auth@example.com", "Str0ng!Passw0rd") |> is_struct(Blank.Accounts.User)
       true
 
-      iex> get_admin_by_email_and_password("auth@example.com", "invalid_password")
+      iex> get_user_by_email_and_password("auth@example.com", "invalid_password")
       nil
 
   """
-  @spec get_admin_by_email_and_password(String.t(), String.t()) ::
-          Admin.t()
+  @spec get_user_by_email_and_password(String.t(), String.t()) ::
+          User.t()
           | nil
-  def get_admin_by_email_and_password(email, password)
+  def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
-    admin = repo().get_by(Admin, email: email)
-    if Admin.valid_password?(admin, password), do: admin
+    user = repo().get_by(User, email: email)
+    if User.valid_password?(user, password), do: user
   end
 
   @doc """
-  Gets a single admin.
+  Gets a single user.
 
-  Raises `Ecto.NoResultsError` if the Admin does not exist.
+  Raises `Ecto.NoResultsError` if the User does not exist.
 
   ## Examples
 
-      iex> {:ok, admin} = register_admin(%{email: "get_admin@example.com", password: "Str0ng!Passw0rd"})
-      iex> get_admin!(admin.id) |> is_struct(Blank.Accounts.Admin)
+      iex> {:ok, user} = register_user(%{email: "get_user@example.com", password: "Str0ng!Passw0rd"})
+      iex> get_user!(user.id) |> is_struct(Blank.Accounts.User)
       true
 
   """
-  @spec get_admin!(integer()) :: Admin.t()
-  def get_admin!(id), do: repo().get!(Admin, id)
+  @spec get_user!(integer()) :: User.t()
+  def get_user!(id), do: repo().get!(User, id)
 
-  ## Admin Registration
+  ## User Registration
 
   @doc """
-  Registers an admin.
+  Registers a user.
 
   For available options refer to
-  `Blank.Accounts.Admin.registration_changeset/3`
+  `Blank.Accounts.User.registration_changeset/3`
 
   ## Examples
 
-      iex> {:ok, admin} = register_admin(%{email: "admin@example.com", password: "Str0ng!Passw0rd"})
-      iex> match?(%Blank.Accounts.Admin{}, admin)
+      iex> {:ok, user} = register_user(%{email: "user@example.com", password: "Str0ng!Passw0rd"})
+      iex> match?(%Blank.Accounts.User{}, user)
       true
 
-      iex> {:error, changeset} = register_admin(%{email: "bad"})
+      iex> {:error, changeset} = register_user(%{email: "bad"})
       iex> changeset.valid?
       false
 
   """
-  @spec register_admin(map(), Keyword.t()) :: {:ok, Admin.t()} | {:error, Ecto.Changeset.t()}
-  def register_admin(attrs, opts \\ []) do
-    %Admin{}
-    |> Admin.registration_changeset(attrs, opts)
+  @spec register_user(map(), Keyword.t()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  def register_user(attrs, opts \\ []) do
+    %User{}
+    |> User.registration_changeset(attrs, opts)
     |> repo().insert()
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking admin changes.
+  Returns an `%Ecto.Changeset{}` for tracking user changes.
 
   ## Examples
 
-      iex> change_admin_registration(%Blank.Accounts.Admin{}) |> is_struct(Ecto.Changeset)
+      iex> change_user_registration(%Blank.Accounts.User{}) |> is_struct(Ecto.Changeset)
       true
 
   """
-  @spec change_admin_registration(Admin.t(), map()) :: Ecto.Changeset.t()
-  def change_admin_registration(%Admin{} = admin, attrs \\ %{}) do
-    Admin.registration_changeset(admin, attrs, hash_password: false, validate_email: false)
+  @spec change_user_registration(User.t(), map()) :: Ecto.Changeset.t()
+  def change_user_registration(%User{} = user, attrs \\ %{}) do
+    User.registration_changeset(user, attrs, hash_password: false, validate_email: false)
   end
 
   @doc """
-  Deletes an admin.
+  Deletes a user.
 
   ## Examples
 
-      iex> {:ok, admin} = register_admin(%{email: "to_delete@example.com", password: "Str0ng!Passw0rd"})
-      iex> {:ok, deleted} = delete_admin(admin)
-      iex> match?(%Blank.Accounts.Admin{}, deleted)
+      iex> {:ok, user} = register_user(%{email: "to_delete@example.com", password: "Str0ng!Passw0rd"})
+      iex> {:ok, deleted} = delete_user(user)
+      iex> match?(%Blank.Accounts.User{}, deleted)
       true
 
   """
-  @spec delete_admin(Admin.t()) :: {:ok, Admin.t()} | {:error, Ecto.Changeset.t()}
-  def delete_admin(%Admin{} = admin) do
-    repo().delete(admin)
+  @spec delete_user(User.t()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  def delete_user(%User{} = user) do
+    repo().delete(user)
   end
 
   ## Settings
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for changing the admin password.
+  Returns an `%Ecto.Changeset{}` for changing the user password.
 
   ## Examples
 
-      iex> change_admin_password(%Blank.Accounts.Admin{}) |> is_struct(Ecto.Changeset)
+      iex> change_user_password(%Blank.Accounts.User{}) |> is_struct(Ecto.Changeset)
       true
 
   """
-  @spec change_admin_password(Admin.t(), map()) :: Ecto.Changeset.t()
-  def change_admin_password(admin, attrs \\ %{}) do
-    Admin.password_changeset(admin, attrs, hash_password: false)
+  @spec change_user_password(User.t(), map()) :: Ecto.Changeset.t()
+  def change_user_password(user, attrs \\ %{}) do
+    User.password_changeset(user, attrs, hash_password: false)
   end
 
   @doc """
-  Updates the admin password.
+  Updates the user password.
 
   ## Examples
 
-      iex> {:ok, admin} = register_admin(%{email: "pw_update@example.com", password: "OldP4ssword123!"})
-      iex> {:ok, updated} = update_admin_password(admin, "OldP4ssword123!", %{password: "N3w!Password123"})
-      iex> match?(%Blank.Accounts.Admin{}, updated)
+      iex> {:ok, user} = register_user(%{email: "pw_update@example.com", password: "OldP4ssword123!"})
+      iex> {:ok, updated} = update_user_password(user, "OldP4ssword123!", %{password: "N3w!Password123"})
+      iex> match?(%Blank.Accounts.User{}, updated)
       true
 
   """
-  @spec update_admin_password(Admin.t(), String.t(), map()) ::
-          {:ok, Admin.t()}
+  @spec update_user_password(User.t(), String.t(), map()) ::
+          {:ok, User.t()}
           | {:error, Ecto.Changeset.t()}
-  def update_admin_password(admin, password, attrs) do
+  def update_user_password(user, password, attrs) do
     changeset =
-      admin
-      |> Admin.password_changeset(attrs)
-      |> Admin.validate_current_password(password)
+      user
+      |> User.password_changeset(attrs)
+      |> User.validate_current_password(password)
 
     Ecto.Multi.new()
-    |> Ecto.Multi.update(:admin, changeset)
-    |> Ecto.Multi.delete_all(:tokens, AdminToken.by_admin_and_contexts_query(admin, :all))
+    |> Ecto.Multi.update(:user, changeset)
+    |> Ecto.Multi.delete_all(:tokens, UserToken.by_user_and_contexts_query(user, :all))
     |> repo().transaction()
     |> case do
-      {:ok, %{admin: admin}} -> {:ok, admin}
-      {:error, :admin, changeset, _} -> {:error, changeset}
+      {:ok, %{user: user}} -> {:ok, user}
+      {:error, :user, changeset, _} -> {:error, changeset}
     end
   end
 
@@ -175,28 +175,28 @@ defmodule Blank.Accounts do
   @doc """
   Generates a session token.
   """
-  @spec generate_admin_session_token(Admin.t()) :: String.t()
-  def generate_admin_session_token(admin) do
-    {token, admin_token} = AdminToken.build_session_token(admin)
-    repo().insert!(admin_token)
+  @spec generate_user_session_token(User.t()) :: String.t()
+  def generate_user_session_token(user) do
+    {token, user_token} = UserToken.build_session_token(user)
+    repo().insert!(user_token)
     token
   end
 
   @doc """
-  Gets the admin with the given signed token.
+  Gets the user with the given signed token.
   """
-  @spec get_admin_by_session_token(String.t()) :: Admin.t()
-  def get_admin_by_session_token(token) do
-    {:ok, query} = AdminToken.verify_session_token_query(token)
+  @spec get_user_by_session_token(String.t()) :: User.t()
+  def get_user_by_session_token(token) do
+    {:ok, query} = UserToken.verify_session_token_query(token)
     repo().one(query)
   end
 
   @doc """
   Deletes the signed token with the given context.
   """
-  @spec delete_admin_session_token(String.t()) :: :ok
-  def delete_admin_session_token(token) do
-    repo().delete_all(AdminToken.by_token_and_context_query(token, "session"))
+  @spec delete_user_session_token(String.t()) :: :ok
+  def delete_user_session_token(token) do
+    repo().delete_all(UserToken.by_token_and_context_query(token, "session"))
     :ok
   end
 

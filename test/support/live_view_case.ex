@@ -21,16 +21,16 @@ defmodule TestAppWeb.LiveViewCase do
   end
 
   @doc """
-  Logs in an admin by putting the session token into the conn session.
+  Logs in a user by putting the session token into the conn session.
 
-  The session key `:admin_token` matches what `Blank.Plugs.Auth`
-  reads during the HTTP pipeline (`fetch_current_admin`) and
+  The session key `:user_token` matches what `Blank.Plugs.Auth`
+  reads during the HTTP pipeline (`fetch_current_user`) and
   what `Blank.Plugs.Auth.on_mount(:ensure_authenticated, ...)` reads
-  during the LiveView WebSocket mount (`session["admin_token"]`).
+  during the LiveView WebSocket mount (`session["user_token"]`).
   """
-  @spec log_in_admin(Plug.Conn.t(), Blank.Accounts.Admin.t()) :: Plug.Conn.t()
-  def log_in_admin(conn, admin) do
-    token = Blank.Accounts.generate_admin_session_token(admin)
-    Phoenix.ConnTest.init_test_session(conn, %{admin_token: token})
+  @spec log_in_user(Plug.Conn.t(), Blank.Accounts.User.t()) :: Plug.Conn.t()
+  def log_in_user(conn, user) do
+    token = Blank.Accounts.generate_user_session_token(user)
+    Phoenix.ConnTest.init_test_session(conn, %{user_token: token})
   end
 end

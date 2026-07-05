@@ -2,7 +2,7 @@ defmodule Blank.Pages.ProfileLiveTest do
   use Blank.LiveViewCase
 
   setup %{conn: conn} do
-    {:ok, conn: log_in_admin(conn)}
+    {:ok, conn: log_in_user(conn)}
   end
 
   test "mounting shows the password change form", %{conn: conn} do

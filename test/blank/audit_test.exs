@@ -26,7 +26,6 @@ defmodule Blank.AuditTest do
 
       assert log.user_agent == "SYSTEM"
       assert log.user == nil
-      assert log.admin == nil
 
       assert_received {:audit_log, ^log}
     end
@@ -85,7 +84,7 @@ defmodule Blank.AuditTest do
 
   describe "list_all_for_user/2" do
     test "with a user struct" do
-      user = Repo.insert!(%User{email: "audit@example.com", name: "Audit User"})
+      user = Repo.insert!(%Blank.Accounts.User{email: "audit@example.com", name: "Audit User"})
       context = %{AuditLog.system() | user_id: user.id}
 
       log = Audit.log!(context, "app.user_event", %{})
@@ -97,7 +96,7 @@ defmodule Blank.AuditTest do
     end
 
     test "with just an id" do
-      user = Repo.insert!(%User{email: "audit2@example.com", name: "Audit User 2"})
+      user = Repo.insert!(%Blank.Accounts.User{email: "audit2@example.com", name: "Audit User 2"})
       context = %{AuditLog.system() | user_id: user.id}
 
       log = Audit.log!(context, "app.user_event_2", %{})
@@ -110,20 +109,20 @@ defmodule Blank.AuditTest do
   end
 
   describe "list_all_from_system/1" do
-    test "returns only logs with user_agent SYSTEM, admin_id nil, user_id nil" do
+    test "returns only logs with user_agent SYSTEM and user_id nil" do
       context = AuditLog.system()
 
       system_log = Audit.log!(context, "app.system_event", %{})
 
       # Non-system log (has a user)
-      user = Repo.insert!(%User{email: "sys@example.com", name: "Sys User"})
+      user = Repo.insert!(%Blank.Accounts.User{email: "sys@example.com", name: "Sys User"})
       user_context = %{AuditLog.system() | user_id: user.id}
       Audit.log!(user_context, "app.user_event", %{})
 
       results = Audit.list_all_from_system()
 
       assert Enum.all?(results, fn log ->
-               log.user_agent == "SYSTEM" and log.admin_id == nil and log.user_id == nil
+               log.user_agent == "SYSTEM" and log.user_id == nil
              end)
 
       assert Enum.any?(results, &(&1.id == system_log.id))
