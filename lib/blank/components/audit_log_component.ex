@@ -105,14 +105,33 @@ defmodule Blank.Components.AuditLogComponent do
   def audit_text(log, prefix, schema_links, type \\ nil)
 
   def audit_text(%{action: "accounts.login"} = log, prefix, schema_links, _type) do
-    identified_text("logged in", log, prefix, schema_links)
+    login_type = Map.get(log.params, "type", Map.get(log.params, :type, "local"))
+    provider = Map.get(log.params, "provider", Map.get(log.params, :provider))
+
+    text =
+      if login_type == "ueberauth" and provider do
+        "logged in via #{Blank.Ueberauth.provider_display_name(provider)}"
+      else
+        "logged in"
+      end
+
+    identified_text(text, log, prefix, schema_links)
   end
 
   def audit_text(%{action: "accounts.login_failed"} = log, prefix, schema_links, _type) do
     email = Map.get(log.params, "email", Map.get(log.params, :email, "unknown"))
     reason = Map.get(log.params, "reason", Map.get(log.params, :reason, "unknown"))
+    provider = Map.get(log.params, "provider", Map.get(log.params, :provider))
     {username, _type, _path} = identity(log, prefix, schema_links)
-    assigns = %{username: username, email: email, reason: reason}
+
+    reason_text =
+      if provider do
+        "#{reason} (#{Blank.Ueberauth.provider_display_name(provider)})"
+      else
+        reason
+      end
+
+    assigns = %{username: username, email: email, reason: reason_text}
 
     ~H"""
     <span class="font-medium text-base-content">{@username}</span>

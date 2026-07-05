@@ -9,6 +9,8 @@ defmodule Blank.Application do
   @spec start(Application.start_type(), term()) ::
           {:ok, pid()} | {:error, {:already_started, pid()} | {:shutdown, term()} | term()}
   def start(_, _) do
+    validate_ueberauth_config!()
+
     children = [
       # {DynamicSupervisor, name: Blank.DynamicSupervisor, strategy: :one_for_one},
       {Phoenix.PubSub, name: Blank.PubSub},
@@ -17,5 +19,34 @@ defmodule Blank.Application do
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one)
+  end
+
+  defp validate_ueberauth_config! do
+    # Only validate ueberauth config if local auth is disabled
+    # (i.e., ueberauth is the only auth method)
+    local_auth_enabled? =
+      case Application.get_env(:blank, :auth, []) do
+        config when is_list(config) -> Keyword.get(config, :local, true)
+        _ -> true
+      end
+
+    if not local_auth_enabled? and Code.ensure_loaded?(Ueberauth) do
+      config = Application.get_env(:ueberauth, Ueberauth, [])
+      providers = Keyword.get(config, :providers, [])
+
+      if providers == [] do
+        raise """
+        Blank requires at least one Ueberauth provider to be configured when local auth is disabled.
+        Please add providers to your Ueberauth config:
+
+            config :ueberauth, Ueberauth,
+              providers: [google: {Ueberauth.Strategy.Google, []}]
+
+        Or enable local auth:
+
+            config :blank, :auth, local: true
+        """
+      end
+    end
   end
 end

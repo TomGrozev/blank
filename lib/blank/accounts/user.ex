@@ -134,6 +134,20 @@ defmodule Blank.Accounts.User do
   end
 
   @doc """
+  Changeset for ueberauth-based user creation/updates.
+  Does not require a password.
+  """
+  @spec ueberauth_changeset(t(), map()) :: Ecto.Changeset.t()
+  def ueberauth_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email, :name, :provider, :external_uid])
+    |> validate_required([:email, :provider, :external_uid])
+    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
+    |> validate_length(:email, max: 160)
+    |> unique_constraint([:provider, :external_uid])
+  end
+
+  @doc """
   A user changeset for changing the password.
 
   ## Options

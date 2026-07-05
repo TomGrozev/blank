@@ -56,6 +56,7 @@ defmodule Blank.MixProject do
       {:csv, "~> 3.2"},
       {:geo, "~> 3.6", optional: true},
       {:tz, "~> 0.28"},
+      {:ueberauth, "~> 0.10"},
       {:ex_doc, "~> 0.39", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},

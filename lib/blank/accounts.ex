@@ -109,6 +109,35 @@ defmodule Blank.Accounts do
   end
 
   @doc """
+  Gets a user by provider and external UID.
+  """
+  @spec get_user_by_provider_and_uid(atom(), String.t()) :: User.t() | nil
+  def get_user_by_provider_and_uid(provider, external_uid)
+      when is_atom(provider) and is_binary(external_uid) do
+    repo().get_by(User, provider: Atom.to_string(provider), external_uid: external_uid)
+  end
+
+  @doc """
+  Creates a user from ueberauth data.
+  """
+  @spec create_ueberauth_user(map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  def create_ueberauth_user(attrs) do
+    %User{}
+    |> User.ueberauth_changeset(attrs)
+    |> repo().insert()
+  end
+
+  @doc """
+  Refreshes email and name for an existing ueberauth user.
+  """
+  @spec refresh_ueberauth_user(User.t(), map()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  def refresh_ueberauth_user(%User{} = user, attrs) do
+    user
+    |> User.ueberauth_changeset(attrs)
+    |> repo().update()
+  end
+
+  @doc """
   Deletes a user.
 
   ## Examples
