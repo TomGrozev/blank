@@ -24,11 +24,7 @@ defmodule Blank.Application do
   defp validate_ueberauth_config! do
     # Only validate ueberauth config if local auth is disabled
     # (i.e., ueberauth is the only auth method)
-    local_auth_enabled? =
-      case Application.get_env(:blank, :auth, []) do
-        config when is_list(config) -> Keyword.get(config, :local, true)
-        _ -> true
-      end
+    local_auth_enabled? = Blank.Plugs.Auth.local_login_enabled?()
 
     if not local_auth_enabled? and Code.ensure_loaded?(Ueberauth) do
       config = Application.get_env(:ueberauth, Ueberauth, [])
@@ -44,7 +40,7 @@ defmodule Blank.Application do
 
         Or enable local auth:
 
-            config :blank, :auth, local: true
+            config :blank, :auth, local_login: :enabled
         """
       end
     end

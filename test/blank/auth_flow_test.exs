@@ -266,6 +266,7 @@ defmodule Blank.AuthFlowTest do
       assert user.name == "New OAuth"
       assert user.provider == "google"
       assert user.external_uid == "uid_new_1"
+      assert user.roles == ["member"]
     end
 
     test "emits accounts.user_created audit event" do
@@ -475,7 +476,7 @@ defmodule Blank.AuthFlowTest do
         Application.delete_env(:blank, :auth)
       end)
 
-      Application.put_env(:blank, :auth, local: false)
+      Application.put_env(:blank, :auth, local_login: :disabled)
       Application.put_env(:ueberauth, Ueberauth, providers: [])
 
       assert_raise RuntimeError, ~r/Blank requires at least one Ueberauth provider/, fn ->
