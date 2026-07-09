@@ -58,7 +58,26 @@ defmodule Blank.Accounts.UserToken do
   @spec build_session_token(User.t()) :: {binary(), t()}
   def build_session_token(user) do
     token = :crypto.strong_rand_bytes(@rand_size) |> Base.encode64()
-    {token, %UserToken{token: token, context: "session", user_id: user.id}}
+
+    {token,
+     %UserToken{
+       token: token,
+       context: "session",
+       user_id: user.id,
+       last_activity_at: DateTime.truncate(DateTime.utc_now(), :second)
+     }}
+  end
+
+  @doc """
+  Touches the last_activity_at field of a token to record current activity.
+  """
+  @spec touch_last_activity(t()) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
+  def touch_last_activity(%UserToken{} = token) do
+    repo = Application.fetch_env!(:blank, :repo)
+
+    token
+    |> Ecto.Changeset.change(%{last_activity_at: DateTime.truncate(DateTime.utc_now(), :second)})
+    |> repo.update()
   end
 
   @doc """

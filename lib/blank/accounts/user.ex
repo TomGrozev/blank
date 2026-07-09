@@ -33,7 +33,7 @@ defmodule Blank.Accounts.User do
           current_password: String.t(),
           provider: String.t() | nil,
           external_uid: String.t() | nil,
-          roles: [String.t()],
+          roles: [atom()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -46,7 +46,7 @@ defmodule Blank.Accounts.User do
     field(:current_password, :string, virtual: true, redact: true)
     field(:provider, :string)
     field(:external_uid, :string)
-    field(:roles, {:array, :string}, default: [])
+    field(:roles, {:array, Blank.Types.Role}, default: [])
 
     timestamps(type: :utc_datetime)
   end
