@@ -62,12 +62,10 @@ defmodule Mix.Tasks.Blank.User.New do
         with {:ok, _} <- repo.__adapter__().ensure_all_started(repo.config(), :temporary),
              {:ok, _} <- ensure_repo_started(repo),
              {:ok, user} <- repo.insert(changeset) do
-          string_roles = Enum.map(user.roles, &Atom.to_string/1)
-
           Blank.Audit.log!(
             Blank.Audit.AuditLog.system(),
             "accounts.user_created",
-            %{email: email, roles: string_roles}
+            %{email: email, roles: user.roles}
           )
 
           Mix.shell().info("User #{email} created successfully")

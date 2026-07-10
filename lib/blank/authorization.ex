@@ -7,7 +7,6 @@ defmodule Blank.Authorization do
   """
 
   @built_in_roles MapSet.new([:system_admin, :member])
-  @allowed_roles_key {__MODULE__, :allowed_roles}
 
   @doc """
   Returns the full set of allowed role atoms.
@@ -19,31 +18,7 @@ defmodule Blank.Authorization do
   """
   @spec allowed_roles() :: MapSet.t(atom())
   def allowed_roles do
-    # Read from persistent term cache (set at boot)
-    case :persistent_term.get(@allowed_roles_key, :not_set) do
-      :not_set ->
-        # Fallback for when called before boot (e.g., in tests before app start)
-        compute_and_cache_allowed_roles()
-
-      roles ->
-        roles
-    end
-  end
-
-  @doc """
-  Computes the allowed roles from config and caches them.
-  Called at app boot time.
-  """
-  @spec compute_and_cache_allowed_roles() :: MapSet.t(atom())
-  def compute_and_cache_allowed_roles do
-    configured =
-      :blank
-      |> Application.get_env(:authorization, [])
-      |> Keyword.get(:roles, [])
-
-    roles = MapSet.union(@built_in_roles, MapSet.new(configured))
-    :persistent_term.put(@allowed_roles_key, roles)
-    roles
+    Blank.Config.allowed_roles()
   end
 
   @doc """
@@ -66,7 +41,7 @@ defmodule Blank.Authorization do
 
     invalid =
       roles
-      |> Enum.reject(&MapSet.member?(allowed, &1))
+      |> Stream.reject(&MapSet.member?(allowed, &1))
       |> Enum.uniq()
 
     case invalid do
