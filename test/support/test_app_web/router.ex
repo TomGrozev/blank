@@ -19,5 +19,7 @@ defmodule TestAppWeb.Router do
 
   blank_admin "/admin" do
     admin_page "/posts", TestAppWeb.Admin.PostLive
+    get "/authorize_test", TestAppWeb.Admin.AuthorizeTestController, :index
+    post "/authorize_test", TestAppWeb.Admin.AuthorizeTestController, :create
   end
 end
