@@ -185,20 +185,20 @@ defmodule Blank.Exporter do
       when is_atom(mod) and
              is_atom(repo) and is_atom(schema) and is_list(fields) do
     name = Phoenix.Naming.resource_name(mod)
-    ext = apply(mod, :ext, [])
+    ext = mod.ext()
 
     id = Ecto.UUID.generate()
     filename = "export_#{name}_#{id}.#{ext}"
 
     stream =
       Context.list_schema(repo, schema, fields)
-      |> Stream.map(&apply(mod, :process, [&1, fields]))
+      |> Stream.map(&mod.process(&1, fields))
 
     with tmp_dir when not is_nil(tmp_dir) <- System.tmp_dir(),
          dir = Path.join(tmp_dir, "blank"),
          :ok <- File.mkdir_p(dir),
          path = Path.join(dir, filename),
-         :ok <- apply(mod, :save, [stream, path]) do
+         :ok <- mod.save(stream, path) do
       Blank.DownloadAgent.add(id, path)
     else
       nil -> {:error, "cannot create temporary directory"}

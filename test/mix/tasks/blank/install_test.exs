@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.Blank.InstallTest do
   use ExUnit.Case, async: false
 
+  alias Mix.Tasks.Blank.Install
+
   setup do
     dir = Path.join(System.tmp_dir!(), "blank_install_test_#{System.unique_integer([:positive])}")
     File.mkdir_p!(dir)
@@ -43,7 +45,7 @@ defmodule Mix.Tasks.Blank.InstallTest do
       # Capture both stdout and stderr
       output =
         ExUnit.CaptureIO.capture_io(:stderr, fn ->
-          Mix.Tasks.Blank.Install.run(["--adapter", "invalid_adapter"])
+          Install.run(["--adapter", "invalid_adapter"])
         end)
 
       assert output =~ "invalid adapter" or output =~ "failed to install"
@@ -71,7 +73,7 @@ defmodule Mix.Tasks.Blank.InstallTest do
 
       Mix.shell(Mix.Shell.Process)
 
-      Mix.Tasks.Blank.Install.run(["--adapter", "ecto_sql"])
+      Install.run(["--adapter", "ecto_sql"])
 
       endpoint_content = File.read!(source_file)
       assert endpoint_content =~ "peer_data"
@@ -102,7 +104,7 @@ defmodule Mix.Tasks.Blank.InstallTest do
 
       Mix.shell(Mix.Shell.Process)
 
-      Mix.Tasks.Blank.Install.run([
+      Install.run([
         "--adapter",
         "ecto_sql",
         "--migrations-path",
@@ -139,7 +141,7 @@ defmodule Mix.Tasks.Blank.InstallTest do
       Mix.shell(Mix.Shell.Process)
 
       # No --adapter flag, should default to ecto_sql
-      Mix.Tasks.Blank.Install.run(["--migrations-path", migrations_dir])
+      Install.run(["--migrations-path", migrations_dir])
 
       copied_files = File.ls!(migrations_dir)
       assert not Enum.empty?(copied_files)

@@ -216,11 +216,9 @@ defmodule Blank.Audit do
   defp repo, do: Application.fetch_env!(:blank, :repo)
 
   defp push_pubsub(log) do
-    try do
-      Phoenix.PubSub.broadcast(Blank.PubSub, @pubsub_topic, {:audit_log, log})
-    catch
-      :exit, _ -> :ok
-    end
+    Phoenix.PubSub.broadcast(Blank.PubSub, @pubsub_topic, {:audit_log, log})
+  catch
+    :exit, _ -> :ok
   end
 
   defp changeset_diff(%Ecto.Changeset{} = changeset) do

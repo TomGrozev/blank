@@ -3,6 +3,7 @@ defmodule Blank.Controllers.SessionController do
   use Blank.Web, :controller
 
   alias Blank.Accounts
+  alias Blank.Audit.AuditLog
   alias Blank.Plugs.Auth
 
   @doc """
@@ -31,7 +32,7 @@ defmodule Blank.Controllers.SessionController do
     else
       prefix = conn.private.phoenix_router.__blank_prefix__()
 
-      audit_context = conn.assigns[:audit_context] || Blank.Audit.AuditLog.system()
+      audit_context = conn.assigns[:audit_context] || AuditLog.system()
 
       Blank.Audit.log!(audit_context, "accounts.login_failed", %{
         email: email,

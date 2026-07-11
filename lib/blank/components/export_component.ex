@@ -25,9 +25,9 @@ defmodule Blank.Components.ExportComponent do
         >
           <.icon
             :if={function_exported?(exporter, :icon, 0)}
-            name={apply(exporter, :icon, [])}
+            name={exporter.icon()}
             class="w-5 h-5"
-          /> Export {apply(exporter, :name, [])}
+          /> Export {exporter.name()}
         </.button>
       </div>
 
@@ -80,7 +80,7 @@ defmodule Blank.Components.ExportComponent do
   defp get_exporters(fields) do
     Blank.Exporter.exporters()
     |> Enum.filter(fn mod ->
-      apply(mod, :display?, [fields])
+      mod.display?(fields)
     end)
   end
 

@@ -33,12 +33,10 @@ defmodule Blank.Types.Role do
   end
 
   def cast(value) when is_binary(value) do
-    try do
-      atom = String.to_existing_atom(value)
-      cast(atom)
-    rescue
-      ArgumentError -> :error
-    end
+    atom = String.to_existing_atom(value)
+    cast(atom)
+  rescue
+    ArgumentError -> :error
   end
 
   def cast(_), do: :error

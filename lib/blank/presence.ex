@@ -35,7 +35,7 @@ defmodule Blank.Presence do
   def child_spec(opts)
 
   @doc false
-  def fetchers_pids()
+  def fetchers_pids
 
   @impl Phoenix.Presence
   def get_by_key(topic, key)

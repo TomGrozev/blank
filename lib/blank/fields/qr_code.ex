@@ -29,6 +29,8 @@ defmodule Blank.Fields.QRCode do
 
   use Blank.Field, schema: @schema
 
+  alias Blank.Utils.QRCode
+
   @impl Phoenix.LiveComponent
   def update(%{value: value} = assigns, socket) do
     path = Map.get(assigns.definition, :path, "/")
@@ -44,7 +46,7 @@ defmodule Blank.Fields.QRCode do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:qr_code, Blank.Utils.QRCode.svg(value, path))
+     |> assign(:qr_code, QRCode.svg(value, path))
      |> assign(:download_path, download_path)}
   end
 

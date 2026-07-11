@@ -1,6 +1,8 @@
 defmodule Blank.Schema.Options do
   @moduledoc false
 
+  alias Blank.Errors.InvalidConfigError
+
   @schema [
     identity_field: [
       type: :atom,
@@ -93,7 +95,7 @@ defmodule Blank.Schema.Options do
         opts
 
       {:error, err} ->
-        raise Blank.Errors.InvalidConfigError.from_nimble(err,
+        raise InvalidConfigError.from_nimble(err,
                 caller: caller,
                 module: Blank.Schema,
                 usage: "@derive"

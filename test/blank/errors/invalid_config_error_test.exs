@@ -1,11 +1,14 @@
 defmodule Blank.Errors.InvalidConfigErrorTest do
   use ExUnit.Case, async: true
 
+  alias Blank.Errors.InvalidConfigError
+  alias Blank.Schema
+
   test "message/1 includes module name and message" do
     err =
-      Blank.Errors.InvalidConfigError.exception(
+      InvalidConfigError.exception(
         caller: __MODULE__,
-        module: Blank.Schema,
+        module: Schema,
         usage: "@derive",
         key: :my_key,
         message: "my message"
@@ -19,9 +22,9 @@ defmodule Blank.Errors.InvalidConfigErrorTest do
 
   test "module_name strips Elixir prefix from caller" do
     err =
-      Blank.Errors.InvalidConfigError.exception(
+      InvalidConfigError.exception(
         caller: Some.Nested.Module,
-        module: Blank.Schema,
+        module: Schema,
         usage: "@derive",
         key: :foo,
         message: "bad"
@@ -41,15 +44,15 @@ defmodule Blank.Errors.InvalidConfigErrorTest do
       )
 
     err =
-      Blank.Errors.InvalidConfigError.from_nimble(nimble_error,
+      InvalidConfigError.from_nimble(nimble_error,
         caller: __MODULE__,
-        module: Blank.Schema,
+        module: Schema,
         usage: "@derive"
       )
 
-    assert %Blank.Errors.InvalidConfigError{} = err
+    assert %InvalidConfigError{} = err
     assert err.caller == __MODULE__
-    assert err.module == Blank.Schema
+    assert err.module == Schema
     assert err.key == :bad_key
     assert err.message =~ "unknown option"
   end

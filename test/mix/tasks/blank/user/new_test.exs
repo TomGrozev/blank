@@ -4,10 +4,13 @@ defmodule Mix.Tasks.Blank.User.NewTest do
 
   alias Blank.Accounts.User
   alias Blank.Audit.AuditLog
+  alias Ecto.Adapters.SQL.Sandbox
+  alias Mix.Tasks.Blank.User.New, as: New
+  alias TestApp.Repo
 
   setup do
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(TestApp.Repo, shared: false)
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+    pid = Sandbox.start_owner!(Repo, shared: false)
+    on_exit(fn -> Sandbox.stop_owner(pid) end)
     :ok
   end
 
@@ -15,7 +18,7 @@ defmodule Mix.Tasks.Blank.User.NewTest do
     test "creates user with email, password, name, and roles" do
       Mix.shell(Mix.Shell.Process)
 
-      Mix.Tasks.Blank.User.New.run([
+      New.run([
         "--email",
         "admin@example.com",
         "--password",
@@ -28,7 +31,7 @@ defmodule Mix.Tasks.Blank.User.NewTest do
         "TestApp.Repo"
       ])
 
-      user = TestApp.Repo.one!(from(u in User, where: u.email == "admin@example.com"))
+      user = Repo.one!(from(u in User, where: u.email == "admin@example.com"))
       assert user.email == "admin@example.com"
       assert user.name == "Admin User"
       assert user.roles == [:system_admin, :member]
@@ -36,9 +39,7 @@ defmodule Mix.Tasks.Blank.User.NewTest do
       assert is_nil(user.external_uid)
 
       audit_log =
-        TestApp.Repo.one!(
-          from(a in AuditLog, where: a.action == "accounts.user_created", limit: 1)
-        )
+        Repo.one!(from(a in AuditLog, where: a.action == "accounts.user_created", limit: 1))
 
       assert audit_log.action == "accounts.user_created"
 
@@ -56,7 +57,7 @@ defmodule Mix.Tasks.Blank.User.NewTest do
     test "creates user without name or roles" do
       Mix.shell(Mix.Shell.Process)
 
-      Mix.Tasks.Blank.User.New.run([
+      New.run([
         "--email",
         "basic@example.com",
         "--password",
@@ -65,7 +66,7 @@ defmodule Mix.Tasks.Blank.User.NewTest do
         "TestApp.Repo"
       ])
 
-      user = TestApp.Repo.one!(from(u in User, where: u.email == "basic@example.com"))
+      user = Repo.one!(from(u in User, where: u.email == "basic@example.com"))
       assert user.email == "basic@example.com"
       assert is_nil(user.name)
       assert user.roles == []
@@ -79,7 +80,7 @@ defmodule Mix.Tasks.Blank.User.NewTest do
       Mix.shell(Mix.Shell.Process)
 
       assert_raise OptionParser.ParseError, fn ->
-        Mix.Tasks.Blank.User.New.run([
+        New.run([
           "--email",
           "test@example.com",
           "--password",
@@ -96,7 +97,7 @@ defmodule Mix.Tasks.Blank.User.NewTest do
       Mix.shell(Mix.Shell.Process)
 
       assert_raise OptionParser.ParseError, fn ->
-        Mix.Tasks.Blank.User.New.run([
+        New.run([
           "--email",
           "test@example.com",
           "--password",
@@ -114,7 +115,7 @@ defmodule Mix.Tasks.Blank.User.NewTest do
     test "fails with changeset error for unregistered role names" do
       Mix.shell(Mix.Shell.Process)
 
-      Mix.Tasks.Blank.User.New.run([
+      New.run([
         "--email",
         "badroles@example.com",
         "--password",
@@ -126,7 +127,7 @@ defmodule Mix.Tasks.Blank.User.NewTest do
       ])
 
       # User should NOT be created
-      assert TestApp.Repo.one(from(u in User, where: u.email == "badroles@example.com")) == nil
+      assert Repo.one(from(u in User, where: u.email == "badroles@example.com")) == nil
     end
   end
 end

@@ -1,6 +1,8 @@
 defmodule Blank.Pages.SettingsLiveTest do
   use Blank.LiveViewCase
 
+  alias Blank.Audit.AuditLog
+
   setup %{conn: conn} do
     {:ok, conn: log_in_user(conn)}
   end
@@ -14,7 +16,7 @@ defmodule Blank.Pages.SettingsLiveTest do
   end
 
   test "clicking reset-audit-logs deletes all audit logs", %{conn: conn} do
-    context = Blank.Audit.AuditLog.system()
+    context = AuditLog.system()
     Blank.Audit.log!(context, "posts.create", %{item_id: 1})
     Blank.Audit.log!(context, "posts.create", %{item_id: 2})
 

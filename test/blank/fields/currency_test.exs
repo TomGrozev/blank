@@ -4,13 +4,14 @@ defmodule Blank.Fields.CurrencyTest do
   import Phoenix.LiveViewTest
 
   alias Blank.Field
+  alias Blank.Fields.Currency
 
   describe "render_display/1" do
     test "with a numeric value returns formatted currency" do
-      definition = %Field{key: :price, module: Blank.Fields.Currency, label: "Price"}
+      definition = %Field{key: :price, module: Currency, label: "Price"}
 
       html =
-        render_component(&Blank.Fields.Currency.render/1, %{
+        render_component(&Currency.render/1, %{
           type: :display,
           field: definition,
           value: 19.99
@@ -20,10 +21,10 @@ defmodule Blank.Fields.CurrencyTest do
     end
 
     test "with nil value returns $0.00" do
-      definition = %Field{key: :price, module: Blank.Fields.Currency, label: "Price"}
+      definition = %Field{key: :price, module: Currency, label: "Price"}
 
       html =
-        render_component(&Blank.Fields.Currency.render/1, %{
+        render_component(&Currency.render/1, %{
           type: :display,
           field: definition,
           value: nil
@@ -33,10 +34,10 @@ defmodule Blank.Fields.CurrencyTest do
     end
 
     test "with zero float value returns $0.00" do
-      definition = %Field{key: :price, module: Blank.Fields.Currency, label: "Price"}
+      definition = %Field{key: :price, module: Currency, label: "Price"}
 
       html =
-        render_component(&Blank.Fields.Currency.render/1, %{
+        render_component(&Currency.render/1, %{
           type: :display,
           field: definition,
           value: 0.0
@@ -48,11 +49,11 @@ defmodule Blank.Fields.CurrencyTest do
 
   describe "render_form/1" do
     test "returns rendered HTML with number input" do
-      definition = %Field{key: :price, module: Blank.Fields.Currency, label: "Price"}
+      definition = %Field{key: :price, module: Currency, label: "Price"}
       form = Phoenix.Component.to_form(%{"price" => "19.99"})
 
       html =
-        render_component(&Blank.Fields.Currency.render/1, %{
+        render_component(&Currency.render/1, %{
           type: :form,
           field: form[:price],
           definition: definition

@@ -3,6 +3,8 @@ defmodule Blank.Application do
 
   use Application
 
+  alias Blank.Plugs.Auth
+
   @doc """
   Starts the blank application
   """
@@ -46,7 +48,7 @@ defmodule Blank.Application do
   defp validate_ueberauth_config! do
     # Only validate ueberauth config if local auth is disabled
     # (i.e., ueberauth is the only auth method)
-    local_auth_enabled? = Blank.Plugs.Auth.local_login_enabled?()
+    local_auth_enabled? = Auth.local_login_enabled?()
 
     if not local_auth_enabled? and Code.ensure_loaded?(Ueberauth) do
       config = Application.get_env(:ueberauth, Ueberauth, [])

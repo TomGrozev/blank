@@ -4,13 +4,14 @@ defmodule Blank.Fields.BooleanTest do
   import Phoenix.LiveViewTest
 
   alias Blank.Field
+  alias Blank.Fields.Boolean
 
   describe "render_display/1" do
     test "with true returns rendered HTML with check icon" do
-      definition = %Field{key: :published, module: Blank.Fields.Boolean, label: "Published"}
+      definition = %Field{key: :published, module: Boolean, label: "Published"}
 
       html =
-        render_component(&Blank.Fields.Boolean.render/1, %{
+        render_component(&Boolean.render/1, %{
           type: :display,
           field: definition,
           value: true
@@ -20,10 +21,10 @@ defmodule Blank.Fields.BooleanTest do
     end
 
     test "with false returns rendered HTML with x icon" do
-      definition = %Field{key: :published, module: Blank.Fields.Boolean, label: "Published"}
+      definition = %Field{key: :published, module: Boolean, label: "Published"}
 
       html =
-        render_component(&Blank.Fields.Boolean.render/1, %{
+        render_component(&Boolean.render/1, %{
           type: :display,
           field: definition,
           value: false
@@ -35,11 +36,11 @@ defmodule Blank.Fields.BooleanTest do
 
   describe "render_form/1" do
     test "returns rendered HTML with checkbox" do
-      definition = %Field{key: :published, module: Blank.Fields.Boolean, label: "Published"}
+      definition = %Field{key: :published, module: Boolean, label: "Published"}
       form = Phoenix.Component.to_form(%{"published" => true})
 
       html =
-        render_component(&Blank.Fields.Boolean.render/1, %{
+        render_component(&Boolean.render/1, %{
           type: :form,
           field: form[:published],
           definition: definition

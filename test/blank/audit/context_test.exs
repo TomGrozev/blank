@@ -2,11 +2,13 @@ defmodule Blank.Audit.ContextTest do
   use TestAppWeb.ConnCase
 
   alias Blank.Audit.AuditLog
+  alias Blank.Audit.Context
+  alias TestApp.Accounts.User
 
   describe "fetch_audit_context/2" do
     test "extracts user_agent from headers", %{conn: conn} do
       conn = %{conn | req_headers: [{"user-agent", "Mozilla/5.0"}]}
-      conn = Blank.Audit.Context.fetch_audit_context(conn, [])
+      conn = Context.fetch_audit_context(conn, [])
 
       assert %AuditLog{} = conn.assigns.audit_context
       assert conn.assigns.audit_context.user_agent == "Mozilla/5.0"
@@ -14,22 +16,22 @@ defmodule Blank.Audit.ContextTest do
 
     test "extracts IP from x-forwarded-for header", %{conn: conn} do
       conn = %{conn | req_headers: [{"x-forwarded-for", "1.2.3.4"}]}
-      conn = Blank.Audit.Context.fetch_audit_context(conn, [])
+      conn = Context.fetch_audit_context(conn, [])
 
       assert conn.assigns.audit_context.ip_address == {1, 2, 3, 4}
     end
 
     test "falls back to remote_ip when no x-forwarded-for header", %{conn: conn} do
       conn = %{conn | remote_ip: {10, 0, 0, 1}, req_headers: []}
-      conn = Blank.Audit.Context.fetch_audit_context(conn, [])
+      conn = Context.fetch_audit_context(conn, [])
 
       assert conn.assigns.audit_context.ip_address == {10, 0, 0, 1}
     end
 
     test "includes current_user from conn.assigns", %{conn: conn} do
-      user = %TestApp.Accounts.User{id: 1, email: "live@example.com"}
+      user = %User{id: 1, email: "live@example.com"}
       conn = %{conn | assigns: Map.put(conn.assigns, :current_user, user)}
-      conn = Blank.Audit.Context.fetch_audit_context(conn, [])
+      conn = Context.fetch_audit_context(conn, [])
 
       assert conn.assigns.audit_context.user == user
     end
@@ -41,7 +43,7 @@ defmodule Blank.Audit.ContextTest do
           req_headers: [{"x-forwarded-for", "1.2.3.4"}]
       }
 
-      conn = Blank.Audit.Context.fetch_audit_context(conn, [])
+      conn = Context.fetch_audit_context(conn, [])
 
       assert conn.assigns.audit_context.ip_address == {1, 2, 3, 4}
     end

@@ -12,21 +12,23 @@ defmodule TestAppWeb.Admin.PostLiveTest do
   import Phoenix.LiveViewTest
   import TestAppWeb.LiveViewCase
 
+  alias Ecto.Adapters.SQL.Sandbox
   alias TestApp.Blog.Post
   alias TestApp.Repo
+  alias TestAppWeb.Endpoint
 
-  @endpoint TestAppWeb.Endpoint
+  @endpoint Endpoint
 
   # ── setup ──────────────────────────────────────────────────────────
 
   setup do
     # Set up Ecto sandbox
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(TestApp.Repo, shared: false)
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+    pid = Sandbox.start_owner!(Repo, shared: false)
+    on_exit(fn -> Sandbox.stop_owner(pid) end)
 
     # Ensure endpoint is started for persistent_term / static lookup
     try do
-      start_supervised!(TestAppWeb.Endpoint)
+      start_supervised!(Endpoint)
     rescue
       _ -> :ok
     end
