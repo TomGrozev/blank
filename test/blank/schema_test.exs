@@ -9,10 +9,8 @@ defmodule Blank.SchemaTest do
   alias Blank.Schema.Any
   alias TestApp.Accounts.User
   alias TestApp.Blog.Article
-  alias TestApp.Blog.Comment
   alias TestApp.Blog.Post
   alias TestApp.Blog.Review
-  alias TestApp.Blog.Tag
   alias TestApp.Repo
 
   # ─── helpers ────────────────────────────────────────────────────────────
@@ -252,7 +250,7 @@ defmodule Blank.SchemaTest do
 
   describe "Protocol.UndefinedError" do
     test "raises for name/1 on a struct that doesn't derive Blank.Schema" do
-      tag = %Tag{id: 1, name: "elixir"}
+      {tag, _} = Code.eval_string("%TestApp.Blog.Tag{id: 1, name: \"elixir\"}")
 
       assert_raise Protocol.UndefinedError, fn ->
         Blank.Schema.name(tag)
@@ -260,7 +258,7 @@ defmodule Blank.SchemaTest do
     end
 
     test "raises for name/1 on Comment" do
-      comment = %Comment{id: 1, body: "Great!"}
+      {comment, _} = Code.eval_string("%TestApp.Blog.Comment{id: 1, body: \"Great!\"}")
 
       assert_raise Protocol.UndefinedError, fn ->
         Blank.Schema.name(comment)
@@ -268,7 +266,7 @@ defmodule Blank.SchemaTest do
     end
 
     test "raises for primary_keys/1 on non-deriving struct" do
-      tag = %Tag{id: 1, name: "elixir"}
+      {tag, _} = Code.eval_string("%TestApp.Blog.Tag{id: 1, name: \"elixir\"}")
 
       assert_raise Protocol.UndefinedError, fn ->
         Blank.Schema.primary_keys(tag)
@@ -276,7 +274,7 @@ defmodule Blank.SchemaTest do
     end
 
     test "raises for identity_field/1 on non-deriving struct" do
-      tag = %Tag{id: 1, name: "elixir"}
+      {tag, _} = Code.eval_string("%TestApp.Blog.Tag{id: 1, name: \"elixir\"}")
 
       assert_raise Protocol.UndefinedError, fn ->
         Blank.Schema.identity_field(tag)
@@ -284,7 +282,7 @@ defmodule Blank.SchemaTest do
     end
 
     test "raises for order_field/1 on non-deriving struct" do
-      tag = %Tag{id: 1, name: "elixir"}
+      {tag, _} = Code.eval_string("%TestApp.Blog.Tag{id: 1, name: \"elixir\"}")
 
       assert_raise Protocol.UndefinedError, fn ->
         Blank.Schema.order_field(tag)
@@ -292,7 +290,7 @@ defmodule Blank.SchemaTest do
     end
 
     test "raises for changeset/2 on non-deriving struct" do
-      tag = %Tag{id: 1, name: "elixir"}
+      {tag, _} = Code.eval_string("%TestApp.Blog.Tag{id: 1, name: \"elixir\"}")
 
       assert_raise Protocol.UndefinedError, fn ->
         Blank.Schema.changeset(tag, :new)
@@ -300,7 +298,7 @@ defmodule Blank.SchemaTest do
     end
 
     test "raises for get_field/2 on non-deriving struct" do
-      tag = %Tag{id: 1, name: "elixir"}
+      {tag, _} = Code.eval_string("%TestApp.Blog.Tag{id: 1, name: \"elixir\"}")
 
       assert_raise Protocol.UndefinedError, fn ->
         Blank.Schema.get_field(tag, :name)
