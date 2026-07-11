@@ -4,6 +4,7 @@ defmodule Blank.Accounts do
   import Ecto.Query, warn: false
 
   alias Blank.Accounts.{User, UserToken}
+  alias Blank.Audit
 
   @doc """
   Get all users
@@ -227,6 +228,51 @@ defmodule Blank.Accounts do
   def delete_user_session_token(token) do
     repo().delete_all(UserToken.by_token_and_context_query(token, "session"))
     :ok
+  end
+
+  @doc """
+  Updates a user's roles and emits an audit log entry.
+
+  Wraps the role update and audit emission in an `Ecto.Multi`, calling
+  `Blank.Audit.multi/4` to record the change.
+
+  `opts` must include:
+    * `:source` - a string identifying the origin of the change (e.g. `"admin_ui"`)
+    * `:audit_context` - a `Blank.Audit.AuditLog` struct
+
+  ## Examples
+
+      update_roles(user, [:admin, :editor], source: "admin_ui", audit_context: audit_log)
+      #=> {:ok, %User{roles: [:admin, :editor]}}
+
+  """
+  @spec update_roles(User.t(), [atom()], Keyword.t()) ::
+          {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  def update_roles(%User{} = user, roles, opts) do
+    before_roles = user.roles
+    source = Keyword.fetch!(opts, :source)
+    audit_context = Keyword.fetch!(opts, :audit_context)
+
+    changeset = Ecto.Changeset.cast(user, %{roles: roles}, [:roles])
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(:user, changeset)
+    |> Audit.multi(audit_context, "accounts.roles_updated", fn audit_log, %{user: updated_user} ->
+      %{
+        audit_log
+        | params: %{
+            user_id: updated_user.id,
+            roles: updated_user.roles,
+            before_roles: before_roles,
+            source: source
+          }
+      }
+    end)
+    |> repo().transaction()
+    |> case do
+      {:ok, %{user: user}} -> {:ok, user}
+      {:error, :user, changeset, _} -> {:error, changeset}
+    end
   end
 
   defp repo, do: Application.fetch_env!(:blank, :repo)

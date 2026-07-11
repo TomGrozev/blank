@@ -84,6 +84,27 @@ defmodule Blank.Audit.AuditLogTest do
       assert log.action == "posts.delete_all"
       assert log.params == %{}
     end
+
+    test "accounts.roles_updated with user_id, roles, before_roles, source" do
+      context = AuditLog.system()
+
+      log =
+        AuditLog.build!(context, "accounts.roles_updated", %{
+          user_id: 1,
+          roles: [:system_admin, :member],
+          before_roles: [:member],
+          source: "admin_ui"
+        })
+
+      assert log.action == "accounts.roles_updated"
+
+      assert log.params == %{
+               user_id: 1,
+               roles: [:system_admin, :member],
+               before_roles: [:member],
+               source: "admin_ui"
+             }
+    end
   end
 
   describe "build!/3 with invalid params" do
@@ -108,6 +129,30 @@ defmodule Blank.Audit.AuditLogTest do
 
       assert_raise AuditLog.InvalidParameterError, ~r/extra keys/, fn ->
         AuditLog.build!(context, "posts.delete_all", %{foo: "bar"})
+      end
+    end
+
+    test "raises InvalidParameterError for roles_updated with extra keys" do
+      context = AuditLog.system()
+
+      assert_raise AuditLog.InvalidParameterError, ~r/extra keys/, fn ->
+        AuditLog.build!(context, "accounts.roles_updated", %{
+          user_id: 1,
+          roles: [:member],
+          before_roles: [],
+          source: "test",
+          extra_key: "nope"
+        })
+      end
+    end
+
+    test "raises InvalidParameterError for roles_updated with missing keys" do
+      context = AuditLog.system()
+
+      assert_raise AuditLog.InvalidParameterError, ~r/missing keys/, fn ->
+        AuditLog.build!(context, "accounts.roles_updated", %{
+          user_id: 1
+        })
       end
     end
   end
