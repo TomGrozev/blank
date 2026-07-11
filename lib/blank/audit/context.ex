@@ -60,18 +60,26 @@ defmodule Blank.Audit.Context do
         _ -> nil
       end
 
+    user = conn.assigns[:current_user]
+
     %AuditLog{
       user_agent: user_agent,
       ip_address: get_ip(conn),
-      user: conn.assigns[:current_user]
+      user: user,
+      actor_display_name: user && user.name,
+      actor_email: user && user.email
     }
   end
 
   defp get_audit_context(%Phoenix.LiveView.Socket{} = socket) do
+    user = socket.assigns[:current_user]
+
     %AuditLog{
       user_agent: Phoenix.LiveView.get_connect_info(socket, :user_agent),
       ip_address: get_ip(socket),
-      user: socket.assigns[:current_user]
+      user: user,
+      actor_display_name: user && user.name,
+      actor_email: user && user.email
     }
   end
 
