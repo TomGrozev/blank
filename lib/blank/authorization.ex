@@ -95,6 +95,61 @@ defmodule Blank.Authorization do
   end
 
   @doc """
+  LiveView `on_mount` hook that authorizes access at mount time.
+
+  Reads the LiveView module's `@blank_resource_type` (exposed via
+  `__blank_resource_type__/0`) and fires a coarse `can?/3` check:
+
+    * `:list` for index, import, and export actions
+    * `:read` for show, edit, and new actions
+
+  If the module has no resource type declared, the hook passes through
+  with `{:cont, socket}`. On denial, the socket is halted with a redirect
+  to the admin panel root.
+
+  ## Usage
+
+      live_session :authenticated,
+        on_mount: [
+          {Blank.Plugs.Auth, :ensure_authenticated},
+          Blank.Audit.Context,
+          {Blank.Authorization, :authorize}
+        ] do
+        ...
+      end
+  """
+  def on_mount(:authorize, _params, _session, socket) do
+    view = socket.view
+
+    if function_exported?(view, :__blank_resource_type__, 0) do
+      resource_type = view.__blank_resource_type__()
+      action = socket.assigns[:live_action]
+      coarse_action = coarse_action(action)
+      user = socket.assigns[:current_user]
+      scope = %Blank.Scope{resource_type: resource_type}
+
+      if can?(user, coarse_action, scope) do
+        {:cont, socket}
+      else
+        prefix = socket.router.__blank_prefix__()
+
+        socket =
+          socket
+          |> Phoenix.LiveView.put_flash(:error, "You are not authorized to access this page.")
+          |> Phoenix.LiveView.redirect(to: prefix)
+
+        {:halt, socket}
+      end
+    else
+      {:cont, socket}
+    end
+  end
+
+  defp coarse_action(action) when action in [:index, :import, :export], do: :list
+  defp coarse_action(action) when action in [:show, :edit, :new], do: :read
+  defp coarse_action(_), do: :read
+
+  @doc """
   Macro for consumer resource modules.
 
   Usage: `use Blank.Authorization, :my_resource_type`
@@ -106,6 +161,9 @@ defmodule Blank.Authorization do
     quote do
       @blank_resource_type unquote(resource_type)
       import Blank.Authorization, only: [can?: 3]
+
+      @doc false
+      def __blank_resource_type__, do: @blank_resource_type
     end
   end
 end

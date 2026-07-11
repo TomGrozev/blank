@@ -160,7 +160,8 @@ defmodule Blank.Router do
       Enum.concat(options[:on_mount] || [], [
         Blank.Nav,
         {Blank.Plugs.Auth, :ensure_authenticated},
-        Blank.Audit.Context
+        Blank.Audit.Context,
+        {Blank.Authorization, :authorize}
       ])
 
     {

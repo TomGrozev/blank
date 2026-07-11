@@ -461,6 +461,7 @@ defmodule Blank.AdminPage do
       @after_compile unquote(__MODULE__)
 
       use Blank.Web, :live_view
+      use Blank.Authorization, unquote(opts[:key])
 
       alias Blank.AdminPage
 

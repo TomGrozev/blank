@@ -33,10 +33,14 @@ defmodule Blank.LiveViewCase do
       password: "Str0ng!Passw0rd"
     }
 
+    {roles, attrs} = Map.pop(Map.merge(defaults, attrs), :roles, [:system_admin])
+
+    {:ok, user} = Blank.Accounts.register_user(attrs)
+
     {:ok, user} =
-      defaults
-      |> Map.merge(attrs)
-      |> Blank.Accounts.register_user()
+      user
+      |> Ecto.Changeset.change(%{roles: roles})
+      |> TestApp.Repo.update()
 
     user
   end
