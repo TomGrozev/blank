@@ -70,6 +70,43 @@ defmodule Blank.Authorization do
   end
 
   @doc """
+  Returns the configured role mapper as `{module, opts}`, or `nil` if none is configured.
+
+  Reads from `config :blank, :authorization, role_mapper: ...`.
+
+  Supports two config shapes:
+    * `{Module, opts}` — module with explicit options
+    * `Module` — plain module shorthand (no-opts, equivalent to `{Module, []}`)
+
+  ## Examples
+
+      # config :blank, :authorization, role_mapper: {MyMapper, [key: :value]}
+      iex> role_mapper_config()
+      {MyMapper, [key: :value]}
+
+      # config :blank, :authorization, role_mapper: MyMapper
+      iex> role_mapper_config()
+      {MyMapper, []}
+
+      # no role_mapper configured
+      iex> role_mapper_config()
+      nil
+  """
+  @spec role_mapper_config() :: {module(), keyword()} | nil
+  def role_mapper_config do
+    case :blank |> Application.get_env(:authorization, []) |> Keyword.get(:role_mapper) do
+      nil ->
+        nil
+
+      {module, opts} when is_atom(module) and is_list(opts) ->
+        {module, opts}
+
+      module when is_atom(module) ->
+        {module, []}
+    end
+  end
+
+  @doc """
   Checks whether a user can perform an action on a scope.
 
   Short-circuits to `true` if the user has the `:system_admin` role (break-glass).

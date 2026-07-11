@@ -142,6 +142,49 @@ defmodule Blank.AuthorizationTest do
     end
   end
 
+  describe "role_mapper_config/0" do
+    test "returns nil when no :role_mapper is configured" do
+      # Test config has no :role_mapper
+      assert Authorization.role_mapper_config() == nil
+    end
+
+    test "returns {module, opts} when configured as tuple" do
+      Application.put_env(
+        :blank,
+        :authorization,
+        Keyword.put(
+          Application.get_env(:blank, :authorization, []),
+          :role_mapper,
+          {MyMapper, [key: :value]}
+        )
+      )
+
+      try do
+        assert Authorization.role_mapper_config() == {MyMapper, [key: :value]}
+      after
+        Application.put_env(:blank, :authorization, roles: [:content_editor])
+      end
+    end
+
+    test "returns {module, []} when configured as plain module (no-opts shorthand)" do
+      Application.put_env(
+        :blank,
+        :authorization,
+        Keyword.put(
+          Application.get_env(:blank, :authorization, []),
+          :role_mapper,
+          MyMapper
+        )
+      )
+
+      try do
+        assert Authorization.role_mapper_config() == {MyMapper, []}
+      after
+        Application.put_env(:blank, :authorization, roles: [:content_editor])
+      end
+    end
+  end
+
   describe "__using__/1" do
     test "sets @blank_resource_type module attribute" do
       defmodule TestResourceModule do
