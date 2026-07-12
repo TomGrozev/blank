@@ -37,7 +37,7 @@ defmodule Blank.MixProject do
   def application do
     [
       mod: {Blank.Application, []},
-      extra_applications: [:logger, :ecto_sql, :ecto_sqlite3]
+      extra_applications: [:logger]
     ]
   end
 
@@ -75,7 +75,7 @@ defmodule Blank.MixProject do
       maintainers: ["Tom Grozev"],
       licenses: ["Apache-2.0"],
       links: %{"GitHub" => @source_url},
-      files: ~w(.formatter.exs mix.exs README.md lib)
+      files: ~w(.formatter.exs mix.exs README.md LICENSE CHANGELOG.md lib priv guides)
     ]
   end
 
