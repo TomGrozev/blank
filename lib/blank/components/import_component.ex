@@ -353,6 +353,8 @@ defmodule Blank.Components.ImportComponent do
     for h <- list, t <- key_options(list -- [h]), do: [h | t]
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
+  # Path comes from Phoenix LiveView consume_uploaded_entries, not user input
   defp parse_csv(socket) do
     consume_uploaded_entries(socket, :csv_file, fn %{path: path}, _entry ->
       rows =
@@ -424,7 +426,13 @@ defmodule Blank.Components.ImportComponent do
   defp error_to_string(:too_many_files), do: "You have selected too many files"
   defp error_to_string(:not_accepted), do: "You have selected an unacceptable file type"
 
+  # sobelow_skip ["DOS.StringToAtom"]
+  # Key is a compile-time schema field atom, bounded by field count
   defp splitter_key(key), do: String.to_atom("#{key}_splitter")
+  # sobelow_skip ["DOS.StringToAtom"]
+  # Key is a compile-time schema field atom, bounded by field count
   defp val_splitter_key(key), do: String.to_atom("#{key}_val_splitter")
+  # sobelow_skip ["DOS.StringToAtom"]
+  # Key is a compile-time schema field atom, bounded by field count
   defp order_key(key), do: String.to_atom("#{key}_order")
 end

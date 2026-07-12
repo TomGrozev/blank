@@ -181,6 +181,8 @@ defmodule Blank.Exporter do
     export(mod, repo, schema, fields)
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
+  # Dir is System.tmp_dir() ++ hardcoded "blank", not user input
   def export(mod, repo, schema, fields)
       when is_atom(mod) and
              is_atom(repo) and is_atom(schema) and is_list(fields) do

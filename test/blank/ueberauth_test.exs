@@ -76,4 +76,32 @@ defmodule Blank.UeberauthTest do
       assert result_atom == result_string
     end
   end
+
+  describe "provider_display_name/1 security" do
+    test "does not create new atoms for unknown provider strings" do
+      # Capture the atom table before the call
+      before_atoms = :erlang.system_info(:atom_count)
+
+      # Use a string that is definitely NOT an existing atom
+      unique = "totally_unknown_provider_#{System.unique_integer([:positive])}"
+      result = Ueberauth.provider_display_name(unique)
+
+      # Should still return a humanized string (not crash)
+      assert is_binary(result)
+      assert result != ""
+
+      # The atom count should NOT have increased
+      after_atoms = :erlang.system_info(:atom_count)
+
+      assert after_atoms == before_atoms,
+             "provider_display_name/1 created a new atom for unknown input"
+    end
+
+    test "returns humanized name for unknown provider string" do
+      unique = "custom_provider_xyz"
+      result = Ueberauth.provider_display_name(unique)
+      # Should fall back to Phoenix.Naming.humanize
+      assert result == Phoenix.Naming.humanize(unique)
+    end
+  end
 end

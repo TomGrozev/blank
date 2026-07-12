@@ -31,6 +31,26 @@ defmodule Blank.Controllers.ExportControllerTest do
       assert conn.status == 404
       assert conn.resp_body =~ "404"
     end
+
+    test "rejects downloads with paths outside the expected directory", %{conn: conn} do
+      # Create a file outside the blank temp directory
+      outside_dir =
+        Path.join(System.tmp_dir!(), "outside_blank_test_#{System.unique_integer([:positive])}")
+
+      File.mkdir_p!(outside_dir)
+      outside_path = Path.join(outside_dir, "sensitive.csv")
+      File.write!(outside_path, "secret,data\n1,value")
+
+      on_exit(fn -> File.rm_rf(outside_dir) end)
+
+      id = "test-outside-#{System.unique_integer([:positive])}"
+      {:ok, ^id} = Blank.DownloadAgent.add(id, outside_path)
+
+      conn = get(conn, "/admin/download", %{"id" => id})
+
+      # Should be rejected since the path is not under System.tmp_dir()/blank/
+      assert conn.status == 403
+    end
   end
 
   describe "qr_code/2" do
