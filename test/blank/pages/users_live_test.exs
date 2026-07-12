@@ -31,6 +31,14 @@ defmodule Blank.Pages.UsersLiveTest do
     assert html =~ "admins"
   end
 
+  test "system_admin can access show page", %{conn: conn} do
+    target_user = create_target_user(%{roles: [:member]})
+
+    {:ok, _view, html} = live(conn, "/admin/admins/#{target_user.id}")
+
+    assert html =~ target_user.email
+  end
+
   test "system_admin can access edit page", %{conn: conn} do
     target_user = create_target_user(%{roles: [:member]})
 
@@ -97,6 +105,36 @@ defmodule Blank.Pages.UsersLiveTest do
     # Verify the user's roles haven't changed
     unchanged_user = TestApp.Repo.reload!(target_user)
     assert unchanged_user.roles == [:member]
+  end
+
+  test "save_roles with invalid roles shows error flash", %{conn: conn} do
+    target_user = create_target_user(%{roles: [:member]})
+
+    {:ok, view, _html} = live(conn, "/admin/admins/#{target_user.id}/edit")
+
+    # Submit with a role atom that exists but is not in the allowed set,
+    # which causes a changeset validation error.
+    # Use render_submit/3 to bypass form-level checkbox validation.
+    render_submit(view, "save_roles", %{"roles" => ["ok"]})
+
+    html = render(view)
+    assert html =~ "Failed to update roles"
+  end
+
+  test "save_roles with empty roles list succeeds", %{conn: conn} do
+    target_user = create_target_user(%{roles: [:member, :system_admin]})
+
+    {:ok, view, _html} = live(conn, "/admin/admins/#{target_user.id}/edit")
+
+    view
+    |> form("form[phx-submit=\"save_roles\"]", %{"roles" => ["member"]})
+    |> render_submit()
+
+    assert_flash_info(view, "Roles updated successfully")
+
+    updated_user = TestApp.Repo.reload!(target_user)
+    assert :member in updated_user.roles
+    refute :system_admin in updated_user.roles
   end
 
   defp assert_flash_info(view, expected_message) do

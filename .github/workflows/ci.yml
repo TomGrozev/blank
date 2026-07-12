@@ -38,4 +38,4 @@ jobs:
       - run: mix credo
       - run: mix doctor --summary
       - run: mix sobelow
-      - run: mix test
+      - run: mix test --cover
