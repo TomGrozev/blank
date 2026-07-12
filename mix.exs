@@ -106,6 +106,7 @@ defmodule Blank.MixProject do
           Blank.Field,
           Blank.Fields.BelongsTo,
           Blank.Fields.Boolean,
+          Blank.Fields.Currency,
           Blank.Fields.DateTime,
           Blank.Fields.HasMany,
           Blank.Fields.List,
@@ -114,6 +115,9 @@ defmodule Blank.MixProject do
           Blank.Fields.QRCode,
           Blank.Fields.Text
         ],
+        Authorization: ~r/Blank\.Authorization/,
+        Accounts: ~r/Blank\.Accounts/,
+        Exporters: ~r/Blank\.Exporters/,
         Statistics: [
           Blank.Stats,
           Blank.Stats.Value
@@ -154,11 +158,29 @@ defmodule Blank.MixProject do
 
   defp extras do
     [
+      # Introduction
       "guides/introduction/Getting Started.md",
-      "guides/cheatsheets/Field Options.md",
+      "guides/introduction/Authentication.md",
+      "guides/introduction/Authorization.md",
+      "guides/introduction/Role Mappers.md",
+      "guides/introduction/Architecture.md",
+      "guides/introduction/Glossary.md",
+      "guides/introduction/Troubleshooting.md",
+      "guides/introduction/Upgrading.md",
+      # Cheatsheets
+      "guides/cheatsheets/Configuration.md",
+      "guides/cheatsheets/Mix Tasks.md",
+      "guides/cheatsheets/Schema Options.md",
       "guides/cheatsheets/AdminPage Options.md",
+      "guides/cheatsheets/Field Options.md",
+      # How-Tos
       "guides/howtos/Custom Field.md",
       "guides/howtos/Custom Exporter.md",
+      "guides/howtos/Custom Stats.md",
+      "guides/howtos/Audit Logging.md",
+      "guides/howtos/Routing.md",
+      "guides/howtos/Import.md",
+      # Other
       "CHANGELOG.md"
     ]
   end

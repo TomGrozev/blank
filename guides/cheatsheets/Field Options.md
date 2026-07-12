@@ -52,6 +52,16 @@ Requires the optional `:geo` dependency.
 |---|---|---|
 | `:address_fun` | `(String.t() -> {:ok, [map()]})` | 1-arity function for address search. Enables the address picker in forms. |
 
+### Blank.Fields.Currency
+
+Formats numeric values as currency with a dollar sign prefix. Renders as a number input with a banknotes icon.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `:label` | `String.t()` | humanized field name | Label displayed next to the currency input. |
+
+In display mode the value is formatted as `$X.XX` (two decimal places, defaulting to `$0.00` when nil).
+
 ## Examples
 
 ```elixir
