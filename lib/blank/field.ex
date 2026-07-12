@@ -253,9 +253,11 @@ defmodule Blank.Field do
   alias Blank.Errors.InvalidConfigError
 
   @doc false
+  @spec field_schema() :: keyword()
   def field_schema, do: @field_schema
 
   @doc false
+  @spec __aggregate_field_schemas__() :: keyword()
   def __aggregate_field_schemas__ do
     @fields
     |> Stream.map(& &1.__schema__())
@@ -263,6 +265,7 @@ defmodule Blank.Field do
   end
 
   @doc false
+  @spec validate_field!(keyword(), module(), keyword()) :: keyword()
   def validate_field!(schema, caller, opts) do
     field_schema = Keyword.merge(@field_schema, schema)
 
@@ -336,6 +339,7 @@ defmodule Blank.Field do
   end
 
   @doc false
+  @spec module_for_type(atom()) :: module()
   def module_for_type(:boolean), do: Blank.Fields.Boolean
   def module_for_type(:utc_datetime), do: Blank.Fields.DateTime
   def module_for_type(_), do: Blank.Fields.Text

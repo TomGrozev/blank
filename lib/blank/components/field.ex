@@ -12,6 +12,7 @@ defmodule Blank.Components.Field do
   attr :time_zone, :string, doc: "the timezone to use for datetime"
   attr :path_prefix, :string, doc: "the admin panel path prefix"
 
+  @spec field_list(map()) :: Phoenix.LiveView.Rendered.t()
   def field_list(assigns) do
     ~H"""
     <.live_component
@@ -37,6 +38,7 @@ defmodule Blank.Components.Field do
   attr :time_zone, :string, doc: "the timezone to use for datetime"
   attr :path_prefix, :string, doc: "the admin panel path prefix"
 
+  @spec field_display(map()) :: Phoenix.LiveView.Rendered.t()
   def field_display(assigns) do
     ~H"""
     <.live_component
@@ -66,6 +68,7 @@ defmodule Blank.Components.Field do
   attr :time_zone, :string, doc: "the timezone to use for datetime"
   attr :path_prefix, :string, doc: "the admin panel path prefix"
 
+  @spec field_form(map()) :: Phoenix.LiveView.Rendered.t()
   def field_form(assigns) do
     ~H"""
     <.live_component

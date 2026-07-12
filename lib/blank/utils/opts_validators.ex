@@ -7,6 +7,7 @@ defmodule Blank.Utils.OptsValidators do
   Called in nimbleopts by `{:custom, Blank.Utils.OptsValidators,
   :validate_fun_ast, [<airity>]}`, where `<arity>` is the arity to validate.
   """
+  @spec validate_fun_ast(Macro.t(), non_neg_integer()) :: {:ok, Macro.t()} | {:error, String.t()}
   def validate_fun_ast({:&, _, [{:/, _, [{{:., _, [_mod, _fun]}, _, _}, arity]}]} = value, arity) do
     {:ok, value}
   end

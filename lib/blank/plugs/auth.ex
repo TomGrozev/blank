@@ -14,6 +14,7 @@ defmodule Blank.Plugs.Auth do
   - `:dev_only` — local login available only in `:dev` and `:test` environments
   - `:disabled` — local login never available
   """
+  @spec local_login_enabled?() :: boolean()
   def local_login_enabled? do
     config = Application.get_env(:blank, :auth, [])
 
@@ -30,6 +31,7 @@ defmodule Blank.Plugs.Auth do
   Defaults to 4 hours if not configured.
   Config format: `{integer, :hours | :days | :minutes}`
   """
+  @spec idle_timeout() :: integer()
   def idle_timeout do
     config = Application.get_env(:blank, :auth, [])
     timeout = Keyword.get(config, :idle_timeout, {4, :hours})
@@ -42,6 +44,7 @@ defmodule Blank.Plugs.Auth do
   Defaults to 60 days if not configured.
   Config format: `{integer, :hours | :days | :minutes}`
   """
+  @spec absolute_lifetime() :: integer()
   def absolute_lifetime do
     config = Application.get_env(:blank, :auth, [])
     lifetime = Keyword.get(config, :absolute_lifetime, {60, :days})
@@ -53,6 +56,7 @@ defmodule Blank.Plugs.Auth do
 
   Returns :ok if valid, or {:error, reason} if the token should be invalidated.
   """
+  @spec check_token_validity(map()) :: :ok | {:error, :expired | :idle_expired}
   def check_token_validity(token_record) do
     with :ok <- check_not_expired(token_record) do
       check_not_idle_expired(token_record)
@@ -116,6 +120,7 @@ defmodule Blank.Plugs.Auth do
   disconnected on log out. The line can be safely removed
   if you are not using LiveView.
   """
+  @spec log_in(Plug.Conn.t(), map(), map()) :: Plug.Conn.t()
   def log_in(conn, user, params \\ %{}) do
     audit_params = %{
       email: user.email,
@@ -178,6 +183,7 @@ defmodule Blank.Plugs.Auth do
 
   It clears all session data for safety. See renew_session.
   """
+  @spec log_out(Plug.Conn.t()) :: Plug.Conn.t()
   def log_out(conn) do
     user = conn.assigns[:current_user]
     user_token = get_session(conn, :user_token)
@@ -215,6 +221,7 @@ defmodule Blank.Plugs.Auth do
   Authenticates the user by looking into the session
   and remember me token.
   """
+  @spec fetch_current_user(Plug.Conn.t(), keyword()) :: Plug.Conn.t()
   def fetch_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
 
@@ -304,6 +311,12 @@ defmodule Blank.Plugs.Auth do
         live "/profile", ProfileLive, :index
       end
   """
+  @spec on_mount(:mount_current_user, map(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:cont, Phoenix.LiveView.Socket.t()}
+  @spec on_mount(:ensure_authenticated, map(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:cont, Phoenix.LiveView.Socket.t()} | {:halt, Phoenix.LiveView.Socket.t()}
+  @spec on_mount(:redirect_if_user_is_authenticated, map(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:cont, Phoenix.LiveView.Socket.t()} | {:halt, Phoenix.LiveView.Socket.t()}
   def on_mount(:mount_current_user, _params, session, socket) do
     {:cont, mount_current_user(socket, session)}
   end
@@ -365,6 +378,7 @@ defmodule Blank.Plugs.Auth do
   @doc """
   Used for routes that require the user to not be authenticated.
   """
+  @spec redirect_if_user_is_authenticated(Plug.Conn.t(), keyword()) :: Plug.Conn.t()
   def redirect_if_user_is_authenticated(conn, _opts) do
     if conn.assigns[:current_user] do
       conn
@@ -381,6 +395,7 @@ defmodule Blank.Plugs.Auth do
   If you want to enforce the user email is confirmed before
   they use the application at all, here would be a good place.
   """
+  @spec require_authenticated_user(Plug.Conn.t(), keyword()) :: Plug.Conn.t()
   def require_authenticated_user(conn, _opts) do
     prefix = conn.private.phoenix_router.__blank_prefix__()
 

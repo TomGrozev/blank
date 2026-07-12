@@ -33,6 +33,7 @@ defmodule Blank.Components do
   attr :on_cancel, JS, default: %JS{}
   slot :inner_block, required: true
 
+  @spec modal(map()) :: Phoenix.LiveView.Rendered.t()
   def modal(assigns) do
     ~H"""
     <div
@@ -107,6 +108,7 @@ defmodule Blank.Components do
 
   slot :inner_block, doc: "the optional inner block that renders the flash message"
 
+  @spec flash(map()) :: Phoenix.LiveView.Rendered.t()
   def flash(assigns) do
     assigns = assign_new(assigns, :id, fn -> "flash-#{assigns.kind}" end)
 
@@ -150,6 +152,7 @@ defmodule Blank.Components do
   attr :id, :string, default: "flash-group", doc: "the optional id of flash container"
   attr :rest, :global, doc: "the arbitrary HTML attributes to add to the flash group"
 
+  @spec flash_group(map()) :: Phoenix.LiveView.Rendered.t()
   def flash_group(assigns) do
     ~H"""
     <div id={@id} aria-live="polite">
@@ -204,6 +207,7 @@ defmodule Blank.Components do
   attr :name, :string, required: true
   attr :class, :any, default: "size-4"
 
+  @spec icon(map()) :: Phoenix.LiveView.Rendered.t()
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
@@ -216,6 +220,7 @@ defmodule Blank.Components do
 
   attr :rest, :global
 
+  @spec logo(map()) :: Phoenix.LiveView.Rendered.t()
   def logo(assigns) do
     ~H"""
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 493.3538873994638 651.77424" {@rest}>
@@ -236,6 +241,7 @@ defmodule Blank.Components do
   slot :subtitle
   slot :actions
 
+  @spec header(map()) :: Phoenix.LiveView.Rendered.t()
   def header(assigns) do
     ~H"""
     <header class={[@actions != [] && "flex flex-wrap items-center justify-between gap-6", @class]}>
@@ -265,6 +271,7 @@ defmodule Blank.Components do
   attr :variant, :string, values: ~w(primary neutral error)
   slot :inner_block, required: true
 
+  @spec button(map()) :: Phoenix.LiveView.Rendered.t()
   def button(%{rest: rest} = assigns) do
     variants = %{
       "primary" => "btn-primary",
@@ -307,6 +314,7 @@ defmodule Blank.Components do
     attr :title, :string, required: true
   end
 
+  @spec list(map()) :: Phoenix.LiveView.Rendered.t()
   def list(assigns) do
     ~H"""
     <ul class="list">
@@ -345,6 +353,7 @@ defmodule Blank.Components do
 
   slot :action, doc: "the slot for showing user actions in the last table column"
 
+  @spec table(map()) :: Phoenix.LiveView.Rendered.t()
   def table(assigns) do
     assigns =
       with %{rows: %Phoenix.LiveView.LiveStream{}} <- assigns do
@@ -401,6 +410,7 @@ defmodule Blank.Components do
   attr :on_change, :string, default: "update-filter"
   attr :target, :string, default: nil
 
+  @spec filter_form(map()) :: Phoenix.LiveView.Rendered.t()
   def filter_form(%{meta: meta} = assigns) do
     assigns = assign(assigns, form: Phoenix.Component.to_form(meta), meta: nil)
 
@@ -458,6 +468,7 @@ defmodule Blank.Components do
 
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
+  @spec page_table(map()) :: Phoenix.LiveView.Rendered.t()
   def page_table(assigns) do
     ~H"""
     <.filter_form
@@ -607,6 +618,7 @@ defmodule Blank.Components do
   """
   attr :name, :string, required: true
 
+  @spec loader(map()) :: Phoenix.LiveView.Rendered.t()
   def loader(assigns) do
     ~H"""
     <div class="flex items-center justify-center w-full h-full min-h-96">
@@ -671,6 +683,7 @@ defmodule Blank.Components do
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
 
+  @spec input(map()) :: Phoenix.LiveView.Rendered.t()
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
 
@@ -822,6 +835,7 @@ defmodule Blank.Components do
   """
   slot :inner_block, required: true
 
+  @spec error(map()) :: Phoenix.LiveView.Rendered.t()
   def error(assigns) do
     ~H"""
     <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
@@ -854,6 +868,7 @@ defmodule Blank.Components do
   slot :inner_block, required: true
   slot :actions, doc: "the slot for form actions, such as a submit button"
 
+  @spec simple_form(map()) :: Phoenix.LiveView.Rendered.t()
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
@@ -874,6 +889,7 @@ defmodule Blank.Components do
   attr :stat, :map, required: true
   attr :module, :atom, required: true
 
+  @spec stat_component(map()) :: Phoenix.LiveView.Rendered.t()
   def stat_component(%{stat: stat, module: module}) do
     %{name: name, value: value, display: display_module, formatter: formatter} =
       stat
@@ -900,6 +916,7 @@ defmodule Blank.Components do
   @doc """
   Translates an error message using gettext.
   """
+  @spec translate_error({String.t(), keyword()}) :: String.t()
   def translate_error({msg, opts}) do
     # When using gettext, we typically pass the strings we want
     # to translate as a static argument:
@@ -921,6 +938,7 @@ defmodule Blank.Components do
   @doc """
   Translates the errors for a field from a keyword list of errors.
   """
+  @spec translate_errors(keyword(), atom()) :: [String.t()]
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end

@@ -155,6 +155,8 @@ defmodule Blank.Authorization do
         ...
       end
   """
+  @spec on_mount(:authorize, map(), map(), Phoenix.LiveView.Socket.t()) ::
+          {:cont, Phoenix.LiveView.Socket.t()} | {:halt, Phoenix.LiveView.Socket.t()}
   def on_mount(:authorize, _params, _session, socket) do
     view = socket.view
 

@@ -15,6 +15,7 @@ defmodule Blank.Types.Role do
   @doc """
   The underlying database type.
   """
+  @spec type() :: :string
   def type, do: :string
 
   @doc """
@@ -24,6 +25,7 @@ defmodule Blank.Types.Role do
   `String.to_existing_atom/1` then validated). Returns `:error` for anything
   outside the allowed-set or for strings that don't correspond to existing atoms.
   """
+  @spec cast(any()) :: {:ok, atom()} | :error
   def cast(value) when is_atom(value) do
     if MapSet.member?(Blank.Authorization.allowed_roles(), value) do
       {:ok, value}
@@ -44,6 +46,7 @@ defmodule Blank.Types.Role do
   @doc """
   Loads a role string from the database and converts to an atom.
   """
+  @spec load(String.t()) :: {:ok, atom()} | {:error, term()}
   def load(value) when is_binary(value) do
     {:ok, String.to_existing_atom(value)}
   end
@@ -51,6 +54,7 @@ defmodule Blank.Types.Role do
   @doc """
   Dumps a role atom to a string for database storage.
   """
+  @spec dump(any()) :: {:ok, String.t()} | :error
   def dump(value) when is_atom(value) do
     {:ok, Atom.to_string(value)}
   end
@@ -60,10 +64,12 @@ defmodule Blank.Types.Role do
   @doc """
   Uses itself in an embed.
   """
+  @spec embed_as(any()) :: :self
   def embed_as(_), do: :self
 
   @doc """
   Checks if two role atoms are equal.
   """
+  @spec equal?(atom(), atom()) :: boolean()
   def equal?(role1, role2), do: role1 == role2
 end

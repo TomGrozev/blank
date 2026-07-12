@@ -9,6 +9,7 @@ defmodule Blank.Utils.QRCode do
   code.
   """
   @spec svg(String.t()) :: String.t()
+  @spec svg(String.t(), String.t()) :: String.t()
   def svg(code, path \\ "/") do
     generate(code, path)
     |> EQRCode.svg(
@@ -25,6 +26,7 @@ defmodule Blank.Utils.QRCode do
   code.
   """
   @spec png(String.t()) :: String.t()
+  @spec png(String.t(), String.t()) :: String.t()
   def png(code, path \\ "/") do
     generate(code, path)
     |> EQRCode.png()
