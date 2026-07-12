@@ -100,9 +100,8 @@ categories for discussions:
 
 - All new functionality must include relevant tests where applicable.
 
-- When submitting a pull request, please be sure to work off of the `develop`
-  branch, rather than `master`. The `develop` branch is used for ongoing
-  development, while `master` is used for tagging stable releases.
+- When submitting a pull request, please be sure to work off of the `master`
+  branch. All pull requests should target `master`.
 
 - In most cases, it is not necessary to add a changelog entry: A maintainer will
   take care of this when the PR is merged. (This helps avoid merge conflicts
@@ -111,9 +110,12 @@ categories for discussions:
 - All code submissions should meet the following criteria (CI will enforce
   these checks):
 
-      * Ecto syntax is valid
+      * Code compiles without warnings (`mix compile --warnings-as-errors`)
       * All tests pass when run with `mix test`
-      * Correct formatting and is passed `mix format --check-formatted`
+      * Correct formatting (`mix format --check-formatted`)
+      * No credo lint issues (`mix credo`)
+      * Documentation coverage passes (`mix doctor --summary`)
+      * No security issues (`mix sobelow`)
 
 ## Commenting
 
