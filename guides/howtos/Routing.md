@@ -64,7 +64,7 @@ This is useful when you need multiple admin panels with distinct session names, 
 
 ### `:on_mount`
 
-Declares custom `Phoenix.LiveView.on_mount/1` callbacks that run before every LiveView mount in the admin panel. Your callbacks are **prepended** to Blank's default hooks (`Blank.Nav`, `ensure_authenticated`, `Blank.Audit.Context`, and `authorize`), so they run first.
+Declares custom `Phoenix.LiveView.on_mount/1` callbacks that run before every LiveView mount in the admin panel. Your callbacks are **prepended** to Blank's default hooks (the navigation helper, `ensure_authenticated`, the audit context, and `authorize`), so they run first.
 
 ```elixir
 blank_admin "/admin", on_mount: [MyAppWeb.LiveAuth] do
@@ -114,20 +114,20 @@ Every `blank_admin` block automatically installs these routes under the given pa
 
 | Path | Handler | Purpose |
 |------|---------|---------|
-| `/` | `Blank.Pages.HomeLive` | Dashboard with audit log and link cards |
-| `/log_in` | `Blank.Pages.LoginLive` | Authentication form (email/password or ueberauth) |
-| `/log_in` (POST) | `Blank.Controllers.SessionController` | Session creation |
-| `/log_out` (DELETE) | `Blank.Controllers.SessionController` | Session destruction |
-| `/profile` | `Blank.Pages.ProfileLive` | Current admin's profile and password change |
-| `/settings` | `Blank.Pages.SettingsLive` | App-wide settings (audit log reset) |
-| `/audit` | `Blank.Pages.AuditLogLive` | Audit log viewer |
-| `/admins/` | `Blank.Pages.UsersLive` | Built-in user management (CRUD for the User schema) |
+| `/` | the dashboard page | Dashboard with audit log and link cards |
+| `/log_in` | the login page | Authentication form (email/password or ueberauth) |
+| `/log_in` (POST) | the session controller | Session creation |
+| `/log_out` (DELETE) | the session controller | Session destruction |
+| `/profile` | the profile page | Current admin's profile and password change |
+| `/settings` | the settings page | App-wide settings (audit log reset) |
+| `/audit` | the audit log viewer | Audit log viewer |
+| `/admins/` | the built-in users page | Built-in user management (CRUD for the User schema) |
 | `/auth/:provider` | `Ueberauth` | OAuth provider request |
 | `/auth/:provider/callback` | `Blank.Controllers.UeberauthCallbackController` | OAuth callback |
-| `/download` | `Blank.Controllers.ExportController` | File download endpoint |
-| `/qrcode` | `Blank.Controllers.ExportController` | QR code generation |
+| `/download` | the export controller | File download endpoint |
+| `/qrcode` | the export controller | QR code generation |
 
-These routes are installed unconditionally and cannot be disabled. The admins page (`Blank.Pages.UsersLive`) is itself an Admin Page backed by the `Blank.Accounts.User` schema, giving you user CRUD out of the box.
+These routes are installed unconditionally and cannot be disabled. The admins page is itself an Admin Page backed by the `Blank.Accounts.User` schema, giving you user CRUD out of the box.
 
 ## How `admin_page` paths compose
 
@@ -212,12 +212,12 @@ Every LiveView in the admin panel receives a `path_prefix` assign (set from `__b
 
 Under the hood, `blank_admin` does three things:
 
-1. **Defines a `:blank_browser` pipeline** with session fetching, CSRF protection, root layout (`Blank.LayoutView`), and Blank's auth plugs (`fetch_current_user` and `fetch_audit_context`).
+1. **Defines a `:blank_browser` pipeline** with session fetching, CSRF protection, root layout (the layout view), and Blank's auth plugs (`fetch_current_user` and `fetch_audit_context`).
 
 2. **Creates an unauthenticated scope** (`pipe_through [:blank_browser, :redirect_if_user_is_authenticated]`) with its own `live_session` that hosts the login page and ueberauth routes. This session runs `redirect_if_user_is_authenticated` so logged-in admins are bounced to the dashboard.
 
 3. **Creates an authenticated scope** (`pipe_through [:blank_browser, :require_authenticated_user]`) with the main `live_session`. This session includes your `:on_mount` callbacks prepended to Blank's internal hooks:
-   - `Blank.Nav` — builds the navigation sidebar from registered admin pages.
+   - The navigation helper — builds the navigation sidebar from registered admin pages.
    - `{Blank.Plugs.Auth, :ensure_authenticated}` — halts unauthenticated requests.
    - `Blank.Audit.Context` — collects request metadata for audit logs.
    - `{Blank.Authorization, :authorize}` — enforces the authorization policy.
@@ -253,7 +253,7 @@ end
 
 Your callback runs **before** Blank's own auth hooks. If your callback halts, Blank's `ensure_authenticated` won't run, giving you full control over the auth flow.
 
-**Note:** Blank's built-in auth system (email/password via `Blank.Accounts`, ueberauth via `Ueberauth`) already manages the session and `current_user` assign. You only need a custom `on_mount` if you're using your own auth layer or need to add extra assigns (e.g., organization context, theming preferences) before Blank's hooks fire.
+**Note:** Blank's built-in auth system (email/password via the accounts module, ueberauth via `Ueberauth`) already manages the session and `current_user` assign. You only need a custom `on_mount` if you're using your own auth layer or need to add extra assigns (e.g., organization context, theming preferences) before Blank's hooks fire.
 
 ## Where to next
 

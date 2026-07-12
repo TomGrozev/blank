@@ -1,6 +1,6 @@
 # Authorization and Role Management
 
-**Status:** Proposed (supersedes the "Bootstrap mechanism" subsection of ADR-0005 — see below)
+**Status:** Accepted (supersedes the "Bootstrap mechanism" subsection of ADR-0005 — see below)
 
 ADR-0005 unified identity and ueberauth auth, but explicitly stubbed `Blank.Authorization` to "a subsequent phase." That phase is now this ADR. The per-login IdP claim-reader that overwrites `User.roles` was folded into this work's scope during grilling. The per-login env-var identity-matching bootstrap grant of `:system_admin` with self-healing was dropped — ADR-0005's mix-task-only bootstrap stance stands.
 
