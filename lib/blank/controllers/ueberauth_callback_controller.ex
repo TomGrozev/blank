@@ -59,7 +59,8 @@ defmodule Blank.Controllers.UeberauthCallbackController do
              email: email,
              name: name,
              provider: to_string(provider),
-             external_uid: uid
+             external_uid: uid,
+             roles: ["member"]
            }) do
       audit_context = conn.assigns[:audit_context] || Blank.Audit.AuditLog.system()
 

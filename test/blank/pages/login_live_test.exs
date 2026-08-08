@@ -25,7 +25,7 @@ defmodule Blank.Pages.LoginLiveTest do
   # ── Local auth toggle ──
 
   test "shows local form when local auth is enabled", %{conn: conn} do
-    Application.put_env(:blank, :auth, local: true)
+    Application.put_env(:blank, :auth, local_login: :enabled)
 
     {:ok, _view, html} = live(conn, "/admin/log_in")
 
@@ -36,7 +36,7 @@ defmodule Blank.Pages.LoginLiveTest do
   end
 
   test "hides local form when local auth is disabled", %{conn: conn} do
-    Application.put_env(:blank, :auth, local: false)
+    Application.put_env(:blank, :auth, local_login: :disabled)
 
     {:ok, _view, html} = live(conn, "/admin/log_in")
 
@@ -46,10 +46,22 @@ defmodule Blank.Pages.LoginLiveTest do
     refute html =~ ~s(type="password")
   end
 
+  test "shows local form when local auth is dev_only in test env", %{conn: conn} do
+    Application.put_env(:blank, :auth, local_login: :dev_only)
+
+    {:ok, _view, html} = live(conn, "/admin/log_in")
+
+    # Mix.env() == :test, so dev_only should be enabled
+    assert html =~ "Sign in to Blank admin"
+    assert html =~ "email"
+    assert html =~ "password"
+    assert html =~ "Log in"
+  end
+
   # ── Ueberauth provider buttons ──
 
   test "shows ueberauth provider buttons", %{conn: conn} do
-    Application.put_env(:blank, :auth, local: true)
+    Application.put_env(:blank, :auth, local_login: :enabled)
 
     Application.put_env(:ueberauth, Ueberauth,
       providers: [
@@ -67,7 +79,7 @@ defmodule Blank.Pages.LoginLiveTest do
   end
 
   test "shows ueberauth buttons without local form when local auth is disabled", %{conn: conn} do
-    Application.put_env(:blank, :auth, local: false)
+    Application.put_env(:blank, :auth, local_login: :disabled)
 
     Application.put_env(:ueberauth, Ueberauth,
       providers: [google: {Ueberauth.Strategy.Google, []}]
@@ -84,7 +96,7 @@ defmodule Blank.Pages.LoginLiveTest do
   # ── No auth methods configured ──
 
   test "shows guard message when no auth methods configured", %{conn: conn} do
-    Application.put_env(:blank, :auth, local: false)
+    Application.put_env(:blank, :auth, local_login: :disabled)
     Application.put_env(:ueberauth, Ueberauth, providers: [])
 
     {:ok, _view, html} = live(conn, "/admin/log_in")

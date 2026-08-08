@@ -5,6 +5,24 @@ defmodule Blank.Plugs.Auth do
 
   alias Blank.Accounts
 
+  @doc """
+  Returns whether local login is enabled based on the `:local_login` config.
+
+  Config values:
+  - `:enabled` — local login always available (default)
+  - `:dev_only` — local login available only in `:dev` and `:test` environments
+  - `:disabled` — local login never available
+  """
+  def local_login_enabled? do
+    config = Application.get_env(:blank, :auth, [])
+
+    case Keyword.get(config, :local_login, :enabled) do
+      :enabled -> true
+      :disabled -> false
+      :dev_only -> Mix.env() in [:dev, :test]
+    end
+  end
+
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
   # the token expiry itself in UserToken.

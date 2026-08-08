@@ -140,7 +140,7 @@ defmodule Blank.Accounts.User do
   @spec ueberauth_changeset(t(), map()) :: Ecto.Changeset.t()
   def ueberauth_changeset(user, attrs) do
     user
-    |> cast(attrs, [:email, :name, :provider, :external_uid])
+    |> cast(attrs, [:email, :name, :provider, :external_uid, :roles])
     |> validate_required([:email, :provider, :external_uid])
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
     |> validate_length(:email, max: 160)
