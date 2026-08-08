@@ -28,6 +28,15 @@ end
 
 Then run `mix deps.get`.
 
+## Database Adapters
+
+Blank supports two database adapters:
+
+- **Ecto/PostgreSQL** (default) — Use `mix blank.install` or `mix blank.install --adapter ecto_sql`
+- **ArangoDB** — Use `mix blank.install --adapter arango`
+
+The adapter determines which migrations are copied to your app. Choose the adapter that matches your database.
+
 ### 2. Configure your app
 
 Add the configuration to your config file:
