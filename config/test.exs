@@ -18,5 +18,8 @@ config :test_app, TestAppWeb.Endpoint,
   pubsub_server: Blank.PubSub,
   live_view: [signing_salt: "GL2ATuCmtzWZjQBB"]
 
+# Configure Ueberauth with a mock provider for testing
+config :ueberauth, Ueberauth, providers: [google: {Blank.Test.UeberauthMockStrategy, []}]
+
 # Configure Ecto
 config :test_app, ecto_repos: [TestApp.Repo]

@@ -101,6 +101,13 @@ defmodule Blank.Router do
           end
 
           post "/log_in", Blank.Controllers.SessionController, :create
+          get("/auth/:provider", Ueberauth, :request, as: :ueberauth)
+
+          get(
+            "/auth/:provider/callback",
+            Blank.Controllers.UeberauthCallbackController,
+            :callback
+          )
         end
 
         scope path, alias: false, as: false do
