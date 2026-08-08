@@ -3,7 +3,6 @@ defmodule Blank.AuthFlowTest do
 
   alias Blank.Accounts
   alias Blank.Audit.AuditLog
-  alias Blank.Plugs.Auth
 
   @valid_email "user@example.com"
   @valid_password "Str0ng!Passw0rd"
@@ -33,7 +32,7 @@ defmodule Blank.AuthFlowTest do
     end)
   end
 
-  defp ueberauth_auth(opts \\ []) do
+  defp ueberauth_auth(opts) do
     %Ueberauth.Auth{
       provider: Keyword.get(opts, :provider, :google),
       uid: Keyword.get(opts, :uid, "12345"),
@@ -44,7 +43,7 @@ defmodule Blank.AuthFlowTest do
     }
   end
 
-  defp ueberauth_failure(opts \\ []) do
+  defp ueberauth_failure(opts) do
     %Ueberauth.Failure{
       provider: Keyword.get(opts, :provider, :google),
       errors: [
@@ -187,7 +186,7 @@ defmodule Blank.AuthFlowTest do
   # ── Auth.log_in/3 ──
 
   describe "Auth.log_in/3" do
-    test "creates a session token and redirects to signed_in_path", %{conn: conn, user: user} do
+    test "creates a session token and redirects to signed_in_path", %{conn: conn, user: _user} do
       # Use the router to set up a conn with proper session and pipeline
       conn =
         conn
@@ -201,7 +200,7 @@ defmodule Blank.AuthFlowTest do
       assert location == "/admin"
     end
 
-    test "with remember_me cookie", %{conn: conn, user: user} do
+    test "with remember_me cookie", %{conn: conn, user: _user} do
       conn =
         conn
         |> post("/admin/log_in", %{
