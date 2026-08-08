@@ -22,6 +22,7 @@ defmodule Mix.Tasks.Blank.User.New do
   import Mix.Ecto
 
   alias Blank.Accounts.User
+  alias Blank.Audit.AuditLog
 
   @aliases [
     r: :repo,
@@ -63,7 +64,7 @@ defmodule Mix.Tasks.Blank.User.New do
              {:ok, _} <- ensure_repo_started(repo),
              {:ok, user} <- repo.insert(changeset) do
           Blank.Audit.log!(
-            Blank.Audit.AuditLog.system(),
+            AuditLog.system(),
             "accounts.user_created",
             %{email: email, roles: user.roles}
           )

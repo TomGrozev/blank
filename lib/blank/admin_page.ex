@@ -426,8 +426,9 @@ defmodule Blank.AdminPage do
 
   @optional_callbacks stat_query: 2, render_new: 1, admin_hook: 3
 
-  alias Phoenix.LiveView.AsyncResult
   alias Blank.Context
+  alias Blank.Errors.InvalidConfigError
+  alias Phoenix.LiveView.AsyncResult
   use Blank.Web, :live_view
 
   defmacro __using__(opts) do
@@ -535,7 +536,7 @@ defmodule Blank.AdminPage do
         opts
 
       {:error, err} ->
-        raise Blank.Errors.InvalidConfigError.from_nimble(err,
+        raise InvalidConfigError.from_nimble(err,
                 caller: caller,
                 module: __MODULE__,
                 usage: "use"
@@ -639,12 +640,10 @@ defmodule Blank.AdminPage do
   end
 
   defp apply_hook(socket, type, admin_page, params) do
-    try do
-      admin_page.admin_hook(type, params, socket)
-    rescue
-      _ ->
-        socket
-    end
+    admin_page.admin_hook(type, params, socket)
+  rescue
+    _ ->
+      socket
   end
 
   @impl Phoenix.LiveView
@@ -657,12 +656,10 @@ defmodule Blank.AdminPage do
   end
 
   def render(%{live_action: :new, admin_page: module} = assigns) do
-    try do
-      module.render_new(assigns)
-    rescue
-      _ ->
-        admin_edit(assigns)
-    end
+    module.render_new(assigns)
+  rescue
+    _ ->
+      admin_edit(assigns)
   end
 
   def render(%{live_action: :edit} = assigns) do
@@ -907,12 +904,10 @@ defmodule Blank.AdminPage do
   end
 
   defp stat_func(:total, query, module) do
-    try do
-      module.stat_query(:total, query)
-    rescue
-      _e ->
-        {:query, from(i in subquery(query), select: count(i))}
-    end
+    module.stat_query(:total, query)
+  rescue
+    _e ->
+      {:query, from(i in subquery(query), select: count(i))}
   end
 
   defp stat_func(key, query, module), do: module.stat_query(key, query)
@@ -1007,11 +1002,13 @@ defmodule Blank.AdminPage do
 
   @impl Phoenix.LiveView
   def handle_event("idx-btn-click", %{"key" => key}, socket) do
-    action =
-      Keyword.fetch!(socket.assigns.index_buttons, String.to_existing_atom(key))
-      |> Map.fetch!(:action)
+    button = Keyword.fetch!(socket.assigns.index_buttons, String.to_existing_atom(key))
 
-    apply(action, [socket])
+    case button.action do
+      :patch -> push_patch(socket, to: button.path)
+      :navigate -> push_navigate(socket, to: button.path)
+      fun when is_function(fun, 1) -> fun.(socket)
+    end
   end
 
   def handle_event("validate", %{"item_params" => params}, socket) do

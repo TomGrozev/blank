@@ -18,9 +18,11 @@ defmodule Blank.Authorization.Policy do
     quote do
       @behaviour Blank.Authorization.Policy
 
+      alias Blank.Authorization.DefaultPolicy
+
       @doc false
       def policy(user, action, scope),
-        do: Blank.Authorization.DefaultPolicy.policy(user, action, scope)
+        do: DefaultPolicy.policy(user, action, scope)
 
       defoverridable policy: 3
     end

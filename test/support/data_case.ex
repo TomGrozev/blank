@@ -14,12 +14,15 @@ defmodule TestApp.DataCase do
 
   use ExUnit.CaseTemplate
 
+  alias Ecto.Adapters.SQL.Sandbox
+  alias TestApp.Repo
+
   using do
     quote do
-      alias TestApp.Repo
       alias TestApp.Accounts.User
       alias TestApp.Accounts.UserToken
-      alias TestApp.Blog.{Post, Tag, Comment}
+      alias TestApp.Blog.{Comment, Post, Tag}
+      alias TestApp.Repo
 
       import Ecto
       import Ecto.Changeset
@@ -39,11 +42,11 @@ defmodule TestApp.DataCase do
   def setup_sandbox(tags) do
     pid =
       case tags do
-        %{async: true} -> Ecto.Adapters.SQL.Sandbox.start_owner!(TestApp.Repo, shared: true)
-        _ -> Ecto.Adapters.SQL.Sandbox.start_owner!(TestApp.Repo, shared: false)
+        %{async: true} -> Sandbox.start_owner!(Repo, shared: true)
+        _ -> Sandbox.start_owner!(Repo, shared: false)
       end
 
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+    on_exit(fn -> Sandbox.stop_owner(pid) end)
   end
 
   @doc """

@@ -4,20 +4,23 @@ defmodule Blank.Fields.HasManyTest do
   import Phoenix.LiveViewTest
 
   alias Blank.Field
+  alias Blank.Fields.HasMany
+  alias TestApp.Blog.Post
+  alias TestApp.Blog.Tag
 
   describe "render_display/1" do
     test "with empty list returns rendered HTML" do
       definition = %Field{
         key: :tags,
-        module: Blank.Fields.HasMany,
+        module: HasMany,
         label: "Tags",
         children: [name: [label: "Tag Name"]]
       }
 
       html =
-        render_component(&Blank.Fields.HasMany.render/1, %{
+        render_component(&HasMany.render/1, %{
           type: :display,
-          schema: TestApp.Blog.Post,
+          schema: Post,
           definition: definition,
           value: [],
           id: "post_1",
@@ -30,15 +33,15 @@ defmodule Blank.Fields.HasManyTest do
     test "with NotLoaded returns rendered HTML" do
       definition = %Field{
         key: :tags,
-        module: Blank.Fields.HasMany,
+        module: HasMany,
         label: "Tags",
         children: [name: [label: "Tag Name"]]
       }
 
       html =
-        render_component(&Blank.Fields.HasMany.render/1, %{
+        render_component(&HasMany.render/1, %{
           type: :display,
-          schema: TestApp.Blog.Post,
+          schema: Post,
           definition: definition,
           value: %Ecto.Association.NotLoaded{},
           id: "post_1",
@@ -51,16 +54,16 @@ defmodule Blank.Fields.HasManyTest do
     test "with list of structs returns rendered HTML" do
       definition = %Field{
         key: :tags,
-        module: Blank.Fields.HasMany,
+        module: HasMany,
         label: "Tags",
         children: [name: [label: "Tag Name"]],
         display_field: :name
       }
 
       html =
-        render_component(&Blank.Fields.HasMany.render/1, %{
+        render_component(&HasMany.render/1, %{
           type: :display,
-          schema: TestApp.Blog.Post,
+          schema: Post,
           definition: definition,
           value: [%{name: "elixir"}, %{name: "phoenix"}],
           id: "post_1",
@@ -76,7 +79,7 @@ defmodule Blank.Fields.HasManyTest do
     test "is implemented via render/1 dispatch" do
       # render_form uses <.inputs_for> which needs a full LiveView CID context.
       # Verify the render/1 dispatch works (it will call render_form).
-      assert {:render, 1} in Blank.Fields.HasMany.__info__(:functions)
+      assert {:render, 1} in HasMany.__info__(:functions)
     end
   end
 
@@ -84,7 +87,7 @@ defmodule Blank.Fields.HasManyTest do
     test "extracts owner_key and queryable for form type" do
       definition = %Field{
         key: :tags,
-        module: Blank.Fields.HasMany,
+        module: HasMany,
         label: "Tags",
         children: [name: [label: "Tag Name"]]
       }
@@ -93,7 +96,7 @@ defmodule Blank.Fields.HasManyTest do
 
       assigns = %{
         type: :form,
-        schema: TestApp.Blog.Post,
+        schema: Post,
         field: form[:tags],
         definition: definition
       }
@@ -104,22 +107,22 @@ defmodule Blank.Fields.HasManyTest do
         }
       }
 
-      {:ok, updated_socket} = Blank.Fields.HasMany.update(assigns, socket)
+      {:ok, updated_socket} = HasMany.update(assigns, socket)
 
       assert updated_socket.assigns.owner_key == :id
-      assert updated_socket.assigns.queryable == TestApp.Blog.Tag
+      assert updated_socket.assigns.queryable == Tag
     end
 
     test "passes through for non-form type" do
       definition = %Field{
         key: :tags,
-        module: Blank.Fields.HasMany,
+        module: HasMany,
         label: "Tags"
       }
 
       assigns = %{
         type: :display,
-        schema: TestApp.Blog.Post,
+        schema: Post,
         field: definition,
         value: []
       }
@@ -130,7 +133,7 @@ defmodule Blank.Fields.HasManyTest do
         }
       }
 
-      {:ok, updated_socket} = Blank.Fields.HasMany.update(assigns, socket)
+      {:ok, updated_socket} = HasMany.update(assigns, socket)
 
       assert updated_socket.assigns.value == []
     end

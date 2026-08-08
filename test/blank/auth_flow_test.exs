@@ -2,7 +2,13 @@ defmodule Blank.AuthFlowTest do
   use Blank.ConnCase
 
   alias Blank.Accounts
+  alias Blank.Accounts.UserToken
+  alias Blank.Application, as: BlankApp
+  alias Blank.Audit, as: Audit
   alias Blank.Audit.AuditLog
+  alias Blank.Controllers.UeberauthCallbackController
+  alias Blank.Plugs.Auth
+  alias TestApp.Repo
 
   @valid_email "user@example.com"
   @valid_password "Str0ng!Passw0rd"
@@ -253,7 +259,7 @@ defmodule Blank.AuthFlowTest do
 
       conn =
         build_ueberauth_conn(%{ueberauth_auth: auth})
-        |> Blank.Controllers.UeberauthCallbackController.callback(%{"provider" => "google"})
+        |> UeberauthCallbackController.callback(%{"provider" => "google"})
 
       assert %{status: 302} = conn
       location = get_resp_header(conn, "location") |> List.first()
@@ -275,12 +281,12 @@ defmodule Blank.AuthFlowTest do
 
       conn =
         build_ueberauth_conn(%{ueberauth_auth: auth})
-        |> Blank.Controllers.UeberauthCallbackController.callback(%{"provider" => "google"})
+        |> UeberauthCallbackController.callback(%{"provider" => "google"})
 
       assert %{status: 302} = conn
 
       # Check audit log was created
-      logs = Blank.Audit.list_all(where: [action: "accounts.user_created"])
+      logs = Audit.list_all(where: [action: "accounts.user_created"])
       assert Enum.any?(logs, fn log -> log.params["email"] == "audit_test@example.com" end)
     end
 
@@ -289,7 +295,7 @@ defmodule Blank.AuthFlowTest do
 
       conn =
         build_ueberauth_conn(%{ueberauth_auth: auth})
-        |> Blank.Controllers.UeberauthCallbackController.callback(%{"provider" => "google"})
+        |> UeberauthCallbackController.callback(%{"provider" => "google"})
 
       assert %{status: 302} = conn
       # The conn should have a flash message set (verified by successful redirect)
@@ -319,7 +325,7 @@ defmodule Blank.AuthFlowTest do
 
       conn =
         build_ueberauth_conn(%{ueberauth_auth: auth})
-        |> Blank.Controllers.UeberauthCallbackController.callback(%{"provider" => "google"})
+        |> UeberauthCallbackController.callback(%{"provider" => "google"})
 
       assert %{status: 302} = conn
       location = get_resp_header(conn, "location") |> List.first()
@@ -352,12 +358,12 @@ defmodule Blank.AuthFlowTest do
 
       conn =
         build_ueberauth_conn(%{ueberauth_auth: auth})
-        |> Blank.Controllers.UeberauthCallbackController.callback(%{"provider" => "github"})
+        |> UeberauthCallbackController.callback(%{"provider" => "github"})
 
       assert %{status: 302} = conn
 
       # Verify no user_created event was emitted
-      logs = Blank.Audit.list_all(where: [action: "accounts.user_created"])
+      logs = Audit.list_all(where: [action: "accounts.user_created"])
       refute Enum.any?(logs, fn log -> log.params["email"] == "no_create_event@example.com" end)
     end
 
@@ -379,7 +385,7 @@ defmodule Blank.AuthFlowTest do
 
       conn =
         build_ueberauth_conn(%{ueberauth_auth: auth})
-        |> Blank.Controllers.UeberauthCallbackController.callback(%{"provider" => "google"})
+        |> UeberauthCallbackController.callback(%{"provider" => "google"})
 
       assert %{status: 302} = conn
     end
@@ -393,7 +399,7 @@ defmodule Blank.AuthFlowTest do
 
       conn =
         build_ueberauth_conn(%{ueberauth_failure: failure})
-        |> Blank.Controllers.UeberauthCallbackController.callback(%{"provider" => "google"})
+        |> UeberauthCallbackController.callback(%{"provider" => "google"})
 
       assert %{status: 302} = conn
       location = get_resp_header(conn, "location") |> List.first()
@@ -405,12 +411,12 @@ defmodule Blank.AuthFlowTest do
 
       conn =
         build_ueberauth_conn(%{ueberauth_failure: failure, _provider: "github"})
-        |> Blank.Controllers.UeberauthCallbackController.callback(%{"provider" => "github"})
+        |> UeberauthCallbackController.callback(%{"provider" => "github"})
 
       assert %{status: 302} = conn
 
       # Check audit log was created with correct details
-      logs = Blank.Audit.list_all(where: [action: "accounts.login_failed"])
+      logs = Audit.list_all(where: [action: "accounts.login_failed"])
       github_logs = Enum.filter(logs, fn log -> log.params["provider"] == "github" end)
       assert !Enum.empty?(github_logs)
       assert hd(github_logs).params["reason"] == "Invalid credentials"
@@ -423,7 +429,7 @@ defmodule Blank.AuthFlowTest do
     test "fallback clause when no auth or failure assigns" do
       conn =
         build_ueberauth_conn()
-        |> Blank.Controllers.UeberauthCallbackController.callback(%{"provider" => "google"})
+        |> UeberauthCallbackController.callback(%{"provider" => "google"})
 
       assert %{status: 302} = conn
       location = get_resp_header(conn, "location") |> List.first()
@@ -433,11 +439,11 @@ defmodule Blank.AuthFlowTest do
     test "fallback clause emits login_failed audit event" do
       conn =
         build_ueberauth_conn()
-        |> Blank.Controllers.UeberauthCallbackController.callback(%{"provider" => "google"})
+        |> UeberauthCallbackController.callback(%{"provider" => "google"})
 
       assert %{status: 302} = conn
 
-      logs = Blank.Audit.list_all(where: [action: "accounts.login_failed"])
+      logs = Audit.list_all(where: [action: "accounts.login_failed"])
       google_logs = Enum.filter(logs, fn log -> log.params["provider"] == "google" end)
       assert !Enum.empty?(google_logs)
       assert hd(google_logs).params["reason"] == "unknown error"
@@ -454,11 +460,11 @@ defmodule Blank.AuthFlowTest do
 
       conn =
         build_ueberauth_conn(%{ueberauth_failure: failure})
-        |> Blank.Controllers.UeberauthCallbackController.callback(%{"provider" => "google"})
+        |> UeberauthCallbackController.callback(%{"provider" => "google"})
 
       assert %{status: 302} = conn
 
-      logs = Blank.Audit.list_all(where: [action: "accounts.login_failed"])
+      logs = Audit.list_all(where: [action: "accounts.login_failed"])
       google_logs = Enum.filter(logs, fn log -> log.params["provider"] == "google" end)
       assert !Enum.empty?(google_logs)
       assert hd(google_logs).params["reason"] == "First error, Second error"
@@ -480,7 +486,7 @@ defmodule Blank.AuthFlowTest do
       Application.put_env(:ueberauth, Ueberauth, providers: [])
 
       assert_raise RuntimeError, ~r/Blank requires at least one Ueberauth provider/, fn ->
-        Blank.Application.start(:normal, [])
+        BlankApp.start(:normal, [])
       end
     end
 
@@ -543,14 +549,12 @@ defmodule Blank.AuthFlowTest do
 
       # Manually update last_activity_at to 2 minutes ago
       token_record =
-        TestApp.Repo.one!(Blank.Accounts.UserToken.by_token_and_context_query(token, "session"))
+        Repo.one!(UserToken.by_token_and_context_query(token, "session"))
 
       two_minutes_ago =
         DateTime.truncate(DateTime.add(DateTime.utc_now(), -120, :second), :second)
 
-      TestApp.Repo.update!(
-        Ecto.Changeset.change(token_record, %{last_activity_at: two_minutes_ago})
-      )
+      Repo.update!(Ecto.Changeset.change(token_record, %{last_activity_at: two_minutes_ago}))
 
       # Now try to access a protected page - should be redirected
       conn2 =
@@ -602,12 +606,12 @@ defmodule Blank.AuthFlowTest do
 
       # Manually update inserted_at to 2 minutes ago
       token_record =
-        TestApp.Repo.one!(Blank.Accounts.UserToken.by_token_and_context_query(token, "session"))
+        Repo.one!(UserToken.by_token_and_context_query(token, "session"))
 
       two_minutes_ago =
         DateTime.truncate(DateTime.add(DateTime.utc_now(), -120, :second), :second)
 
-      TestApp.Repo.update!(Ecto.Changeset.change(token_record, %{inserted_at: two_minutes_ago}))
+      Repo.update!(Ecto.Changeset.change(token_record, %{inserted_at: two_minutes_ago}))
 
       # Now try to access a protected page - should be redirected
       conn2 =
@@ -632,7 +636,7 @@ defmodule Blank.AuthFlowTest do
 
       # Get initial last_activity_at
       token_record =
-        TestApp.Repo.one!(Blank.Accounts.UserToken.by_token_and_context_query(token, "session"))
+        Repo.one!(UserToken.by_token_and_context_query(token, "session"))
 
       initial_last_activity = token_record.last_activity_at
       assert initial_last_activity != nil
@@ -646,7 +650,7 @@ defmodule Blank.AuthFlowTest do
 
       # Check that last_activity_at was updated
       updated_token_record =
-        TestApp.Repo.one!(Blank.Accounts.UserToken.by_token_and_context_query(token, "session"))
+        Repo.one!(UserToken.by_token_and_context_query(token, "session"))
 
       assert DateTime.compare(updated_token_record.last_activity_at, initial_last_activity) == :gt
     end
@@ -664,13 +668,13 @@ defmodule Blank.AuthFlowTest do
       Application.delete_env(:blank, :auth)
 
       # Should use default values without crashing
-      idle_timeout = Blank.Plugs.Auth.idle_timeout()
-      absolute_lifetime = Blank.Plugs.Auth.absolute_lifetime()
+      idle_timeout = Auth.idle_timeout()
+      absolute_lifetime = Auth.absolute_lifetime()
 
       # 4 hours in seconds
       assert idle_timeout == 4 * 3600
       # 60 days in seconds
-      assert absolute_lifetime == 60 * 86400
+      assert absolute_lifetime == 60 * 86_400
     end
   end
 end

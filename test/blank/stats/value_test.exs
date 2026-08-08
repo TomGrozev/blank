@@ -2,6 +2,7 @@ defmodule Blank.Stats.ValueTest do
   use ExUnit.Case, async: true
 
   import Ecto.Query
+  alias Blank.Stats.Value
   alias Phoenix.LiveView.AsyncResult
 
   describe "query/3" do
@@ -9,7 +10,7 @@ defmodule Blank.Stats.ValueTest do
       multi = Ecto.Multi.new()
       query = from(p in TestApp.Blog.Post)
 
-      result = Blank.Stats.Value.query(multi, {:count, []}, query)
+      result = Value.query(multi, {:count, []}, query)
 
       assert %Ecto.Multi{} = result
 
@@ -26,7 +27,7 @@ defmodule Blank.Stats.ValueTest do
         value: %AsyncResult{result: 42}
       }
 
-      rendered = Blank.Stats.Value.render(assigns)
+      rendered = Value.render(assigns)
 
       assert %Phoenix.LiveView.Rendered{} = rendered
     end
@@ -37,7 +38,7 @@ defmodule Blank.Stats.ValueTest do
         value: %AsyncResult{}
       }
 
-      rendered = Blank.Stats.Value.render(assigns)
+      rendered = Value.render(assigns)
 
       assert %Phoenix.LiveView.Rendered{} = rendered
     end

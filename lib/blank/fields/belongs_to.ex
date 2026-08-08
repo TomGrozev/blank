@@ -21,8 +21,8 @@ defmodule Blank.Fields.BelongsTo do
 
   use Blank.Field
 
-  alias Blank.Context
   alias Blank.Components.SearchableSelect
+  alias Blank.Context
 
   @impl Phoenix.LiveComponent
   def update(%{type: :form} = assigns, socket) do

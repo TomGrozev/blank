@@ -4,12 +4,13 @@ defmodule Blank.Fields.QRCodeTest do
   import Phoenix.LiveViewTest
 
   alias Blank.Field
+  alias Blank.Fields.QRCode
 
   describe "update/2" do
     test "sets qr_code and download_path for value with path" do
       definition = %Field{
         key: :barcode,
-        module: Blank.Fields.QRCode,
+        module: QRCode,
         label: "Barcode",
         path: "/items"
       }
@@ -26,7 +27,7 @@ defmodule Blank.Fields.QRCodeTest do
         }
       }
 
-      {:ok, updated_socket} = Blank.Fields.QRCode.update(assigns, socket)
+      {:ok, updated_socket} = QRCode.update(assigns, socket)
 
       assert updated_socket.assigns.qr_code =~ "<svg"
       assert updated_socket.assigns.download_path =~ "/qrcode"
@@ -36,7 +37,7 @@ defmodule Blank.Fields.QRCodeTest do
     test "update with fallback clause just assigns" do
       definition = %Field{
         key: :barcode,
-        module: Blank.Fields.QRCode,
+        module: QRCode,
         label: "Barcode"
       }
 
@@ -51,7 +52,7 @@ defmodule Blank.Fields.QRCodeTest do
         }
       }
 
-      {:ok, updated_socket} = Blank.Fields.QRCode.update(assigns, socket)
+      {:ok, updated_socket} = QRCode.update(assigns, socket)
 
       assert updated_socket.assigns.qr_code =~ "<svg"
       assert updated_socket.assigns.download_path =~ "/qrcode"
@@ -62,12 +63,12 @@ defmodule Blank.Fields.QRCodeTest do
     test "returns rendered HTML with raw value" do
       definition = %Field{
         key: :barcode,
-        module: Blank.Fields.QRCode,
+        module: QRCode,
         label: "Barcode"
       }
 
       html =
-        render_component(&Blank.Fields.QRCode.render/1, %{
+        render_component(&QRCode.render/1, %{
           type: :list,
           field: definition,
           value: "my-code"
@@ -81,12 +82,12 @@ defmodule Blank.Fields.QRCodeTest do
     test "returns rendered HTML with QR code and value" do
       definition = %Field{
         key: :barcode,
-        module: Blank.Fields.QRCode,
+        module: QRCode,
         label: "Barcode"
       }
 
       html =
-        render_component(&Blank.Fields.QRCode.render/1, %{
+        render_component(&QRCode.render/1, %{
           type: :display,
           field: definition,
           value: "my-code",
@@ -103,14 +104,14 @@ defmodule Blank.Fields.QRCodeTest do
     test "returns rendered HTML" do
       definition = %Field{
         key: :barcode,
-        module: Blank.Fields.QRCode,
+        module: QRCode,
         label: "Barcode"
       }
 
       form = Phoenix.Component.to_form(%{"barcode" => "my-code"})
 
       html =
-        render_component(&Blank.Fields.QRCode.render/1, %{
+        render_component(&QRCode.render/1, %{
           type: :form,
           field: form[:barcode],
           definition: definition

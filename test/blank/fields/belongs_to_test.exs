@@ -4,20 +4,23 @@ defmodule Blank.Fields.BelongsToTest do
   import Phoenix.LiveViewTest
 
   alias Blank.Field
+  alias Blank.Fields.BelongsTo
+  alias TestApp.Accounts.User
+  alias TestApp.Blog.Post
 
   describe "render_display/1" do
     test "with NotLoaded returns rendered HTML" do
       definition = %Field{
         key: :author,
-        module: Blank.Fields.BelongsTo,
+        module: BelongsTo,
         label: "Author",
         display_field: :name
       }
 
       html =
-        render_component(&Blank.Fields.BelongsTo.render/1, %{
+        render_component(&BelongsTo.render/1, %{
           type: :display,
-          schema: TestApp.Blog.Post,
+          schema: Post,
           definition: definition,
           value: %Ecto.Association.NotLoaded{},
           id: "post_1",
@@ -30,15 +33,15 @@ defmodule Blank.Fields.BelongsToTest do
     test "with value and display_field returns rendered HTML" do
       definition = %Field{
         key: :author,
-        module: Blank.Fields.BelongsTo,
+        module: BelongsTo,
         label: "Author",
         display_field: :name
       }
 
       html =
-        render_component(&Blank.Fields.BelongsTo.render/1, %{
+        render_component(&BelongsTo.render/1, %{
           type: :display,
-          schema: TestApp.Blog.Post,
+          schema: Post,
           definition: definition,
           value: %{name: "Alice"},
           id: "post_1",
@@ -53,7 +56,7 @@ defmodule Blank.Fields.BelongsToTest do
     test "extracts owner_key and queryable for form type" do
       definition = %Field{
         key: :author,
-        module: Blank.Fields.BelongsTo,
+        module: BelongsTo,
         label: "Author",
         display_field: :name
       }
@@ -63,7 +66,7 @@ defmodule Blank.Fields.BelongsToTest do
 
       assigns = %{
         type: :form,
-        schema: TestApp.Blog.Post,
+        schema: Post,
         field: form[:author],
         definition: definition
       }
@@ -74,23 +77,23 @@ defmodule Blank.Fields.BelongsToTest do
         }
       }
 
-      {:ok, updated_socket} = Blank.Fields.BelongsTo.update(assigns, socket)
+      {:ok, updated_socket} = BelongsTo.update(assigns, socket)
 
       assert updated_socket.assigns.owner_key == :author_id
-      assert updated_socket.assigns.queryable == TestApp.Accounts.User
+      assert updated_socket.assigns.queryable == User
     end
 
     test "passes through for non-form type" do
       definition = %Field{
         key: :author,
-        module: Blank.Fields.BelongsTo,
+        module: BelongsTo,
         label: "Author",
         display_field: :name
       }
 
       assigns = %{
         type: :display,
-        schema: TestApp.Blog.Post,
+        schema: Post,
         field: definition,
         value: %{name: "Alice"}
       }
@@ -101,7 +104,7 @@ defmodule Blank.Fields.BelongsToTest do
         }
       }
 
-      {:ok, updated_socket} = Blank.Fields.BelongsTo.update(assigns, socket)
+      {:ok, updated_socket} = BelongsTo.update(assigns, socket)
 
       assert updated_socket.assigns.value == %{name: "Alice"}
     end

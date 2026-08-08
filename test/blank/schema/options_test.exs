@@ -1,8 +1,11 @@
 defmodule Blank.Schema.OptionsTest do
   use ExUnit.Case, async: true
 
+  alias Blank.Errors.InvalidConfigError
+  alias Blank.Schema.Options
+
   test "__schema__/0 returns NimbleOptions schema" do
-    schema = Blank.Schema.Options.__schema__()
+    schema = Options.__schema__()
     assert is_list(schema)
     assert Keyword.has_key?(schema, :identity_field)
     assert Keyword.has_key?(schema, :create_changeset)
@@ -23,20 +26,20 @@ defmodule Blank.Schema.OptionsTest do
     ]
 
     # Should not raise
-    result = Blank.Schema.Options.validate!(opts, __MODULE__)
+    result = Options.validate!(opts, __MODULE__)
     assert is_list(result)
     assert Keyword.get(result, :identity_field) == :email
   end
 
   test "validate!/2 with unknown key raises InvalidConfigError" do
-    assert_raise Blank.Errors.InvalidConfigError, fn ->
-      Blank.Schema.Options.validate!([unknown_key: :bad], __MODULE__)
+    assert_raise InvalidConfigError, fn ->
+      Options.validate!([unknown_key: :bad], __MODULE__)
     end
   end
 
   test "validate!/2 rejects non-atom identity_field" do
-    assert_raise Blank.Errors.InvalidConfigError, fn ->
-      Blank.Schema.Options.validate!([identity_field: "string"], __MODULE__)
+    assert_raise InvalidConfigError, fn ->
+      Options.validate!([identity_field: "string"], __MODULE__)
     end
   end
 

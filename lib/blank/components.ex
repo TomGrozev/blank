@@ -3,8 +3,10 @@ defmodule Blank.Components do
   use Phoenix.Component
   use Gettext, backend: Blank.Gettext
 
+  alias Phoenix.HTML.Form
   alias Phoenix.LiveView.AsyncResult
   alias Phoenix.LiveView.JS
+  alias Phoenix.LiveView.TagEngine
 
   import Blank.Components.JS
 
@@ -689,7 +691,7 @@ defmodule Blank.Components do
   def input(%{type: "checkbox"} = assigns) do
     assigns =
       assign_new(assigns, :checked, fn ->
-        Phoenix.HTML.Form.normalize_value("checkbox", assigns[:value])
+        Form.normalize_value("checkbox", assigns[:value])
       end)
 
     ~H"""
@@ -883,7 +885,7 @@ defmodule Blank.Components do
         value
       end
 
-    Phoenix.LiveView.TagEngine.component(
+    TagEngine.component(
       Function.capture(display_module, :render, 1),
       [value: value, name: name],
       {__ENV__.module, __ENV__.function, __ENV__.file, __ENV__.line}

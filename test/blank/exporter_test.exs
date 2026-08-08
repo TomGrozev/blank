@@ -1,11 +1,17 @@
 defmodule Blank.ExporterTest do
   use ExUnit.Case, async: true
 
+  alias Blank.Exporter
+  alias Blank.Exporters.CSV
+  alias Blank.Exporters.QRCode
+  alias Blank.Field
+  alias Blank.Fields.QRCode, as: FieldsQRCode
+
   describe "exporters/0" do
     test "returns the default exporters" do
-      exporters = Blank.Exporter.exporters()
-      assert Blank.Exporters.QRCode in exporters
-      assert Blank.Exporters.CSV in exporters
+      exporters = Exporter.exporters()
+      assert QRCode in exporters
+      assert CSV in exporters
     end
 
     test "includes additional_exporters from application config" do
@@ -15,17 +21,17 @@ defmodule Blank.ExporterTest do
       Application.put_env(:blank, :additional_exporters, [__MODULE__.TestExporter])
 
       try do
-        exporters = Blank.Exporter.exporters()
+        exporters = Exporter.exporters()
         assert __MODULE__.TestExporter in exporters
-        assert Blank.Exporters.QRCode in exporters
-        assert Blank.Exporters.CSV in exporters
+        assert QRCode in exporters
+        assert CSV in exporters
       after
         Application.put_env(:blank, :additional_exporters, original)
       end
     end
 
     test "returns a list of atoms" do
-      exporters = Blank.Exporter.exporters()
+      exporters = Exporter.exporters()
       assert is_list(exporters)
       assert Enum.all?(exporters, &is_atom/1)
     end
@@ -33,28 +39,28 @@ defmodule Blank.ExporterTest do
 
   describe "behaviour callbacks" do
     test "CSV implements all required callbacks" do
-      assert Blank.Exporters.CSV.display?(nil) == true
-      assert Blank.Exporters.CSV.name() == "CSV"
-      assert Blank.Exporters.CSV.icon() == "hero-chart-bar"
-      assert Blank.Exporters.CSV.ext() == "csv"
-      assert is_function(&Blank.Exporters.CSV.process/2)
-      assert is_function(&Blank.Exporters.CSV.save/2)
+      assert CSV.display?(nil) == true
+      assert CSV.name() == "CSV"
+      assert CSV.icon() == "hero-chart-bar"
+      assert CSV.ext() == "csv"
+      assert is_function(&CSV.process/2)
+      assert is_function(&CSV.save/2)
     end
 
     test "QRCode implements all required callbacks" do
-      fields = [code: %Blank.Field{key: :code, module: Blank.Fields.QRCode}]
-      assert Blank.Exporters.QRCode.display?(fields) == true
-      assert Blank.Exporters.QRCode.name() == "QR Code"
-      assert Blank.Exporters.QRCode.icon() == "hero-qr-code"
-      assert Blank.Exporters.QRCode.ext() == "zip"
-      assert is_function(&Blank.Exporters.QRCode.process/2)
-      assert is_function(&Blank.Exporters.QRCode.save/2)
+      fields = [code: %Field{key: :code, module: FieldsQRCode}]
+      assert QRCode.display?(fields) == true
+      assert QRCode.name() == "QR Code"
+      assert QRCode.icon() == "hero-qr-code"
+      assert QRCode.ext() == "zip"
+      assert is_function(&QRCode.process/2)
+      assert is_function(&QRCode.save/2)
     end
   end
 
   # A minimal test exporter used above
   defmodule TestExporter do
-    @behaviour Blank.Exporter
+    @behaviour Exporter
 
     @impl true
     def display?(_), do: true

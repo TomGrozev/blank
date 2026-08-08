@@ -34,6 +34,7 @@ defmodule Blank.Audit.Context do
 
   import Plug.Conn
   alias Blank.Audit.AuditLog
+  alias Blank.Types.IP
 
   @doc """
   Loads the audit context into the plug connection
@@ -100,7 +101,7 @@ defmodule Blank.Audit.Context do
   defp get_ip_from_x_headers(headers) do
     with {_, ip} <- List.keyfind(headers, "x-forwarded-for", 0),
          [ip | _] = String.split(ip, ","),
-         {:ok, address} <- Blank.Types.IP.cast(ip) do
+         {:ok, address} <- IP.cast(ip) do
       address
     else
       _ ->

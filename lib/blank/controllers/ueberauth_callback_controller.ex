@@ -5,6 +5,7 @@ defmodule Blank.Controllers.UeberauthCallbackController do
   use Blank.Web, :controller
 
   alias Blank.Accounts
+  alias Blank.Audit.AuditLog
   alias Blank.Plugs.Auth
 
   @doc """
@@ -62,7 +63,7 @@ defmodule Blank.Controllers.UeberauthCallbackController do
              external_uid: uid,
              roles: ["member"]
            }) do
-      audit_context = conn.assigns[:audit_context] || Blank.Audit.AuditLog.system()
+      audit_context = conn.assigns[:audit_context] || AuditLog.system()
 
       Blank.Audit.log!(audit_context, "accounts.user_created", %{
         email: email,
@@ -103,7 +104,7 @@ defmodule Blank.Controllers.UeberauthCallbackController do
     provider = conn.params["provider"] || "unknown"
     reason = Enum.map_join(errors, ", ", & &1.message)
 
-    audit_context = conn.assigns[:audit_context] || Blank.Audit.AuditLog.system()
+    audit_context = conn.assigns[:audit_context] || AuditLog.system()
 
     Blank.Audit.log!(audit_context, "accounts.login_failed", %{
       email: "unknown",
@@ -123,7 +124,7 @@ defmodule Blank.Controllers.UeberauthCallbackController do
   defp handle_unknown(conn) do
     provider = conn.params["provider"] || "unknown"
 
-    audit_context = conn.assigns[:audit_context] || Blank.Audit.AuditLog.system()
+    audit_context = conn.assigns[:audit_context] || AuditLog.system()
 
     Blank.Audit.log!(audit_context, "accounts.login_failed", %{
       email: "unknown",

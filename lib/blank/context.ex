@@ -12,13 +12,11 @@ defmodule Blank.Context do
   @spec paginate_schema(Ecto.Repo.t(), Ecto.Schema.t(), map(), fields()) ::
           {:ok, {[any()], Flop.Meta.t()}} | {:error, Flop.Meta.t()}
   def paginate_schema(repo, schema, params, fields) do
-    try do
-      list_query(schema, fields)
-      |> Flop.validate_and_run(params, repo: repo, for: schema)
-    rescue
-      Ecto.NoResultsError ->
-        {:ok, {[], %Flop.Meta{current_page: 1, total_pages: 1}}}
-    end
+    list_query(schema, fields)
+    |> Flop.validate_and_run(params, repo: repo, for: schema)
+  rescue
+    Ecto.NoResultsError ->
+      {:ok, {[], %Flop.Meta{current_page: 1, total_pages: 1}}}
   end
 
   @doc """

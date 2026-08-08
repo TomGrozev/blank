@@ -3,6 +3,8 @@ defmodule Blank.Pages.LoginLive do
 
   use Blank.Web, :live_view
 
+  alias Blank.Plugs.Auth
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -102,7 +104,7 @@ defmodule Blank.Pages.LoginLive do
     email = Phoenix.Flash.get(socket.assigns.flash, :email)
     form = to_form(%{"email" => email}, as: "user")
 
-    local_auth_enabled? = Blank.Plugs.Auth.local_login_enabled?()
+    local_auth_enabled? = Auth.local_login_enabled?()
 
     ueberauth_providers =
       if Code.ensure_loaded?(Ueberauth) do

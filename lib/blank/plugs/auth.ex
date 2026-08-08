@@ -54,32 +54,38 @@ defmodule Blank.Plugs.Auth do
   Returns :ok if valid, or {:error, reason} if the token should be invalidated.
   """
   def check_token_validity(token_record) do
-    now = DateTime.utc_now()
-    idle_seconds = idle_timeout()
-    absolute_seconds = absolute_lifetime()
+    with :ok <- check_not_expired(token_record) do
+      check_not_idle_expired(token_record)
+    end
+  end
 
-    # Check absolute lifetime: token expires when now >= inserted_at + absolute_lifetime
+  defp check_not_expired(token_record) do
+    now = DateTime.utc_now()
+    absolute_seconds = absolute_lifetime()
     absolute_deadline = DateTime.add(token_record.inserted_at, absolute_seconds, :second)
 
     if DateTime.compare(now, absolute_deadline) != :lt do
       {:error, :expired}
     else
-      # Check idle timeout (only if last_activity_at is set)
-      case token_record.last_activity_at do
-        nil ->
-          # Token was created before last_activity_at was implemented - valid
+      :ok
+    end
+  end
+
+  defp check_not_idle_expired(token_record) do
+    case token_record.last_activity_at do
+      nil ->
+        :ok
+
+      last_activity ->
+        now = DateTime.utc_now()
+        idle_seconds = idle_timeout()
+        idle_deadline = DateTime.add(last_activity, idle_seconds, :second)
+
+        if DateTime.compare(now, idle_deadline) != :lt do
+          {:error, :idle_expired}
+        else
           :ok
-
-        last_activity ->
-          # Token expires when now >= last_activity + idle_timeout
-          idle_deadline = DateTime.add(last_activity, idle_seconds, :second)
-
-          if DateTime.compare(now, idle_deadline) != :lt do
-            {:error, :idle_expired}
-          else
-            :ok
-          end
-      end
+        end
     end
   end
 
@@ -87,7 +93,7 @@ defmodule Blank.Plugs.Auth do
     case unit do
       :minutes -> value * 60
       :hours -> value * 3600
-      :days -> value * 86400
+      :days -> value * 86_400
     end
   end
 
@@ -183,7 +189,7 @@ defmodule Blank.Plugs.Auth do
 
     if live_socket_id = get_session(conn, :live_socket_id) do
       endpoint = Application.fetch_env!(:blank, :endpoint)
-      apply(endpoint, :broadcast, [live_socket_id, "disconnect", %{}])
+      endpoint.broadcast(live_socket_id, "disconnect", %{})
     end
 
     prefix = conn.private.phoenix_router.__blank_prefix__()
@@ -206,34 +212,31 @@ defmodule Blank.Plugs.Auth do
         assign(conn, :current_user, nil)
 
       token ->
-        # Fetch the token record to check validity
         token_record = repo().one(UserToken.by_token_and_context_query(token, "session"))
+        conn = handle_token_record(conn, token, token_record)
+        conn
+    end
+  end
 
-        case token_record do
-          nil ->
-            # Token doesn't exist in DB - clear session
-            conn
-            |> configure_session(drop: true)
-            |> assign(:current_user, nil)
+  defp handle_token_record(conn, _token, nil) do
+    conn
+    |> configure_session(drop: true)
+    |> assign(:current_user, nil)
+  end
 
-          token_record ->
-            # Check token validity (idle timeout and absolute lifetime)
-            case Blank.Plugs.Auth.check_token_validity(token_record) do
-              :ok ->
-                # Valid token - update last_activity_at and fetch user
-                UserToken.touch_last_activity(token_record)
-                user = Accounts.get_user_by_session_token(token)
-                assign(conn, :current_user, user)
+  defp handle_token_record(conn, token, token_record) do
+    case check_token_validity(token_record) do
+      :ok ->
+        UserToken.touch_last_activity(token_record)
+        user = Accounts.get_user_by_session_token(token)
+        assign(conn, :current_user, user)
 
-              {:error, _reason} ->
-                # Invalid token - delete it and clear session
-                Accounts.delete_user_session_token(token)
+      {:error, _reason} ->
+        Accounts.delete_user_session_token(token)
 
-                conn
-                |> configure_session(drop: true)
-                |> assign(:current_user, nil)
-            end
-        end
+        conn
+        |> configure_session(drop: true)
+        |> assign(:current_user, nil)
     end
   end
 
@@ -322,31 +325,30 @@ defmodule Blank.Plugs.Auth do
 
   defp mount_current_user(socket, session) do
     Phoenix.Component.assign_new(socket, :current_user, fn ->
-      if user_token = session["user_token"] do
-        # Fetch the token record to check validity
-        token_record = repo().one(UserToken.by_token_and_context_query(user_token, "session"))
-
-        case token_record do
-          nil ->
-            # Token doesn't exist in DB
-            nil
-
-          token_record ->
-            # Check token validity (idle timeout and absolute lifetime)
-            case Blank.Plugs.Auth.check_token_validity(token_record) do
-              :ok ->
-                # Valid token - update last_activity_at and fetch user
-                UserToken.touch_last_activity(token_record)
-                Accounts.get_user_by_session_token(user_token)
-
-              {:error, _reason} ->
-                # Invalid token - delete it
-                Accounts.delete_user_session_token(user_token)
-                nil
-            end
-        end
+      case session["user_token"] do
+        nil -> nil
+        user_token -> find_valid_user(user_token)
       end
     end)
+  end
+
+  defp find_valid_user(user_token) do
+    case repo().one(UserToken.by_token_and_context_query(user_token, "session")) do
+      nil -> nil
+      token_record -> resolve_token(user_token, token_record)
+    end
+  end
+
+  defp resolve_token(user_token, token_record) do
+    case check_token_validity(token_record) do
+      :ok ->
+        UserToken.touch_last_activity(token_record)
+        Accounts.get_user_by_session_token(user_token)
+
+      {:error, _reason} ->
+        Accounts.delete_user_session_token(user_token)
+        nil
+    end
   end
 
   @doc """

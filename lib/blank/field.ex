@@ -250,13 +250,15 @@ defmodule Blank.Field do
 
   @optional_callbacks render_list: 1
 
+  alias Blank.Errors.InvalidConfigError
+
   @doc false
   def field_schema, do: @field_schema
 
   @doc false
   def __aggregate_field_schemas__ do
     @fields
-    |> Stream.map(&apply(&1, :__schema__, []))
+    |> Stream.map(& &1.__schema__())
     |> Enum.concat()
   end
 
@@ -269,7 +271,7 @@ defmodule Blank.Field do
         opts
 
       {:error, err} ->
-        raise Blank.Errors.InvalidConfigError.from_nimble(err,
+        raise InvalidConfigError.from_nimble(err,
                 caller: caller,
                 module: Blank.Schema,
                 usage: "@derive"

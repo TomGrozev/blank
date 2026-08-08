@@ -4,12 +4,13 @@ defmodule Blank.Fields.LocationTest do
   import Phoenix.LiveViewTest
 
   alias Blank.Field
+  alias Blank.Fields.Location
 
   describe "render_display/1" do
     test "with Geo.Point value returns rendered HTML" do
       definition = %Field{
         key: :location,
-        module: Blank.Fields.Location,
+        module: Location,
         label: "Location"
       }
 
@@ -19,7 +20,7 @@ defmodule Blank.Fields.LocationTest do
       }
 
       html =
-        render_component(&Blank.Fields.Location.render/1, %{
+        render_component(&Location.render/1, %{
           type: :display,
           field: definition,
           value: value
@@ -32,12 +33,12 @@ defmodule Blank.Fields.LocationTest do
     test "with nil value returns rendered HTML" do
       definition = %Field{
         key: :location,
-        module: Blank.Fields.Location,
+        module: Location,
         label: "Location"
       }
 
       html =
-        render_component(&Blank.Fields.Location.render/1, %{
+        render_component(&Location.render/1, %{
           type: :display,
           field: definition,
           value: nil
@@ -51,7 +52,7 @@ defmodule Blank.Fields.LocationTest do
     test "with Geo.Point value returns rendered HTML" do
       definition = %Field{
         key: :location,
-        module: Blank.Fields.Location,
+        module: Location,
         label: "Location"
       }
 
@@ -61,7 +62,7 @@ defmodule Blank.Fields.LocationTest do
       }
 
       html =
-        render_component(&Blank.Fields.Location.render/1, %{
+        render_component(&Location.render/1, %{
           type: :list,
           field: definition,
           value: value
@@ -76,7 +77,7 @@ defmodule Blank.Fields.LocationTest do
     test "with map value returns rendered HTML" do
       definition = %Field{
         key: :location,
-        module: Blank.Fields.Location,
+        module: Location,
         label: "Location"
       }
 
@@ -88,7 +89,7 @@ defmodule Blank.Fields.LocationTest do
       form = Phoenix.Component.to_form(%{"location" => value})
 
       html =
-        render_component(&Blank.Fields.Location.render/1, %{
+        render_component(&Location.render/1, %{
           type: :form,
           field: form[:location],
           definition: definition
@@ -100,7 +101,7 @@ defmodule Blank.Fields.LocationTest do
     test "with Geo.Point value returns rendered HTML" do
       definition = %Field{
         key: :location,
-        module: Blank.Fields.Location,
+        module: Location,
         label: "Location"
       }
 
@@ -112,7 +113,7 @@ defmodule Blank.Fields.LocationTest do
       form = Phoenix.Component.to_form(%{"location" => value})
 
       html =
-        render_component(&Blank.Fields.Location.render/1, %{
+        render_component(&Location.render/1, %{
           type: :form,
           field: form[:location],
           definition: definition
@@ -124,7 +125,7 @@ defmodule Blank.Fields.LocationTest do
     test "with address_fun option returns rendered HTML" do
       definition = %Field{
         key: :location,
-        module: Blank.Fields.Location,
+        module: Location,
         label: "Location",
         address_fun: fn _query -> {:ok, []} end
       }
@@ -137,7 +138,7 @@ defmodule Blank.Fields.LocationTest do
       form = Phoenix.Component.to_form(%{"location" => value})
 
       html =
-        render_component(&Blank.Fields.Location.render/1, %{
+        render_component(&Location.render/1, %{
           type: :form,
           field: form[:location],
           definition: definition

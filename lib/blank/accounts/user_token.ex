@@ -9,8 +9,8 @@ defmodule Blank.Accounts.UserToken do
   use Blank.EctoSchema
 
   import Ecto.Query
-  alias Blank.Accounts.UserToken
   alias Blank.Accounts.User
+  alias Blank.Accounts.UserToken
 
   @type t :: %{
           token: binary(),

@@ -2,6 +2,8 @@ defmodule Blank.Controllers.ExportController do
   @moduledoc false
   use Blank.Web, :controller
 
+  alias Blank.Utils.QRCode
+
   @doc """
   Downloads a download with id
 
@@ -27,7 +29,7 @@ defmodule Blank.Controllers.ExportController do
   """
   @spec qr_code(conn :: Plug.Conn.t(), map()) :: Plug.Conn.t()
   def qr_code(conn, %{"code" => code, "path" => path}) do
-    png = Blank.Utils.QRCode.png(code, path)
+    png = QRCode.png(code, path)
 
     send_download(conn, {:binary, png}, filename: "#{code}.png")
   end
