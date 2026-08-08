@@ -253,7 +253,7 @@ defmodule Blank.Components.ImportComponent do
              :error,
              "Failed to import #{socket.assigns.plural_name}, inserted (#{count}/#{total})"
            )
-           |> push_patch(socket.assigns.patch)}
+           |> push_patch(to: socket.assigns.patch)}
 
         {:error, _} ->
           {:noreply,
@@ -262,7 +262,7 @@ defmodule Blank.Components.ImportComponent do
              :error,
              "Failed to import #{socket.assigns.plural_name}"
            )
-           |> push_patch(socket.assigns.patch)}
+           |> push_patch(to: socket.assigns.patch)}
       end
     else
       {:noreply, assign(socket, :form, to_form(changeset, as: :csv_form))}
@@ -290,25 +290,43 @@ defmodule Blank.Components.ImportComponent do
 
   defp object_to_csv(changeset, object, fields) do
     Enum.reduce(fields, %{}, fn {k, def}, acc ->
-      if field = Ecto.Changeset.get_field(changeset, k) do
-        children_strings =
-          Map.new(
-            Keyword.keys(def.children),
-            &{Atom.to_string(&1), &1}
-          )
-
-        order =
-          Ecto.Changeset.get_field(changeset, order_key(k))
-          |> String.split(", ")
-          |> Stream.map(&Map.get(children_strings, &1))
-          |> Enum.reject(&is_nil/1)
-
-        val = Map.fetch!(object, field) |> Enum.map(&map_values(&1, order))
-        Map.put(acc, k, val)
-      else
-        acc
+      case Ecto.Changeset.get_field(changeset, k) do
+        nil -> acc
+        field -> resolve_field(acc, k, changeset, def, object, field)
       end
     end)
+  end
+
+  defp resolve_field(acc, k, changeset, def, object, field) do
+    children_strings =
+      Map.new(
+        Keyword.keys(def.children),
+        &{Atom.to_string(&1), &1}
+      )
+
+    order =
+      (Ecto.Changeset.get_field(changeset, order_key(k)) || "")
+      |> String.split(", ", trim: true)
+      |> Stream.map(&Map.get(children_strings, &1))
+      |> Enum.reject(&is_nil/1)
+
+    raw_val = Map.fetch!(object, field)
+
+    val =
+      case raw_val do
+        val when is_list(val) and order != [] ->
+          Enum.map(val, &map_values(&1, order))
+
+        val when is_list(val) ->
+          # Field has no children but value was split into a list;
+          # take the first element since the schema field expects a single value.
+          List.first(val, "")
+
+        val ->
+          map_values(val, order)
+      end
+
+    Map.put(acc, k, val)
   end
 
   defp map_values(val, order) when is_list(val) do

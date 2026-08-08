@@ -12,7 +12,7 @@ defmodule Blank.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      test_coverage: [tool: ExCoveralls],
+      test_coverage: [tool: ExCoveralls, threshold: 80],
       # Hex
       description: "Blank is a drop-in admin panel for your elixir projects.",
       package: package(),

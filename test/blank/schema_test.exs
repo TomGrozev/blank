@@ -9,6 +9,7 @@ defmodule Blank.SchemaTest do
   alias Blank.Schema.Any
   alias TestApp.Accounts.User
   alias TestApp.Blog.Article
+  alias TestApp.Blog.Document
   alias TestApp.Blog.Post
   alias TestApp.Blog.Review
   alias TestApp.Repo
@@ -538,6 +539,186 @@ defmodule Blank.SchemaTest do
     test "field_info/2 returns correct ecto_type for rating_label (string)" do
       info = Flop.Schema.field_info(%Review{}, :rating_label)
       assert info.ecto_type == :string
+    end
+  end
+
+  # ─── __name__/2 with list identity_field value ────────────────────────
+
+  describe "__name__/2 with list identity_field" do
+    test "joins list elements with commas" do
+      article = %Article{id: 1, title: "Test", tag_names: ["elixir", "phoenix"]}
+      assert Any.__name__(article, :tag_names) == "elixir, phoenix"
+    end
+
+    test "returns single-element list as string" do
+      article = %Article{id: 1, title: "Test", tag_names: ["elixir"]}
+      assert Any.__name__(article, :tag_names) == "elixir"
+    end
+
+    test "returns empty list as empty string" do
+      article = %Article{id: 1, title: "Test", tag_names: []}
+      assert Any.__name__(article, :tag_names) == ""
+    end
+
+    test "returns nil for nil list value" do
+      article = %Article{id: 1, title: "Test", tag_names: nil}
+      assert Any.__name__(article, :tag_names) == nil
+    end
+  end
+
+  # ─── __name__/2 with map identity_field value ────────────────────────
+
+  describe "__name__/2 with map identity_field" do
+    test "resolves belongs_to display_field" do
+      author = user_fixture(%{id: 10, name: "Alice"})
+      post = post_fixture(%{author: author, author_id: 10})
+      assert Any.__name__(post, :author) == "Alice"
+    end
+
+    test "resolves map value using display_field from field def" do
+      author = user_fixture(%{id: 20, name: "Bob"})
+      post = post_fixture(%{author: author, author_id: 20})
+      assert Any.__name__(post, :author) == "Bob"
+    end
+  end
+
+  # ─── put_field_module/3 ─────────────────────────────────────────────
+
+  describe "put_field_module/3" do
+    test "returns BelongsTo for belongs_to association" do
+      {module, _opts} = Any.put_field_module([], :author, Post)
+      assert module == BelongsTo
+    end
+
+    test "returns BelongsTo for Review's post association" do
+      {module, _opts} = Any.put_field_module([], :post, Review)
+      assert module == BelongsTo
+    end
+
+    test "returns HasMany for has_many association" do
+      {module, _opts} = Any.put_field_module([], :tags, Post)
+      assert module == HasMany
+    end
+
+    test "returns HasMany for Review's comments association" do
+      {module, _opts} = Any.put_field_module([], :comments, Post)
+      assert module == HasMany
+    end
+
+    test "returns List for array field" do
+      {module, _opts} = Any.put_field_module([], :tag_names, Article)
+      assert module == List
+    end
+
+    test "returns Text for :string type field" do
+      {module, _opts} = Any.put_field_module([], :title, Post)
+      assert module == Blank.Fields.Text
+    end
+
+    test "returns Boolean for :boolean type field" do
+      {module, _opts} = Any.put_field_module([], :published, Post)
+      assert module == Blank.Fields.Boolean
+    end
+
+    test "returns module from field_def when already set" do
+      {module, opts} = Any.put_field_module([module: Blank.Fields.Boolean], :title, Post)
+      assert module == Blank.Fields.Boolean
+      assert opts[:module] == Blank.Fields.Boolean
+    end
+  end
+
+  # ─── default_for_field/1 (indirectly via get_field) ──────────────────
+
+  describe "default_for_field/1 via get_field" do
+    test "returns label 'ID' and readonly for :id field" do
+      post = post_fixture()
+      field = Blank.Schema.get_field(post, :id)
+      assert field.label == "ID"
+      assert field.readonly == true
+    end
+
+    test "returns label 'Arango ID' and readonly for :__id__ field" do
+      struct = %Document{id: 1, __id__: "abc123", title: "Test"}
+      field = Blank.Schema.get_field(struct, :__id__)
+      assert field.label == "Arango ID"
+      assert field.readonly == true
+    end
+
+    test "returns empty defaults for a regular non-id field" do
+      post = post_fixture()
+      field = Blank.Schema.get_field(post, :body)
+      # body has explicit label: "Body" from field config, so not empty defaults
+      assert field.label == "Body"
+      assert field.readonly != true
+    end
+  end
+
+  # ─── schema_fields/1 (indirectly via get_field for all fields) ──────
+
+  describe "schema_fields/1 via get_field for all fields" do
+    test "get_field works for all Post schema fields" do
+      post = post_fixture()
+
+      # These fields exist in the schema but may not be in the @derive fields config
+      for field <- Post.__schema__(:fields) do
+        result = Blank.Schema.get_field(post, field)
+        assert %Blank.Field{} = result
+        assert result.key == field
+      end
+    end
+
+    test "get_field works for all User schema fields" do
+      user = user_fixture()
+
+      for field <- User.__schema__(:fields) do
+        result = Blank.Schema.get_field(user, field)
+        assert %Blank.Field{} = result
+        assert result.key == field
+      end
+    end
+
+    test "get_field works for all Article schema fields" do
+      article = %Article{id: 1, title: "Test", tag_names: ["elixir"]}
+
+      for field <- Article.__schema__(:fields) do
+        result = Blank.Schema.get_field(article, field)
+        assert %Blank.Field{} = result
+        assert result.key == field
+      end
+    end
+
+    test "get_field works for all Review schema fields" do
+      review = review_fixture()
+
+      for field <- Review.__schema__(:fields) do
+        result = Blank.Schema.get_field(review, field)
+        assert %Blank.Field{} = result
+        assert result.key == field
+      end
+    end
+  end
+
+  # ─── default_order/1 via order_field/1 ──────────────────────────────
+
+  describe "default_order/1 via order_field" do
+    test "nil order_field defaults to {id, :asc} for Post" do
+      post = post_fixture()
+      assert Blank.Schema.order_field(post) == {:id, :asc}
+    end
+
+    test "nil order_field defaults to {id, :asc} for User" do
+      user = user_fixture()
+      assert Blank.Schema.order_field(user) == {:id, :asc}
+    end
+
+    test "tuple order_field is preserved for Review" do
+      review = review_fixture()
+      assert Blank.Schema.order_field(review) == {:rating, :desc}
+    end
+
+    test "nil order_field defaults to {id, :asc} for Article" do
+      article = %Article{id: 1, title: "Test", tag_names: []}
+      assert Blank.Schema.order_field(article) == {:id, :asc}
     end
   end
 
