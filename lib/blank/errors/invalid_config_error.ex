@@ -3,6 +3,16 @@ defmodule Blank.Errors.InvalidConfigError do
 
   defexception [:caller, :module, :usage, :key, :message, :value, :keys_path]
 
+  @type t :: %__MODULE__{
+          caller: module(),
+          module: module(),
+          usage: String.t(),
+          key: atom(),
+          message: String.t(),
+          value: term(),
+          keys_path: [atom()]
+        }
+
   def message(%{} = err) do
     """
     invalid #{err.module} configuration
@@ -14,6 +24,7 @@ defmodule Blank.Errors.InvalidConfigError do
   end
 
   @doc false
+  @spec from_nimble(NimbleOptions.ValidationError.t(), keyword()) :: t()
   def from_nimble(%NimbleOptions.ValidationError{} = error, opts) do
     %__MODULE__{
       caller: Keyword.fetch!(opts, :caller),

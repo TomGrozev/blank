@@ -12,6 +12,7 @@ defmodule Blank.Controllers.UeberauthCallbackController do
   Called by ueberauth after authentication attempt.
   Reads `:ueberauth_auth` or `:ueberauth_failure` from conn assigns.
   """
+  @spec callback(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def callback(conn, _params) do
     # Manually invoke Ueberauth to populate assigns
     # This defers provider resolution from compile-time to runtime

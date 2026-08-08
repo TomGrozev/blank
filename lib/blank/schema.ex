@@ -66,8 +66,10 @@ defmodule Blank.Schema.Options do
     ]
   ]
 
+  @spec __schema__() :: keyword()
   def __schema__, do: @schema
 
+  @spec validate!(keyword(), module()) :: keyword()
   def validate!(opts, caller) do
     flop_schema =
       Flop.NimbleSchemas.schema_option_schema()

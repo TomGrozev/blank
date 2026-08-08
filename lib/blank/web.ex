@@ -2,6 +2,7 @@ defmodule Blank.Web do
   @moduledoc false
 
   @doc false
+  @spec html() :: Macro.t()
   def html do
     quote do
       use Phoenix.Component
@@ -15,6 +16,7 @@ defmodule Blank.Web do
   end
 
   @doc false
+  @spec controller() :: Macro.t()
   def controller do
     quote do
       use Phoenix.Controller, formats: [:json]
@@ -24,6 +26,7 @@ defmodule Blank.Web do
   end
 
   @doc false
+  @spec live_view() :: Macro.t()
   def live_view do
     quote do
       use Phoenix.LiveView,
@@ -35,6 +38,7 @@ defmodule Blank.Web do
   end
 
   @doc false
+  @spec live_component() :: Macro.t()
   def live_component do
     quote do
       use Phoenix.LiveComponent
@@ -44,6 +48,7 @@ defmodule Blank.Web do
   end
 
   @doc false
+  @spec flash_helpers() :: Macro.t()
   def flash_helpers do
     quote do
       def handle_info(:clear_flash, socket) do
@@ -53,6 +58,7 @@ defmodule Blank.Web do
   end
 
   @doc false
+  @spec field() :: Macro.t()
   def field do
     quote do
       use Phoenix.Component
@@ -63,6 +69,7 @@ defmodule Blank.Web do
   end
 
   @doc false
+  @spec stat() :: Macro.t()
   def stat do
     quote do
       use Phoenix.Component

@@ -2,18 +2,22 @@ defmodule Blank.DownloadAgent do
   @moduledoc false
   use GenServer
 
+  @spec start_link(term()) :: GenServer.on_start()
   def start_link(_) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
+  @spec add(String.t(), String.t(), non_neg_integer()) :: {:ok, String.t()}
   def add(id, path, ttl \\ 600_000) do
     GenServer.call(__MODULE__, {:add, id, path, ttl})
   end
 
+  @spec get(String.t()) :: {:ok, String.t()} | {:error, String.t()}
   def get(id) do
     GenServer.call(__MODULE__, {:get, id})
   end
 
+  @spec delete(String.t()) :: :ok
   def delete(id) do
     GenServer.cast(__MODULE__, {:delete, id})
   end
