@@ -266,7 +266,7 @@ defmodule Blank.AuthFlowTest do
       assert user.name == "New OAuth"
       assert user.provider == "google"
       assert user.external_uid == "uid_new_1"
-      assert user.roles == ["member"]
+      assert user.roles == [:member]
     end
 
     test "emits accounts.user_created audit event" do
@@ -500,6 +500,177 @@ defmodule Blank.AuthFlowTest do
       providers = Keyword.get(config, :providers, [])
       assert providers != []
       assert Keyword.has_key?(providers, :google)
+    end
+  end
+
+  # ── Session Timeout Tests ──
+
+  describe "Session timeout — idle timeout" do
+    test "token is valid within idle timeout", %{conn: conn, user: user} do
+      # Set a short idle timeout for testing
+      original_config = Application.get_env(:blank, :auth, [])
+
+      on_exit(fn ->
+        Application.put_env(:blank, :auth, original_config)
+      end)
+
+      Application.put_env(:blank, :auth, idle_timeout: {1, :hours})
+
+      conn =
+        conn
+        |> log_in_user(user)
+        |> get("/admin/settings")
+
+      assert html_response(conn, 200) =~ "Settings"
+    end
+
+    test "token is invalidated after idle timeout", %{conn: conn, user: user} do
+      # Set a very short idle timeout
+      original_config = Application.get_env(:blank, :auth, [])
+
+      on_exit(fn ->
+        Application.put_env(:blank, :auth, original_config)
+      end)
+
+      Application.put_env(:blank, :auth, idle_timeout: {1, :minutes})
+
+      conn =
+        conn
+        |> log_in_user(user)
+
+      # Get the token from session
+      token = get_session(conn, :user_token)
+
+      # Manually update last_activity_at to 2 minutes ago
+      token_record =
+        TestApp.Repo.one!(Blank.Accounts.UserToken.by_token_and_context_query(token, "session"))
+
+      two_minutes_ago =
+        DateTime.truncate(DateTime.add(DateTime.utc_now(), -120, :second), :second)
+
+      TestApp.Repo.update!(
+        Ecto.Changeset.change(token_record, %{last_activity_at: two_minutes_ago})
+      )
+
+      # Now try to access a protected page - should be redirected
+      conn2 =
+        conn
+        |> recycle()
+        |> Plug.Test.init_test_session(%{user_token: token})
+        |> get("/admin/settings")
+
+      # Should redirect to login due to idle timeout
+      assert %{status: 302} = conn2
+    end
+  end
+
+  describe "Session timeout — absolute lifetime" do
+    test "token is valid within absolute lifetime", %{conn: conn, user: user} do
+      # Set a long absolute lifetime for testing
+      original_config = Application.get_env(:blank, :auth, [])
+
+      on_exit(fn ->
+        Application.put_env(:blank, :auth, original_config)
+      end)
+
+      Application.put_env(:blank, :auth, absolute_lifetime: {30, :days})
+
+      conn =
+        conn
+        |> log_in_user(user)
+        |> get("/admin/settings")
+
+      assert html_response(conn, 200) =~ "Settings"
+    end
+
+    test "token is invalidated after absolute lifetime", %{conn: conn, user: user} do
+      # Set a very short absolute lifetime
+      original_config = Application.get_env(:blank, :auth, [])
+
+      on_exit(fn ->
+        Application.put_env(:blank, :auth, original_config)
+      end)
+
+      Application.put_env(:blank, :auth, absolute_lifetime: {1, :minutes})
+
+      conn =
+        conn
+        |> log_in_user(user)
+
+      # Get the token from session
+      token = get_session(conn, :user_token)
+
+      # Manually update inserted_at to 2 minutes ago
+      token_record =
+        TestApp.Repo.one!(Blank.Accounts.UserToken.by_token_and_context_query(token, "session"))
+
+      two_minutes_ago =
+        DateTime.truncate(DateTime.add(DateTime.utc_now(), -120, :second), :second)
+
+      TestApp.Repo.update!(Ecto.Changeset.change(token_record, %{inserted_at: two_minutes_ago}))
+
+      # Now try to access a protected page - should be redirected
+      conn2 =
+        conn
+        |> recycle()
+        |> Plug.Test.init_test_session(%{user_token: token})
+        |> get("/admin/settings")
+
+      # Should redirect to login due to absolute lifetime
+      assert %{status: 302} = conn2
+    end
+  end
+
+  describe "Session timeout — last_activity_at update" do
+    test "last_activity_at is updated on each request", %{conn: conn, user: user} do
+      conn =
+        conn
+        |> log_in_user(user)
+
+      # Get the token from session
+      token = get_session(conn, :user_token)
+
+      # Get initial last_activity_at
+      token_record =
+        TestApp.Repo.one!(Blank.Accounts.UserToken.by_token_and_context_query(token, "session"))
+
+      initial_last_activity = token_record.last_activity_at
+      assert initial_last_activity != nil
+
+      # Sleep to ensure timestamp changes (truncated to seconds)
+      Process.sleep(1100)
+
+      # Make a request
+      conn
+      |> get("/admin/settings")
+
+      # Check that last_activity_at was updated
+      updated_token_record =
+        TestApp.Repo.one!(Blank.Accounts.UserToken.by_token_and_context_query(token, "session"))
+
+      assert DateTime.compare(updated_token_record.last_activity_at, initial_last_activity) == :gt
+    end
+  end
+
+  describe "Session timeout — config defaults" do
+    test "config defaults work when not explicitly set" do
+      # Clear any existing config
+      original_config = Application.get_env(:blank, :auth, [])
+
+      on_exit(fn ->
+        Application.put_env(:blank, :auth, original_config)
+      end)
+
+      Application.delete_env(:blank, :auth)
+
+      # Should use default values without crashing
+      idle_timeout = Blank.Plugs.Auth.idle_timeout()
+      absolute_lifetime = Blank.Plugs.Auth.absolute_lifetime()
+
+      # 4 hours in seconds
+      assert idle_timeout == 4 * 3600
+      # 60 days in seconds
+      assert absolute_lifetime == 60 * 86400
     end
   end
 end

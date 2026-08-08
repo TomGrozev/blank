@@ -31,7 +31,7 @@ defmodule Mix.Tasks.Blank.User.NewTest do
       user = TestApp.Repo.one!(from(u in User, where: u.email == "admin@example.com"))
       assert user.email == "admin@example.com"
       assert user.name == "Admin User"
-      assert user.roles == ["system_admin", "member"]
+      assert user.roles == [:system_admin, :member]
       assert is_nil(user.provider)
       assert is_nil(user.external_uid)
 
@@ -107,6 +107,26 @@ defmodule Mix.Tasks.Blank.User.NewTest do
           "TestApp.Repo"
         ])
       end
+    end
+  end
+
+  describe "run/1 rejects invalid roles" do
+    test "fails with changeset error for unregistered role names" do
+      Mix.shell(Mix.Shell.Process)
+
+      Mix.Tasks.Blank.User.New.run([
+        "--email",
+        "badroles@example.com",
+        "--password",
+        "Password123!",
+        "--roles",
+        "paymant_manager",
+        "-r",
+        "TestApp.Repo"
+      ])
+
+      # User should NOT be created
+      assert TestApp.Repo.one(from(u in User, where: u.email == "badroles@example.com")) == nil
     end
   end
 end

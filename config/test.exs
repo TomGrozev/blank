@@ -5,7 +5,8 @@ config :blank,
   endpoint: TestAppWeb.Endpoint,
   repo: TestApp.Repo,
   use_local_timezone: false,
-  additional_exporters: []
+  additional_exporters: [],
+  authorization: [roles: [:content_editor]]
 
 # Configure the test endpoint
 config :test_app, TestAppWeb.Endpoint,

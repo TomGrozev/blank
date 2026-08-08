@@ -57,15 +57,17 @@ defmodule Mix.Tasks.Blank.User.New do
           %User{}
           |> User.registration_changeset(%{email: email, password: password}, repo: repo)
           |> Ecto.Changeset.put_change(:name, name)
-          |> Ecto.Changeset.put_change(:roles, roles)
+          |> Ecto.Changeset.cast(%{roles: roles}, [:roles])
 
         with {:ok, _} <- repo.__adapter__().ensure_all_started(repo.config(), :temporary),
              {:ok, _} <- ensure_repo_started(repo),
-             {:ok, _user} <- repo.insert(changeset) do
+             {:ok, user} <- repo.insert(changeset) do
+          string_roles = Enum.map(user.roles, &Atom.to_string/1)
+
           Blank.Audit.log!(
             Blank.Audit.AuditLog.system(),
             "accounts.user_created",
-            %{email: email, roles: roles}
+            %{email: email, roles: string_roles}
           )
 
           Mix.shell().info("User #{email} created successfully")

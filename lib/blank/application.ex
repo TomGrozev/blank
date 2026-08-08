@@ -10,6 +10,7 @@ defmodule Blank.Application do
           {:ok, pid()} | {:error, {:already_started, pid()} | {:shutdown, term()} | term()}
   def start(_, _) do
     validate_ueberauth_config!()
+    validate_authorization_config!()
 
     children = [
       # {DynamicSupervisor, name: Blank.DynamicSupervisor, strategy: :one_for_one},
@@ -19,6 +20,27 @@ defmodule Blank.Application do
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one)
+  end
+
+  defp validate_authorization_config! do
+    config = Application.get_env(:blank, :authorization, [])
+    roles = Keyword.get(config, :roles, [])
+
+    unless is_list(roles) and Enum.all?(roles, &is_atom/1) do
+      raise """
+      Blank authorization config is invalid.
+
+      The :roles key must be a list of atoms:
+
+          config :blank, :authorization, roles: [:payment_manager, :content_editor]
+
+      Got: #{inspect(roles)}
+      """
+    end
+
+    # Compute and cache the allowed-set at boot
+    Blank.Authorization.compute_and_cache_allowed_roles()
+    :ok
   end
 
   defp validate_ueberauth_config! do

@@ -186,4 +186,28 @@ defmodule Blank.Accounts.UserTest do
       assert {"is not valid", _} = result.errors[:current_password]
     end
   end
+
+  # ── roles field ──
+
+  describe "roles field" do
+    test "casts valid role strings through the type" do
+      changeset =
+        %User{}
+        |> User.registration_changeset(%{email: @valid_email, password: @valid_password})
+        |> Ecto.Changeset.cast(%{roles: ["system_admin", "member"]}, [:roles])
+
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :roles) == [:system_admin, :member]
+    end
+
+    test "rejects invalid role strings through the type" do
+      changeset =
+        %User{}
+        |> User.registration_changeset(%{email: @valid_email, password: @valid_password})
+        |> Ecto.Changeset.cast(%{roles: ["nonexistent_role"]}, [:roles])
+
+      refute changeset.valid?
+      assert errors_on(changeset)[:roles]
+    end
+  end
 end

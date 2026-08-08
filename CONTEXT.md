@@ -32,6 +32,40 @@ _Avoid_: History, event, change record
 Request metadata (IP address, acting Admin) collected per-request and used to populate Audit Logs.
 _Avoid_: Request context, session info
 
+### Authorization
+
+**Authorization**:
+The layer that decides whether a given Admin may perform an action on a resource. Exposed via `Blank.Authorization.can?/3` (the wrapper) and a consumer-supplied policy module implementing the `Blank.Authorization.Policy` behaviour.
+_Avoid_: Permissions, access control, RBAC, authz
+
+**Role**:
+An atom (`:system_admin`, `:member`, or a consumer-configured atom like `:payment_manager`) attached to a user via `User.roles`. Roles are the unit of capability. Atoms in memory, persisted as strings on disk via the `Blank.Types.Role` custom Ecto type.
+_Avoid_: Permission, group, claim, scope
+
+**Blank.Scope**:
+A struct passed to `can?/3` carrying `resource_type` (required atom), `resource_id` (optional), and `extra` (consumer escape map). Encodes "the thing being acted on and its bounds".
+_Avoid_: Permission context, request scope, action context
+
+**Policy Module**:
+A consumer module implementing the `Blank.Authorization.Policy` behaviour's `policy/3` callback. Decides per `{user, action, scope}` triples whether the action is allowed. Composes over `Blank.Authorization.DefaultPolicy` via the `use Blank.Authorization.Policy` macro.
+_Avoid_: Authz rules, permission set, capability matrix
+
+**DefaultPolicy**:
+Blank's built-in policy module, used when no `:policy_module` is configured. Closed-by-default: returns `false` for all non-`:system_admin` calls. `:system_admin` is short-circuited to `true` by the wrapper, not by DefaultPolicy.
+_Avoid_: Built-in policy, fallback policy, base policy
+
+**Role Mapper**:
+A consumer-supplied module implementing the `Blank.Authorization.RoleMapper` behaviour. Called on every ueberauth callback to convert IdP claims into a list of role atoms overwriting `User.roles`. Blank ships built-in mappers for GitHub and OIDCC.
+_Avoid_: Claim reader, group mapper, role extractor
+
+**Break-Glass**:
+The `:system_admin` short-circuit in `Blank.Authorization.can?/3` — always returns `true` for users holding the `:system_admin` role, regardless of policy module. Consumer policies never see `:system_admin` cases.
+_Avoid_: Superuser, root, bypass, override
+
+**Bootstrap**:
+The act of granting the first `:system_admin` role so a system can be administered. In Blank, bootstrap is performed exclusively via `mix blank.user.new --roles system_admin` from the shell. No runtime env-var-based bootstrap mechanism exists (per-login env-var bootstrap grant dropped; ADR-0005's stance reaffirmed).
+_Avoid_: First-time setup, init grant, seed admin
+
 ### Data Export
 
 **Exporter**:
