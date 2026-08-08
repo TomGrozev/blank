@@ -545,6 +545,8 @@ defmodule Blank.AdminPage do
     end
   end
 
+  # sobelow_skip ["DOS.StringToAtom"]
+  # Input is Module.split of a compile-time schema module, not user input
   defp get_key(schema) do
     schema
     |> Module.split()

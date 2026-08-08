@@ -23,13 +23,19 @@ defmodule Blank.Ueberauth do
   end
 
   def provider_display_name(provider) when is_binary(provider) do
-    # Check config first
-    provider_atom = String.to_atom(provider)
+    # Use to_existing_atom to avoid atom exhaustion from untrusted input
+    provider_atom =
+      try do
+        String.to_existing_atom(provider)
+      rescue
+        ArgumentError -> nil
+      end
 
     config_name =
-      with config when is_list(config) <- Application.get_env(:blank, :auth, []),
+      with atom when not is_nil(atom) <- provider_atom,
+           config when is_list(config) <- Application.get_env(:blank, :auth, []),
            providers when is_map(providers) <- Keyword.get(config, :providers, %{}),
-           provider_config when is_map(provider_config) <- Map.get(providers, provider_atom) do
+           provider_config when is_map(provider_config) <- Map.get(providers, atom) do
         Map.get(provider_config, :name)
       else
         _ -> nil

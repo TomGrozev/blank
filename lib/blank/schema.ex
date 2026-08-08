@@ -471,6 +471,8 @@ defimpl Blank.Schema, for: Any do
     {[:search | searchable], sortable, adapter_opts}
   end
 
+  # sobelow_skip ["DOS.StringToAtom"]
+  # Name and display are compile-time schema field names
   defp joined_name(name, def) do
     if display = Keyword.get(def, :display_field) do
       String.to_atom("#{name}_#{display}")
