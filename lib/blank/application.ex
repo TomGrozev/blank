@@ -39,7 +39,7 @@ defmodule Blank.Application do
     end
 
     # Compute and cache the allowed-set at boot
-    Blank.Authorization.compute_and_cache_allowed_roles()
+    Blank.Config.compute_and_cache_allowed_roles()
     :ok
   end
 
