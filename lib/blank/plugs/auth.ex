@@ -123,7 +123,13 @@ defmodule Blank.Plugs.Auth do
       provider: user.provider
     }
 
-    audit_context = %{conn.assigns[:audit_context] | user: user}
+    audit_context = %{
+      conn.assigns[:audit_context]
+      | user: user,
+        actor_display_name: user.name,
+        actor_email: user.email
+    }
+
     Blank.Audit.log!(audit_context, "accounts.login", audit_params)
 
     token = Accounts.generate_user_session_token(user)
@@ -177,7 +183,12 @@ defmodule Blank.Plugs.Auth do
     user_token = get_session(conn, :user_token)
 
     if user do
-      audit_context = %{conn.assigns[:audit_context] | user: user}
+      audit_context = %{
+        conn.assigns[:audit_context]
+        | user: user,
+          actor_display_name: user.name,
+          actor_email: user.email
+      }
 
       Blank.Audit.log!(audit_context, "accounts.logout", %{
         email: user.email,
