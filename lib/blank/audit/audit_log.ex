@@ -78,6 +78,7 @@ defmodule Blank.Audit.AuditLog do
     "accounts.login_failed" => ~w(email provider reason),
     "accounts.logout" => ~w(email provider),
     "accounts.user_created" => ~w(email roles),
+    "accounts.roles_updated" => ~w(user_id roles before_roles source),
     "*.create" => ~w(item_id),
     "*.create_multiple" => ~w(item_ids),
     "*.update" => ~w(item_id),
