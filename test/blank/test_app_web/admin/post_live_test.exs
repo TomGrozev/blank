@@ -40,6 +40,11 @@ defmodule TestAppWeb.Admin.PostLiveTest do
         password: "Str0ng!Passw0rd"
       })
 
+    {:ok, user} =
+      user
+      |> Ecto.Changeset.change(%{roles: [:system_admin]})
+      |> TestApp.Repo.update()
+
     conn = Phoenix.ConnTest.build_conn()
     conn = log_in_user(conn, user)
 
