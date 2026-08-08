@@ -19,11 +19,8 @@ defmodule Blank.Authorization.Policy do
       @behaviour Blank.Authorization.Policy
 
       @doc false
-      def policy(_user, _action, _scope) do
-        default_policy(_user, _action, _scope)
-      end
-
-      defp default_policy(_user, _action, _scope), do: false
+      def policy(user, action, scope),
+        do: Blank.Authorization.DefaultPolicy.policy(user, action, scope)
 
       defoverridable policy: 3
     end
