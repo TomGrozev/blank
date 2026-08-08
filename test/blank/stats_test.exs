@@ -3,11 +3,11 @@ defmodule Blank.StatsTest do
 
   describe "named_value/2" do
     test "formats value with the module's plural_name" do
-      assert Blank.Stats.named_value(Blank.Pages.AdminsLive, 2) == "2 admins"
+      assert Blank.Stats.named_value(Blank.Pages.UsersLive, 2) == "2 users"
     end
 
     test "formats zero value" do
-      assert Blank.Stats.named_value(Blank.Pages.AdminsLive, 0) == "0 admins"
+      assert Blank.Stats.named_value(Blank.Pages.UsersLive, 0) == "0 users"
     end
 
     test "formats with TestAppWeb.Admin.PostLive plural_name" do
@@ -19,11 +19,11 @@ defmodule Blank.StatsTest do
 
   describe "named_value/3" do
     test "formats value with the module's singular name" do
-      assert Blank.Stats.named_value(Blank.Pages.AdminsLive, :any, 2) == "2 admin"
+      assert Blank.Stats.named_value(Blank.Pages.UsersLive, :any, 2) == "2 user"
     end
 
     test "formats zero value with singular name" do
-      assert Blank.Stats.named_value(Blank.Pages.AdminsLive, :count, 0) == "0 admin"
+      assert Blank.Stats.named_value(Blank.Pages.UsersLive, :count, 0) == "0 user"
     end
 
     test "formats with TestAppWeb.Admin.PostLive name" do

@@ -4,7 +4,7 @@ defmodule Blank.Pages.AuditLogLiveTest do
   alias Blank.Audit.AuditLog
 
   setup %{conn: conn} do
-    {:ok, conn: log_in_admin(conn)}
+    {:ok, conn: log_in_user(conn)}
   end
 
   test "mounting shows the audit log component", %{conn: conn} do

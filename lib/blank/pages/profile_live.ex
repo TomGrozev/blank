@@ -26,7 +26,7 @@ defmodule Blank.Pages.ProfileLive do
           <input
             name={@password_form[:email].name}
             type="hidden"
-            id="hidden_admin_email"
+            id="hidden_user_email"
             value={@current_email}
           />
           <.input
@@ -55,14 +55,14 @@ defmodule Blank.Pages.ProfileLive do
 
   @doc false
   def mount(_params, _session, socket) do
-    admin = socket.assigns.current_admin
-    password_changeset = Accounts.change_admin_password(admin)
+    user = socket.assigns.current_user
+    password_changeset = Accounts.change_user_password(user)
 
     socket =
       socket
       |> assign(:current_password, nil)
       |> assign(:email_form_current_password, nil)
-      |> assign(:current_email, admin.email)
+      |> assign(:current_email, user.email)
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)
 
@@ -71,11 +71,11 @@ defmodule Blank.Pages.ProfileLive do
 
   @doc false
   def handle_event("validate_password", params, socket) do
-    %{"current_password" => password, "admin" => admin_params} = params
+    %{"current_password" => password, "user" => user_params} = params
 
     password_form =
-      socket.assigns.current_admin
-      |> Accounts.change_admin_password(admin_params)
+      socket.assigns.current_user
+      |> Accounts.change_user_password(user_params)
       |> Map.put(:action, :validate)
       |> to_form()
 
@@ -83,14 +83,14 @@ defmodule Blank.Pages.ProfileLive do
   end
 
   def handle_event("update_password", params, socket) do
-    %{"current_password" => password, "admin" => admin_params} = params
-    admin = socket.assigns.current_admin
+    %{"current_password" => password, "user" => user_params} = params
+    user = socket.assigns.current_user
 
-    case Accounts.update_admin_password(admin, password, admin_params) do
-      {:ok, admin} ->
+    case Accounts.update_user_password(user, password, user_params) do
+      {:ok, user} ->
         password_form =
-          admin
-          |> Accounts.change_admin_password(admin_params)
+          user
+          |> Accounts.change_user_password(user_params)
           |> to_form()
 
         {:noreply, assign(socket, trigger_submit: true, password_form: password_form)}

@@ -4,10 +4,6 @@ config :blank,
   force_ecto_schema: true,
   endpoint: TestAppWeb.Endpoint,
   repo: TestApp.Repo,
-  user_module: TestApp.Accounts.User,
-  user_table: :test_app_users,
-  user_table_pk: :id,
-  user_assigns: :current_user,
   use_local_timezone: false,
   additional_exporters: []
 

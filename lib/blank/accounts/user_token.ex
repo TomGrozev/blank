@@ -1,30 +1,31 @@
-defmodule Blank.Accounts.AdminToken do
+defmodule Blank.Accounts.UserToken do
   @moduledoc """
   Schema for password reset / session tokens used by Blank.
 
-  Stores hashed tokens in the `blank_admins_tokens` table. Each token has a
-  `:context` (`"session"`) and a `:sent_to` field, and belongs to an Admin.
+  Stores hashed tokens in the `blank_users_tokens` table. Each token has a
+  `:context` (`"session"`) and a `:sent_to` field, and belongs to a User.
   """
 
   use Blank.EctoSchema
 
   import Ecto.Query
-  alias Blank.Accounts.AdminToken
-  alias Blank.Accounts.Admin
+  alias Blank.Accounts.UserToken
+  alias Blank.Accounts.User
 
   @type t :: %{
           token: binary(),
           context: String.t(),
           sent_to: String.t(),
-          admin: Admin.t(),
+          user: User.t(),
           inserted_at: DateTime.t()
         }
 
-  schema "blank_admins_tokens" do
+  schema "blank_users_tokens" do
     field(:token, @binary_type)
     field(:context, :string)
     field(:sent_to, :string)
-    belongs_to(:admin, Admin)
+    field(:last_activity_at, :utc_datetime)
+    belongs_to(:user, User)
 
     timestamps(type: :utc_datetime, updated_at: false)
   end
@@ -47,23 +48,23 @@ defmodule Blank.Accounts.AdminToken do
   valid indefinitely, unless you change the signing/encryption
   salt.
 
-  Therefore, storing them allows individual admin
+  Therefore, storing them allows individual user
   sessions to be expired. The token system can also be extended
   to store additional data, such as the device used for logging in.
   You could then use this information to display all valid sessions
   and devices in the UI and allow users to explicitly expire any
   session they deem invalid.
   """
-  @spec build_session_token(Admin.t()) :: {binary(), t()}
-  def build_session_token(admin) do
+  @spec build_session_token(User.t()) :: {binary(), t()}
+  def build_session_token(user) do
     token = :crypto.strong_rand_bytes(@rand_size) |> Base.encode64()
-    {token, %AdminToken{token: token, context: "session", admin_id: admin.id}}
+    {token, %UserToken{token: token, context: "session", user_id: user.id}}
   end
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
 
-  The query returns the admin found by the token, if any.
+  The query returns the user found by the token, if any.
 
   The token is valid if it matches the value in the database and it has
   not expired (after @session_validity_in_days).
@@ -72,9 +73,9 @@ defmodule Blank.Accounts.AdminToken do
   def verify_session_token_query(token) do
     query =
       from(token in by_token_and_context_query(token, "session"),
-        join: admin in assoc(token, :admin),
+        join: user in assoc(token, :user),
         where: token.inserted_at > ago(@session_validity_in_days, "day"),
-        select: admin
+        select: user
       )
 
     {:ok, query}
@@ -85,18 +86,18 @@ defmodule Blank.Accounts.AdminToken do
   """
   @spec by_token_and_context_query(binary(), String.t()) :: Ecto.Query.t()
   def by_token_and_context_query(token, context) do
-    from(AdminToken, where: [token: ^token, context: ^context])
+    from(UserToken, where: [token: ^token, context: ^context])
   end
 
   @doc """
-  Gets all tokens for the given admin for the given contexts.
+  Gets all tokens for the given user for the given contexts.
   """
-  @spec by_admin_and_contexts_query(Admin.t(), :all | [String.t()]) :: Ecto.Query.t()
-  def by_admin_and_contexts_query(admin, :all) do
-    from(t in AdminToken, where: t.admin_id == ^admin.id)
+  @spec by_user_and_contexts_query(User.t(), :all | [String.t()]) :: Ecto.Query.t()
+  def by_user_and_contexts_query(user, :all) do
+    from(t in UserToken, where: t.user_id == ^user.id)
   end
 
-  def by_admin_and_contexts_query(admin, [_ | _] = contexts) do
-    from(t in AdminToken, where: t.admin_id == ^admin.id and t.context in ^contexts)
+  def by_user_and_contexts_query(user, [_ | _] = contexts) do
+    from(t in UserToken, where: t.user_id == ^user.id and t.context in ^contexts)
   end
 end

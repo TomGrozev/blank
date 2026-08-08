@@ -6,13 +6,11 @@ defmodule Blank.Audit.AuditLog do
   metadata about who performed it:
 
     * `:action` — the action string (e.g. `"posts.create"`, `"app.send_email"`).
-    * `:ip_address` — the Admin's IP address (stored as a `Blank.Types.IP`).
+    * `:ip_address` — the User's IP address (stored as a `Blank.Types.IP`).
     * `:user_agent` — the browser user agent string (or `"SYSTEM"` for
       automated logs).
     * `:params` — a map of additional context (e.g. `%{item_id: 123}`).
-    * `:admin` — the `belongs_to` association for the acting Admin.
-    * `:user` — the `belongs_to` association for the host app's user, configured
-      via `config :blank, :user_module, MyApp.Accounts.User`.
+    * `:user` — the `belongs_to` association for the acting User.
 
   ## System logs
 
@@ -41,14 +39,12 @@ defmodule Blank.Audit.AuditLog do
           action: String.t(),
           actor_display_name: String.t() | nil,
           actor_email: String.t() | nil,
-          admin: Blank.Accounts.Admin.t(),
-          admin_id: String.t() | integer(),
           extra: map(),
           id: String.t() | integer(),
           inserted_at: DateTime.t(),
           ip_address: String.t(),
           params: map(),
-          user: struct(),
+          user: Blank.Accounts.User.t(),
           user_agent: String.t(),
           user_id: String.t() | integer()
         }
@@ -62,8 +58,7 @@ defmodule Blank.Audit.AuditLog do
     field(:actor_email, :string)
     field(:extra, :map, default: %{})
 
-    belongs_to(:admin, Blank.Accounts.Admin)
-    belongs_to(:user, Application.compile_env(:blank, :user_module, Blank.Accounts.Admin))
+    belongs_to(:user, Blank.Accounts.User)
 
     timestamps(updated_at: false)
   end
@@ -75,11 +70,14 @@ defmodule Blank.Audit.AuditLog do
   """
   @spec system() :: t()
   def system do
-    %__MODULE__{user: nil, admin: nil, user_agent: "SYSTEM", extra: %{}}
+    %__MODULE__{user: nil, user_agent: "SYSTEM", extra: %{}}
   end
 
   @allowed_params %{
-    "accounts.login" => ~w(email type),
+    "accounts.login" => ~w(email type provider),
+    "accounts.login_failed" => ~w(email provider reason),
+    "accounts.logout" => ~w(email provider),
+    "accounts.user_created" => ~w(email roles),
     "*.create" => ~w(item_id),
     "*.create_multiple" => ~w(item_ids),
     "*.update" => ~w(item_id),

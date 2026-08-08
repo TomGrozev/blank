@@ -16,7 +16,7 @@ defmodule Mix.Tasks.Blank.Admin.New do
   use Mix.Task
   import Mix.Ecto
 
-  alias Blank.Accounts.Admin
+  alias Blank.Accounts.User
 
   @aliases [
     r: :repo,
@@ -46,8 +46,8 @@ defmodule Mix.Tasks.Blank.Admin.New do
 
         with {:ok, _} <- repo.__adapter__().ensure_all_started(repo.config(), :temporary),
              {:ok, _} <- repo.start_link(pool_size: 1) do
-          %Admin{}
-          |> Admin.registration_changeset(attrs, repo: repo)
+          %User{}
+          |> User.registration_changeset(attrs, repo: repo)
           |> repo.insert()
         else
           {:error, %Ecto.Changeset{errors: errors}} ->

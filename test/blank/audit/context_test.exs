@@ -34,14 +34,6 @@ defmodule Blank.Audit.ContextTest do
       assert conn.assigns.audit_context.user == user
     end
 
-    test "includes current_admin from conn.assigns", %{conn: conn} do
-      admin = %Blank.Accounts.Admin{id: 1, email: "admin@example.com"}
-      conn = %{conn | assigns: Map.put(conn.assigns, :current_admin, admin)}
-      conn = Blank.Audit.Context.fetch_audit_context(conn, [])
-
-      assert conn.assigns.audit_context.admin == admin
-    end
-
     test "prefers x-forwarded-for over remote_ip", %{conn: conn} do
       conn = %{
         conn

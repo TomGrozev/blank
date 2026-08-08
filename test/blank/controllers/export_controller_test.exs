@@ -2,7 +2,7 @@ defmodule Blank.Controllers.ExportControllerTest do
   use Blank.ConnCase
 
   setup %{conn: conn} do
-    {:ok, admin: admin_fixture(), conn: log_in_admin(conn)}
+    {:ok, user: user_fixture(), conn: log_in_user(conn)}
   end
 
   describe "download/2" do

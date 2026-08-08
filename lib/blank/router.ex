@@ -83,18 +83,18 @@ defmodule Blank.Router do
           plug :put_root_layout, html: {Blank.LayoutView, :root}
           plug :protect_from_forgery
           plug :put_secure_browser_headers
-          plug :fetch_current_admin
+          plug :fetch_current_user
           plug :fetch_audit_context
         end
 
         scope path, alias: false, as: false do
-          pipe_through [:blank_browser, :redirect_if_admin_is_authenticated]
+          pipe_through [:blank_browser, :redirect_if_user_is_authenticated]
 
-          live_session :blank_redirect_if_admin_is_authenticated,
+          live_session :blank_redirect_if_user_is_authenticated,
             root_layout: {Blank.LayoutView, :root},
             layout: {Blank.LayoutView, :basic},
             on_mount: [
-              {Blank.Plugs.Auth, :redirect_if_admin_is_authenticated},
+              {Blank.Plugs.Auth, :redirect_if_user_is_authenticated},
               Blank.Audit.Context
             ] do
             live("/log_in", Blank.Pages.LoginLive, :new)
@@ -104,7 +104,7 @@ defmodule Blank.Router do
         end
 
         scope path, alias: false, as: false do
-          pipe_through [:blank_browser, :require_authenticated_admin]
+          pipe_through [:blank_browser, :require_authenticated_user]
 
           live_session session_name, session_opts do
             live("/", Blank.Pages.HomeLive, :home)
@@ -115,7 +115,7 @@ defmodule Blank.Router do
             get("/download", Blank.Controllers.ExportController, :download)
             get("/qrcode", Blank.Controllers.ExportController, :qr_code)
 
-            admin_page("/admins", Blank.Pages.AdminsLive)
+            admin_page("/admins", Blank.Pages.UsersLive)
 
             unquote(block)
           end

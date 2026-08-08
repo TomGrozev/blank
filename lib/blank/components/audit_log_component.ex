@@ -108,6 +108,26 @@ defmodule Blank.Components.AuditLogComponent do
     identified_text("logged in", log, prefix, schema_links)
   end
 
+  def audit_text(%{action: "accounts.login_failed"} = log, prefix, schema_links, _type) do
+    email = Map.get(log.params, "email", Map.get(log.params, :email, "unknown"))
+    reason = Map.get(log.params, "reason", Map.get(log.params, :reason, "unknown"))
+    {username, _type, _path} = identity(log, prefix, schema_links)
+    assigns = %{username: username, email: email, reason: reason}
+
+    ~H"""
+    <span class="font-medium text-base-content">{@username}</span>
+    failed login for {@email} (reason: {@reason})
+    """
+  end
+
+  def audit_text(%{action: "accounts.logout"} = log, prefix, schema_links, _type) do
+    identified_text("logged out", log, prefix, schema_links)
+  end
+
+  def audit_text(%{action: "accounts.user_created"} = log, prefix, schema_links, _type) do
+    identified_text("created a user", log, prefix, schema_links)
+  end
+
   def audit_text(
         %{action: "*.create", params: %{"item_id" => item_id}} = log,
         prefix,
@@ -229,16 +249,10 @@ defmodule Blank.Components.AuditLogComponent do
     end
   end
 
-  defp identity(%{admin: nil, user: nil, user_agent: "SYSTEM"}, _prefix, _schema_links),
+  defp identity(%{user: nil, user_agent: "SYSTEM"}, _prefix, _schema_links),
     do: {"SYSTEM", "system", nil}
 
-  defp identity(%{admin: admin, user: nil}, prefix, _schema_links) when not is_nil(admin) do
-    username = Blank.Schema.name(admin)
-
-    {username, "admin", Path.join([prefix, "/admins", to_string(admin.id)])}
-  end
-
-  defp identity(%{admin: nil, user: user}, _prefix, schema_links) when not is_nil(user) do
+  defp identity(%{user: user}, _prefix, schema_links) when not is_nil(user) do
     schema = user.__struct__
     username = Blank.Schema.name(user)
 
@@ -251,16 +265,16 @@ defmodule Blank.Components.AuditLogComponent do
   end
 
   defp get_user_id(user) do
-    key = Application.get_env(:blank, :user_table_pk, :id)
-
-    Map.fetch!(user, key)
+    Map.fetch!(user, :id)
     |> to_string()
   end
 
   @doc false
   @spec audit_icon(AuditLog.t()) :: String.t()
   def audit_icon(%{action: "accounts.login"}), do: "hero-arrow-right-end-on-rectangle"
+  def audit_icon(%{action: "accounts.login_failed"}), do: "hero-x-circle"
   def audit_icon(%{action: "accounts.logout"}), do: "hero-arrow-left-start-on-rectangle"
+  def audit_icon(%{action: "accounts.user_created"}), do: "hero-user-plus"
   def audit_icon(%{action: "*.create"}), do: "hero-plus"
   def audit_icon(%{action: "*.create_multiple"}), do: "hero-plus"
   def audit_icon(%{action: "*.update"}), do: "hero-pencil"

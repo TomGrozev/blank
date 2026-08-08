@@ -20,10 +20,6 @@ end
 # Configure app env that must be set at runtime (compile_env has already been resolved)
 Application.put_env(:blank, :endpoint, TestAppWeb.Endpoint)
 Application.put_env(:blank, :repo, TestApp.Repo)
-Application.put_env(:blank, :user_module, TestApp.Accounts.User)
-Application.put_env(:blank, :user_table, :test_app_users)
-Application.put_env(:blank, :user_table_pk, :id)
-Application.put_env(:blank, :user_assigns, :current_user)
 Application.put_env(:blank, :use_local_timezone, false)
 Application.put_env(:blank, :additional_exporters, [])
 

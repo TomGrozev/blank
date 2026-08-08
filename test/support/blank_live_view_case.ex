@@ -21,23 +21,23 @@ defmodule Blank.LiveViewCase do
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
-  def log_in_admin(conn, admin \\ nil) do
-    admin = admin || admin_fixture()
-    token = Blank.Accounts.generate_admin_session_token(admin)
-    Plug.Test.init_test_session(conn, %{admin_token: token})
+  def log_in_user(conn, user \\ nil) do
+    user = user || user_fixture()
+    token = Blank.Accounts.generate_user_session_token(user)
+    Plug.Test.init_test_session(conn, %{user_token: token})
   end
 
-  def admin_fixture(attrs \\ %{}) do
+  def user_fixture(attrs \\ %{}) do
     defaults = %{
-      email: "test_admin_#{System.unique_integer([:positive])}@example.com",
+      email: "test_user_#{System.unique_integer([:positive])}@example.com",
       password: "Str0ng!Passw0rd"
     }
 
-    {:ok, admin} =
+    {:ok, user} =
       defaults
       |> Map.merge(attrs)
-      |> Blank.Accounts.register_admin()
+      |> Blank.Accounts.register_user()
 
-    admin
+    user
   end
 end

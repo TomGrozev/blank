@@ -109,7 +109,7 @@ defmodule Blank.Pages.LoginLive do
   def mount(_params, _session, socket) do
     prefix = socket.router.__blank_prefix__()
     email = Phoenix.Flash.get(socket.assigns.flash, :email)
-    form = to_form(%{"email" => email}, as: "admin")
+    form = to_form(%{"email" => email}, as: "user")
     {:ok, assign(socket, form: form, prefix: prefix), temporary_assigns: [form: form]}
   end
 end

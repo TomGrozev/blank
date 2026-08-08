@@ -7,13 +7,13 @@ defmodule Blank.Plugs.Auth do
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
-  # the token expiry itself in AdminToken.
+  # the token expiry itself in UserToken.
   @max_age 60 * 60 * 24 * 60
-  @remember_me_cookie "_blank_admin_remember_me"
+  @remember_me_cookie "_blank_user_remember_me"
   @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
 
   @doc """
-  Logs the admin in.
+  Logs the user in.
 
   It renews the session ID and clears the whole session
   to avoid fixation attacks. See the renew_session
@@ -24,10 +24,17 @@ defmodule Blank.Plugs.Auth do
   disconnected on log out. The line can be safely removed
   if you are not using LiveView.
   """
-  def log_in(conn, admin, params \\ %{}) do
-    audit_context = %{conn.assigns.audit_context | admin: admin}
-    Blank.Audit.log!(audit_context, "accounts.login", %{email: admin.email, type: "admin"})
-    token = Accounts.generate_admin_session_token(admin)
+  def log_in(conn, user, params \\ %{}) do
+    audit_params = %{
+      email: user.email,
+      type: if(is_nil(user.provider), do: "local", else: "ueberauth"),
+      provider: user.provider
+    }
+
+    audit_context = %{conn.assigns[:audit_context] | user: user}
+    Blank.Audit.log!(audit_context, "accounts.login", audit_params)
+
+    token = Accounts.generate_user_session_token(user)
     return_to = get_session(conn, :return_to)
 
     conn
@@ -69,13 +76,24 @@ defmodule Blank.Plugs.Auth do
   end
 
   @doc """
-  Logs the admin out.
+  Logs the user out.
 
   It clears all session data for safety. See renew_session.
   """
   def log_out(conn) do
-    admin_token = get_session(conn, :admin_token)
-    admin_token && Accounts.delete_admin_session_token(admin_token)
+    user = conn.assigns[:current_user]
+    user_token = get_session(conn, :user_token)
+
+    if user do
+      audit_context = %{conn.assigns[:audit_context] | user: user}
+
+      Blank.Audit.log!(audit_context, "accounts.logout", %{
+        email: user.email,
+        provider: user.provider
+      })
+    end
+
+    user_token && Accounts.delete_user_session_token(user_token)
 
     if live_socket_id = get_session(conn, :live_socket_id) do
       endpoint = Application.fetch_env!(:blank, :endpoint)
@@ -91,17 +109,17 @@ defmodule Blank.Plugs.Auth do
   end
 
   @doc """
-  Authenticates the admin by looking into the session
+  Authenticates the user by looking into the session
   and remember me token.
   """
-  def fetch_current_admin(conn, _opts) do
-    {admin_token, conn} = ensure_admin_token(conn)
-    admin = admin_token && Accounts.get_admin_by_session_token(admin_token)
-    assign(conn, :current_admin, admin)
+  def fetch_current_user(conn, _opts) do
+    {user_token, conn} = ensure_user_token(conn)
+    user = user_token && Accounts.get_user_by_session_token(user_token)
+    assign(conn, :current_user, user)
   end
 
-  defp ensure_admin_token(conn) do
-    if token = get_session(conn, :admin_token) do
+  defp ensure_user_token(conn) do
+    if token = get_session(conn, :user_token) do
       {token, conn}
     else
       conn = fetch_cookies(conn, signed: [@remember_me_cookie])
@@ -117,31 +135,31 @@ defmodule Blank.Plugs.Auth do
   end
 
   @doc """
-  Handles mounting and authenticating the current_admin in LiveViews.
+  Handles mounting and authenticating the current_user in LiveViews.
 
   ## `on_mount` arguments
 
-    * `:mount_current_admin` - Assigns current_admin
-      to socket assigns based on admin_token, or nil if
-      there's no admin_token or no matching admin.
+    * `:mount_current_user` - Assigns current_user
+      to socket assigns based on user_token, or nil if
+      there's no user_token or no matching user.
 
-    * `:ensure_authenticated` - Authenticates the admin from the session,
-      and assigns the current_admin to socket assigns based
-      on admin_token.
-      Redirects to login page if there's no logged admin.
+    * `:ensure_authenticated` - Authenticates the user from the session,
+      and assigns the current_user to socket assigns based
+      on user_token.
+      Redirects to login page if there's no logged user.
 
-    * `:redirect_if_admin_is_authenticated` - Authenticates the admin from the session.
-      Redirects to signed_in_path if there's a logged admin.
+    * `:redirect_if_user_is_authenticated` - Authenticates the user from the session.
+      Redirects to signed_in_path if there's a logged user.
 
   ## Examples
 
   Use the `on_mount` lifecycle macro in LiveViews to mount or authenticate
-  the current_admin:
+  the current_user:
 
       defmodule Blank.PageLive do
         use Blank.Web, :live_view
 
-        on_mount {Blank.Plugs.Auth, :mount_current_admin}
+        on_mount {Blank.Plugs.Auth, :mount_current_user}
         ...
       end
 
@@ -151,15 +169,15 @@ defmodule Blank.Plugs.Auth do
         live "/profile", ProfileLive, :index
       end
   """
-  def on_mount(:mount_current_admin, _params, session, socket) do
-    {:cont, mount_current_admin(socket, session)}
+  def on_mount(:mount_current_user, _params, session, socket) do
+    {:cont, mount_current_user(socket, session)}
   end
 
   def on_mount(:ensure_authenticated, _params, session, socket) do
-    socket = mount_current_admin(socket, session)
+    socket = mount_current_user(socket, session)
     prefix = socket.router.__blank_prefix__()
 
-    if socket.assigns.current_admin do
+    if socket.assigns.current_user do
       {:cont, socket}
     else
       socket =
@@ -171,29 +189,29 @@ defmodule Blank.Plugs.Auth do
     end
   end
 
-  def on_mount(:redirect_if_admin_is_authenticated, _params, session, socket) do
-    socket = mount_current_admin(socket, session)
+  def on_mount(:redirect_if_user_is_authenticated, _params, session, socket) do
+    socket = mount_current_user(socket, session)
 
-    if socket.assigns.current_admin do
+    if socket.assigns.current_user do
       {:halt, Phoenix.LiveView.redirect(socket, to: signed_in_path(socket))}
     else
       {:cont, socket}
     end
   end
 
-  defp mount_current_admin(socket, session) do
-    Phoenix.Component.assign_new(socket, :current_admin, fn ->
-      if admin_token = session["admin_token"] do
-        Accounts.get_admin_by_session_token(admin_token)
+  defp mount_current_user(socket, session) do
+    Phoenix.Component.assign_new(socket, :current_user, fn ->
+      if user_token = session["user_token"] do
+        Accounts.get_user_by_session_token(user_token)
       end
     end)
   end
 
   @doc """
-  Used for routes that require the admin to not be authenticated.
+  Used for routes that require the user to not be authenticated.
   """
-  def redirect_if_admin_is_authenticated(conn, _opts) do
-    if conn.assigns[:current_admin] do
+  def redirect_if_user_is_authenticated(conn, _opts) do
+    if conn.assigns[:current_user] do
       conn
       |> redirect(to: signed_in_path(conn))
       |> halt()
@@ -203,15 +221,15 @@ defmodule Blank.Plugs.Auth do
   end
 
   @doc """
-  Used for routes that require the admin to be authenticated.
+  Used for routes that require the user to be authenticated.
 
-  If you want to enforce the admin email is confirmed before
+  If you want to enforce the user email is confirmed before
   they use the application at all, here would be a good place.
   """
-  def require_authenticated_admin(conn, _opts) do
+  def require_authenticated_user(conn, _opts) do
     prefix = conn.private.phoenix_router.__blank_prefix__()
 
-    if conn.assigns[:current_admin] do
+    if conn.assigns[:current_user] do
       conn
     else
       conn
@@ -224,12 +242,12 @@ defmodule Blank.Plugs.Auth do
 
   defp put_token_in_session(conn, token) do
     conn
-    |> put_session(:admin_token, token)
-    |> put_session(:live_socket_id, "admins_sessions:#{Base.url_encode64(token)}")
+    |> put_session(:user_token, token)
+    |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
   end
 
   defp maybe_store_return_to(%{method: "GET"} = conn) do
-    put_session(conn, :admin_return_to, current_path(conn))
+    put_session(conn, :user_return_to, current_path(conn))
   end
 
   defp maybe_store_return_to(conn), do: conn

@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
 
   import Ecto.Changeset, only: [get_change: 2]
 
-  alias Blank.Accounts.Admin
+  alias Blank.Accounts.User
 
   setup do
     pid = Ecto.Adapters.SQL.Sandbox.start_owner!(TestApp.Repo, shared: false)
@@ -23,7 +23,7 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
         "TestApp.Repo"
       ])
 
-      count = TestApp.Repo.one!(from(u in Admin, select: count(u.id)))
+      count = TestApp.Repo.one!(from(u in User, select: count(u.id)))
       assert count == 0
     end
 
@@ -37,7 +37,7 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
         "TestApp.Repo"
       ])
 
-      count = TestApp.Repo.one!(from(u in Admin, select: count(u.id)))
+      count = TestApp.Repo.one!(from(u in User, select: count(u.id)))
       assert count == 0
     end
 
@@ -46,7 +46,7 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
 
       Mix.Tasks.Blank.Admin.New.run(["-r", "TestApp.Repo"])
 
-      count = TestApp.Repo.one!(from(u in Admin, select: count(u.id)))
+      count = TestApp.Repo.one!(from(u in User, select: count(u.id)))
       assert count == 0
     end
   end
@@ -89,11 +89,11 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
     end
   end
 
-  describe "Admin.registration_changeset/3" do
+  describe "User.registration_changeset/3" do
     test "creates a valid changeset with valid attrs" do
       changeset =
-        Admin.registration_changeset(
-          %Admin{},
+        User.registration_changeset(
+          %User{},
           %{
             email: "valid@example.com",
             password: "Password123abc"
@@ -107,8 +107,8 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
 
     test "requires email" do
       changeset =
-        Admin.registration_changeset(
-          %Admin{},
+        User.registration_changeset(
+          %User{},
           %{
             password: "Password123abc"
           },
@@ -121,8 +121,8 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
 
     test "requires password" do
       changeset =
-        Admin.registration_changeset(
-          %Admin{},
+        User.registration_changeset(
+          %User{},
           %{
             email: "test@example.com"
           },
@@ -135,8 +135,8 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
 
     test "validates password length minimum 12" do
       changeset =
-        Admin.registration_changeset(
-          %Admin{},
+        User.registration_changeset(
+          %User{},
           %{
             email: "test@example.com",
             password: "short"
@@ -151,8 +151,8 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
 
     test "validates email format" do
       changeset =
-        Admin.registration_changeset(
-          %Admin{},
+        User.registration_changeset(
+          %User{},
           %{
             email: "not-an-email",
             password: "Password123abc"
@@ -166,8 +166,8 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
 
     test "validates password requires lowercase" do
       changeset =
-        Admin.registration_changeset(
-          %Admin{},
+        User.registration_changeset(
+          %User{},
           %{
             email: "test@example.com",
             password: "PASSWORD123ABC"
@@ -181,8 +181,8 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
 
     test "validates password requires uppercase" do
       changeset =
-        Admin.registration_changeset(
-          %Admin{},
+        User.registration_changeset(
+          %User{},
           %{
             email: "test@example.com",
             password: "password123abc"
@@ -196,8 +196,8 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
 
     test "validates password requires digit or punctuation" do
       changeset =
-        Admin.registration_changeset(
-          %Admin{},
+        User.registration_changeset(
+          %User{},
           %{
             email: "test@example.com",
             password: "Passwordabcdefgh"
@@ -211,8 +211,8 @@ defmodule Mix.Tasks.Blank.Admin.NewTest do
 
     test "hashes password when valid" do
       changeset =
-        Admin.registration_changeset(
-          %Admin{},
+        User.registration_changeset(
+          %User{},
           %{
             email: "test@example.com",
             password: "Password123abc"

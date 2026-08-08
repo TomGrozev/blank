@@ -2,7 +2,7 @@ defmodule Blank.Components.ImportComponentTest do
   use Blank.LiveViewCase
 
   setup %{conn: conn} do
-    {:ok, admin: admin_fixture(), conn: log_in_admin(conn)}
+    {:ok, user: user_fixture(), conn: log_in_user(conn)}
   end
 
   test "mounting the posts import page shows the upload form", %{conn: conn} do

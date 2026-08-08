@@ -5,7 +5,7 @@ defmodule Blank.Fields.Password do
   In list and display views the value is replaced with asterisks (`************`)
   so the actual hash is never shown. The form renders as a `password` input.
   The underlying Ecto type is `:string` — use the `:hashed_password` field
-  from `Blank.Accounts.Admin` as a reference for how hashed values are stored.
+  from `Blank.Accounts.User` as a reference for how hashed values are stored.
 
   ## Example
 

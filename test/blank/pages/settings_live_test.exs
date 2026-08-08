@@ -2,7 +2,7 @@ defmodule Blank.Pages.SettingsLiveTest do
   use Blank.LiveViewCase
 
   setup %{conn: conn} do
-    {:ok, conn: log_in_admin(conn)}
+    {:ok, conn: log_in_user(conn)}
   end
 
   test "mounting shows the danger zone with reset button", %{conn: conn} do
