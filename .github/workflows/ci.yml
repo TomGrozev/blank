@@ -3,12 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - release/*
-      - develop
+      - master
   pull_request:
     branches:
       - master
-      - develop
 
 jobs:
   test:
@@ -18,11 +16,8 @@ jobs:
       FORCE_COLOR: 1
     strategy:
       matrix:
-        otp: [25.3.2.12, 26.2.5, 27.2]
-        elixir: [1.16.3, 1.17.3, 1.18.1]
-        exclude:
-          - otp: 27.2
-            elixir: 1.16.3
+        otp: [27.2]
+        elixir: [1.18.1]
 
     steps:
       - uses: actions/checkout@v4
