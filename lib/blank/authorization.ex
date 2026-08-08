@@ -55,4 +55,57 @@ defmodule Blank.Authorization do
   """
   @spec built_in_roles() :: MapSet.t(atom())
   def built_in_roles, do: @built_in_roles
+
+  @doc """
+  Returns the configured policy module, or `Blank.Authorization.DefaultPolicy`
+  if none is configured.
+
+  Reads from `config :blank, :authorization, policy_module: MyApp.Policy`.
+  """
+  @spec policy_module() :: module()
+  def policy_module do
+    :blank
+    |> Application.get_env(:authorization, [])
+    |> Keyword.get(:policy_module, Blank.Authorization.DefaultPolicy)
+  end
+
+  @doc """
+  Checks whether a user can perform an action on a scope.
+
+  Short-circuits to `true` if the user has the `:system_admin` role (break-glass).
+  Otherwise dispatches to the configured policy module's `policy/3` callback.
+
+  ## Examples
+
+      iex> user = %Blank.Accounts.User{roles: [:system_admin]}
+      iex> Blank.Authorization.can?(user, :create, %Blank.Scope{resource_type: :user})
+      true
+
+      iex> user = %Blank.Accounts.User{roles: [:member]}
+      iex> Blank.Authorization.can?(user, :create, %Blank.Scope{resource_type: :user})
+      false
+  """
+  @spec can?(term(), term(), term()) :: boolean()
+  def can?(user, action, scope) do
+    if :system_admin in List.wrap(user.roles) do
+      true
+    else
+      policy_module().policy(user, action, scope)
+    end
+  end
+
+  @doc """
+  Macro for consumer resource modules.
+
+  Usage: `use Blank.Authorization, :my_resource_type`
+
+  Saves the resource type as `@blank_resource_type` module attribute and
+  imports `Blank.Authorization.can?/3` unqualified.
+  """
+  defmacro __using__(resource_type) when is_atom(resource_type) do
+    quote do
+      @blank_resource_type unquote(resource_type)
+      import Blank.Authorization, only: [can?: 3]
+    end
+  end
 end
