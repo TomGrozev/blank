@@ -7,7 +7,7 @@ defmodule Blank.Pages.UsersLiveTest do
     {:ok, conn: log_in_user(conn)}
   end
 
-  defp create_target_user(attrs \\ %{}) do
+  defp create_target_user(attrs) do
     defaults = %{
       email: "target_#{System.unique_integer([:positive])}@example.com",
       password: "Str0ng!Passw0rd"
