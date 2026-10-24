@@ -171,7 +171,9 @@ The protocol defines six functions, all implemented at compile time for each der
 
 ### Flop.Schema integration
 
-The derive also generates a `Flop.Schema` implementation at compile time. This is how pagination, filtering, and sorting work: the `:searchable` and `:sortable` field options feed into Flop's filterable/sortable lists, and association fields with `:display_field` get compound join fields automatically.
+The derive does not generate a `Flop.Schema` implementation. It configures Flop through Flop's own `@flop_options`, and Flop builds the schema's filterable/sortable config from it. This is how pagination, filtering, and sorting work: the `:searchable` and `:sortable` field options feed into Flop's filterable/sortable lists, and association fields with `:display_field` get compound join fields automatically.
+
+Blank registers its own `@before_compile` hook before Flop's. The hook narrows the compound `:search` field to columns that accept a pattern match and sets `:default_order` from `:order_field`, so the options are final before Flop builds the schema config with `__flop_schema__/0`.
 
 ### Field discovery
 
@@ -498,7 +500,7 @@ Blank exposes well-defined extension points (Elixir behaviours) rather than aski
 
 ### Compile-time configuration
 
-Where possible, Blank shifts work to compile time. The `@derive` annotation generates protocol implementations and `Flop.Schema` implementations for each schema. The `use Blank.AdminPage` macro generates the entire LiveView module with all callbacks wired up. This means:
+Where possible, Blank shifts work to compile time. The `@derive` annotation generates protocol implementations for each schema and configures Flop through Flop's own `@flop_options`; Flop builds the schema's filterable/sortable config from it. The `use Blank.AdminPage` macro generates the entire LiveView module with all callbacks wired up. This means:
 
 - **Fast at runtime** — no reflection or dynamic dispatch where static dispatch will do
 - **Early errors** — misconfigurations are caught at compile time (via `NimbleOptions` validation)

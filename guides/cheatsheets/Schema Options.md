@@ -41,7 +41,7 @@ end
 | `:include_foreign_keys` | `boolean()` | `false` | Include foreign key fields (e.g., `user_id`) in the available field list. |
 | `:flop_opts` | `keyword()` | `[]` | Options forwarded to Flop for filtering, pagination, and sorting. See `Flop.Schema`. |
 
-`flop_opts` accepts `:default_limit`, `:max_limit`, `:pagination_types`, `:default_pagination_type`, `:default_order`, `:adapter`, and other Flop schema options. The `:filterable` and `:sortable` lists are derived automatically from your field definitions (see `:searchable` / `:sortable` per field).
+`flop_opts` accepts `:default_limit`, `:max_limit`, `:pagination_types`, `:default_pagination_type`, `:default_order`, `:adapter`, `:max_filters`, `:tiebreaker`, and other Flop schema options. The `:filterable` and `:sortable` lists are derived automatically from your field definitions (see `:searchable` / `:sortable` per field). Blank applies these through Flop's `@flop_options`, so a schema that derives `Blank.Schema` does not also need `use Flop.Schema`. Join fields and custom fields need an `:ecto_type` in `adapter_opts`. If the schema has more searchable fields than Flop's `max_filters` default of 20, Blank raises `max_filters` to the number of searchable fields. Blank also sets Flop's `default_order` from `:order_field` and adds that field to Flop's `:sortable` list, so a page without explicit ordering keeps the `:order_field` order, and a column-header sort replaces it.
 
 ## Field options
 

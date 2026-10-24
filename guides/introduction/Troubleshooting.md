@@ -487,8 +487,8 @@ Also verify:
 **Solution:** Exports run in the background via `Blank.DownloadAgent` and stream data through the exporter's `process/2` and `save/2` callbacks. The bottleneck is usually in the exporter implementation:
 
 1. **Check for N+1 queries** in your custom exporter's `process/2` callback. It's called once per row — avoid making database calls inside it.
-2. **Preload necessary associations** in your schema's query. Blank exports the filtered index query as-is, so make sure your schema preloads what the exporter needs.
-3. **Use `flop_opts` to limit the export scope** — consider adding a `max_limit` to your schema defaults or applying heavier filters before exporting.
+2. **Preload necessary associations in your schema's query.** Blank exports every row of the schema through `Blank.Context.list_schema/3`, which preloads the associations named in your field definitions.
+3. **Cap the export yourself** — an export is not a filtered index view: filters, pagination, and `flop_opts` limits do not apply, so it streams every row of the schema. To limit the scope, cap the rows in your exporter's `process/2` callback, or add a `where` in a custom exporter.
 4. **Ensure your exporter's `save/2` is streaming** — it should write incrementally rather than buffering the entire dataset in memory.
 
 See the [Custom Exporter guide](../howtos/Custom%20Exporter.md) for details on writing efficient exporters.

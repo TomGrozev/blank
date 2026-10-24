@@ -11,12 +11,14 @@ These apply to every field, regardless of which Field adapter is used. See `Blan
 | `:label` | `String.t()` | humanized field name | Label displayed in list and form views. |
 | `:placeholder` | `String.t()` | `nil` | Placeholder text for form inputs. |
 | `:module` | `atom()` | auto-detected | Override the Field adapter module (e.g. `Blank.Fields.Password`). |
-| `:searchable` | `boolean()` | `false` | Include this field in the advanced search filter. |
+| `:searchable` | `boolean()` | `false` | Include this field in the search filters. |
 | `:sortable` | `boolean()` | `false` | Allow sorting by this field in the index view. |
 | `:viewable` | `boolean()` | `true` | Show this field in admin pages. Set to `false` to hide it. |
 | `:readonly` | `boolean()` | `false` | Make the field read-only in edit/new forms. |
 | `:display_field` | `atom()` | `nil` | For association fields — which field to show as the label. Falls back to the related schema's `identity_field`. |
 | `:select` | `DynamicExpr.t()` | `nil` | Custom dynamic select expression loaded with the field query. |
+
+A `:searchable` text column also matches patterns in the simple search box. Other column types (such as `:binary_id`, `:binary`, integer, or boolean) are left out of the simple search box; they appear in advanced search with an exact match (`:==`). A schema with no text-searchable column always shows the advanced filters, without the Simple/Advanced toggle.
 
 ## Association-specific options
 
