@@ -9,6 +9,7 @@ defmodule Blank.Authorization.OnMountTest do
   import Phoenix.LiveViewTest
 
   alias Blank.Authorization
+  alias TestAppWeb.Admin.PostLive
 
   # ── __blank_resource_type__/0 ──────────────────────────────────────
 
@@ -24,8 +25,8 @@ defmodule Blank.Authorization.OnMountTest do
     test "AdminPage auto-injects resource type from :key" do
       # TestAppWeb.Admin.PostLive uses Blank.AdminPage with schema: Post
       # The key is derived as :post from the schema module name
-      assert function_exported?(TestAppWeb.Admin.PostLive, :__blank_resource_type__, 0)
-      assert TestAppWeb.Admin.PostLive.__blank_resource_type__() == :post
+      assert function_exported?(PostLive, :__blank_resource_type__, 0)
+      assert PostLive.__blank_resource_type__() == :post
     end
   end
 

@@ -1,8 +1,8 @@
 defmodule Blank.Plugs.AuthTest do
   use Blank.ConnCase
 
-  alias Blank.Plugs.Auth
   alias Blank.Accounts
+  alias Blank.Plugs.Auth
 
   # ── local_login_enabled?/0 ──
 

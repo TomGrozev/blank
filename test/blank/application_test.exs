@@ -2,6 +2,7 @@ defmodule Blank.ApplicationTest do
   use ExUnit.Case, async: true
 
   alias Blank.Application, as: BlankApp
+  alias Blank.Plugs.Auth
 
   # ── validate_ueberauth_config!/0 (via start/2) ──
 
@@ -26,7 +27,7 @@ defmodule Blank.ApplicationTest do
     test "does not raise when local auth is enabled (skips ueberauth check)" do
       # When local auth is enabled, the ueberauth validation is skipped entirely
       # regardless of provider config. Verify the guard condition:
-      assert Blank.Plugs.Auth.local_login_enabled?() == true
+      assert Auth.local_login_enabled?() == true
     end
 
     test "does not raise when providers are configured" do

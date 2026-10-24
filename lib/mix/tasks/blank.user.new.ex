@@ -53,31 +53,35 @@ defmodule Mix.Tasks.Blank.User.New do
 
       repos
       |> Stream.map(&ensure_repo(&1, args))
-      |> Enum.each(fn repo ->
-        changeset =
-          %User{}
-          |> User.registration_changeset(%{email: email, password: password}, repo: repo)
-          |> Ecto.Changeset.put_change(:name, name)
-          |> Ecto.Changeset.cast(%{roles: roles}, [:roles])
+      |> Enum.each(&create_user(&1, email: email, password: password, name: name, roles: roles))
+    end
+  end
 
-        with {:ok, _} <- repo.__adapter__().ensure_all_started(repo.config(), :temporary),
-             {:ok, _} <- ensure_repo_started(repo),
-             {:ok, user} <- repo.insert(changeset) do
-          Blank.Audit.log!(
-            AuditLog.system(),
-            "accounts.user_created",
-            %{email: email, roles: user.roles}
-          )
+  defp create_user(repo, opts) do
+    [email: email, password: password, name: name, roles: roles] = opts
 
-          Mix.shell().info("User #{email} created successfully")
-        else
-          {:error, %Ecto.Changeset{errors: errors}} ->
-            Mix.Shell.IO.error("Failed to create user, reason: #{inspect(errors)}")
+    changeset =
+      %User{}
+      |> User.registration_changeset(%{email: email, password: password}, repo: repo)
+      |> Ecto.Changeset.put_change(:name, name)
+      |> Ecto.Changeset.cast(%{roles: roles}, [:roles])
 
-          {:error, reason} ->
-            Mix.Shell.IO.error("Failed to create user, reason: #{inspect(reason)}")
-        end
-      end)
+    with {:ok, _} <- repo.__adapter__().ensure_all_started(repo.config(), :temporary),
+         {:ok, _} <- ensure_repo_started(repo),
+         {:ok, user} <- repo.insert(changeset) do
+      Blank.Audit.log!(
+        AuditLog.system(),
+        "accounts.user_created",
+        %{email: email, roles: user.roles}
+      )
+
+      Mix.shell().info("User #{email} created successfully")
+    else
+      {:error, %Ecto.Changeset{errors: errors}} ->
+        Mix.Shell.IO.error("Failed to create user, reason: #{inspect(errors)}")
+
+      {:error, reason} ->
+        Mix.Shell.IO.error("Failed to create user, reason: #{inspect(reason)}")
     end
   end
 

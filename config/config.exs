@@ -11,21 +11,13 @@ if Mix.env() != :prod do
     hooks: [
       pre_commit: [
         tasks: [
-          {:cmd, "mix format --check-formatted"},
-          {:cmd, "mix compile --warnings-as-errors"},
-          {:cmd, "mix credo"},
-          {:cmd, "mix doctor --summary"}
+          {:cmd, "mix precommit"}
         ]
       ],
       pre_push: [
         verbose: false,
         tasks: [
-          {:cmd, "mix format --check-formatted"},
-          {:cmd, "mix compile --warnings-as-errors"},
-          {:cmd, "mix credo"},
-          {:cmd, "mix doctor --summary"},
-          {:cmd, "mix sobelow"},
-          {:cmd, "mix test"}
+          {:cmd, "mix precommit"}
         ]
       ]
     ]

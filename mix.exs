@@ -12,6 +12,7 @@ defmodule Blank.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      aliases: aliases(),
       test_coverage: [tool: ExCoveralls, threshold: 80],
       # Hex
       description: "Blank is a drop-in admin panel for your elixir projects.",
@@ -29,6 +30,23 @@ defmodule Blank.MixProject do
         "coveralls.detail": :test,
         "coveralls.github": :test,
         "coveralls.html": :test
+      ]
+    ]
+  end
+
+  # The repo-owned gate: the pre-commit hook, CI and agents all run `mix precommit`.
+  # `sobelow` keeps CI's form: the three low-confidence findings are triaged (commit 459f9f7).
+  # `xref --fail-above 3` permits the three known cycles (issue #34) and fails on a fourth.
+  defp aliases do
+    [
+      precommit: [
+        "format --check-formatted",
+        "compile --warnings-as-errors",
+        "credo --strict",
+        "doctor --summary",
+        "sobelow",
+        "xref graph --format cycles --fail-above 3",
+        "test --cover"
       ]
     ]
   end
@@ -58,7 +76,8 @@ defmodule Blank.MixProject do
       {:tz, "~> 0.28"},
       {:ueberauth, "~> 0.10"},
       {:ex_doc, "~> 0.39", only: :dev, runtime: false},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      # 1.7.19 is the first release whose tokenizer handles the Elixir 1.20 AST.
+      {:credo, "~> 1.7.19", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false},
       {:git_hooks, "~> 0.8", only: [:dev], runtime: false},

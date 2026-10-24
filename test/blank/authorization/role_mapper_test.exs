@@ -1,6 +1,8 @@
 defmodule Blank.Authorization.RoleMapperTest do
   use ExUnit.Case, async: true
 
+  alias Blank.Authorization.RoleMapper
+
   describe "RoleMapper behaviour" do
     test "a module using the behaviour implements map_claims/2" do
       defmodule TestMapper do
@@ -20,7 +22,7 @@ defmodule Blank.Authorization.RoleMapperTest do
     end
 
     test "the behaviour declares the map_claims/2 callback" do
-      behaviours = Blank.Authorization.RoleMapper.behaviour_info(:callbacks)
+      behaviours = RoleMapper.behaviour_info(:callbacks)
       assert {:map_claims, 2} in behaviours
     end
   end

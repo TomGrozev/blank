@@ -193,20 +193,30 @@ defmodule Mix.Tasks.Blank.Install do
       File.ls!(migration_path)
       |> Stream.reject(fn file -> file in existing_migrations end)
       |> Stream.with_index()
-      |> Enum.reduce_while(:ok, fn {mig, idx}, _ ->
-        stamp = timestamp(idx)
+      |> copy_each(migration_path, path)
+    end
+  end
 
-        src_path = Path.join(migration_path, mig)
-        dest_path = Path.join(path, stamp <> mig)
+  # `Enum.reduce_while/3` calls its reducer with (element, accumulator), so the
+  # migration context travels in a closure rather than as extra reducer arguments.
+  defp copy_each(migrations, migration_path, path) do
+    Enum.reduce_while(migrations, :ok, fn migration, _acc ->
+      copy_migration(migration, migration_path, path)
+    end)
+  end
 
-        case File.cp(src_path, dest_path) do
-          :ok ->
-            {:cont, :ok}
+  defp copy_migration({mig, idx}, migration_path, path) do
+    stamp = timestamp(idx)
 
-          {:error, reason} ->
-            {:halt, {:error, reason}}
-        end
-      end)
+    src_path = Path.join(migration_path, mig)
+    dest_path = Path.join(path, stamp <> mig)
+
+    case File.cp(src_path, dest_path) do
+      :ok ->
+        {:cont, :ok}
+
+      {:error, reason} ->
+        {:halt, {:error, reason}}
     end
   end
 

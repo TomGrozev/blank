@@ -1,3 +1,9 @@
+## Stack
+
+elixir (stack pack: `rule://stack-elixir`), phoenix (stack pack: `rule://stack-phoenix`).
+
+`CODING_STANDARDS.md` holds the repo-specific rules; `docs/adr/` holds the decisions.
+
 ## Agent skills
 
 ### Issue tracker
@@ -33,3 +39,12 @@ When adding or changing user-visible behaviour, update the relevant guide in `gu
 | Quick-start flow changes | `README.md` and `guides/introduction/Getting Started.md` |
 
 Also update `mix.exs` `extras` list when adding new guide files.
+
+## Gate
+
+Run `mix precommit` before every commit. The `.git/hooks/pre-commit` hook runs the same
+command, so keep hooks enabled and never pass `--no-verify`.
+
+`mix precommit` runs, in order: `format --check-formatted`, `compile --warnings-as-errors`,
+`credo --strict`, `doctor --summary`, `sobelow`,
+`xref graph --format cycles --fail-above 3`, `test --cover` (80% line floor).

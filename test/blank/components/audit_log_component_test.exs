@@ -3,6 +3,7 @@ defmodule Blank.Components.AuditLogComponentTest do
 
   alias Blank.Audit.AuditLog
   alias Blank.Components.AuditLogComponent
+  alias Phoenix.HTML.Safe
 
   setup %{conn: conn} do
     {:ok, conn: log_in_user(conn)}
@@ -169,7 +170,7 @@ defmodule Blank.Components.AuditLogComponentTest do
     test "accounts.login for system user" do
       log = %{AuditLog.system() | action: "accounts.login", params: %{}}
       html = AuditLogComponent.audit_text(log, "/admin", %{})
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "logged in"
     end
 
@@ -181,7 +182,7 @@ defmodule Blank.Components.AuditLogComponentTest do
       }
 
       html = AuditLogComponent.audit_text(log, "/admin", %{})
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "logged in via"
     end
 
@@ -193,7 +194,7 @@ defmodule Blank.Components.AuditLogComponentTest do
       }
 
       html = AuditLogComponent.audit_text(log, "/admin", %{})
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "logged in via"
     end
 
@@ -205,7 +206,7 @@ defmodule Blank.Components.AuditLogComponentTest do
       }
 
       html = AuditLogComponent.audit_text(log, "/admin", %{})
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "failed login for test@example.com"
       assert rendered =~ "invalid"
     end
@@ -218,7 +219,7 @@ defmodule Blank.Components.AuditLogComponentTest do
       }
 
       html = AuditLogComponent.audit_text(log, "/admin", %{})
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "failed login for test@example.com"
       assert rendered =~ "Github"
     end
@@ -231,28 +232,28 @@ defmodule Blank.Components.AuditLogComponentTest do
       }
 
       html = AuditLogComponent.audit_text(log, "/admin", %{})
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "failed login for x@y.com"
     end
 
     test "accounts.logout for system" do
       log = %{AuditLog.system() | action: "accounts.logout", params: %{}}
       html = AuditLogComponent.audit_text(log, "/admin", %{})
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "logged out"
     end
 
     test "accounts.user_created for system" do
       log = %{AuditLog.system() | action: "accounts.user_created", params: %{}}
       html = AuditLogComponent.audit_text(log, "/admin", %{})
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "created a user"
     end
 
     test "*.create with item_id" do
       log = %{AuditLog.system() | action: "*.create", params: %{"item_id" => 42}}
       html = AuditLogComponent.audit_text(log, "/admin", %{}, "Post")
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "created a Post"
       assert rendered =~ "42"
     end
@@ -260,7 +261,7 @@ defmodule Blank.Components.AuditLogComponentTest do
     test "*.create_multiple with item_ids" do
       log = %{AuditLog.system() | action: "*.create_multiple", params: %{"item_ids" => [1, 2, 3]}}
       html = AuditLogComponent.audit_text(log, "/admin", %{}, "Comment")
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "created multiple Comment"
       assert rendered =~ "1, 2, 3"
     end
@@ -268,7 +269,7 @@ defmodule Blank.Components.AuditLogComponentTest do
     test "*.update with item_id" do
       log = %{AuditLog.system() | action: "*.update", params: %{"item_id" => 10}}
       html = AuditLogComponent.audit_text(log, "/admin", %{}, "Post")
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "updated a Post"
       assert rendered =~ "10"
     end
@@ -276,14 +277,14 @@ defmodule Blank.Components.AuditLogComponentTest do
     test "*.update_multiple with item_ids" do
       log = %{AuditLog.system() | action: "*.update_multiple", params: %{"item_ids" => [5, 6]}}
       html = AuditLogComponent.audit_text(log, "/admin", %{}, "Tag")
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "updated multiple Tag"
     end
 
     test "*.delete with item_id" do
       log = %{AuditLog.system() | action: "*.delete", params: %{"item_id" => 7}}
       html = AuditLogComponent.audit_text(log, "/admin", %{}, "Post")
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "deleted a Post"
       assert rendered =~ "7"
     end
@@ -291,28 +292,28 @@ defmodule Blank.Components.AuditLogComponentTest do
     test "*.delete_all" do
       log = %{AuditLog.system() | action: "*.delete_all", params: %{}}
       html = AuditLogComponent.audit_text(log, "/admin", %{}, "Tag")
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "deleted all Tag"
     end
 
     test "concrete action is converted to star action" do
       log = %{AuditLog.system() | action: "posts.create", params: %{"item_id" => 1}}
       html = AuditLogComponent.audit_text(log, "/admin", %{}, "Post")
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "created a Post"
     end
 
     test "concrete update action converts to star" do
       log = %{AuditLog.system() | action: "posts.update", params: %{"item_id" => 5}}
       html = AuditLogComponent.audit_text(log, "/admin", %{}, "Post")
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "updated a Post"
     end
 
     test "concrete delete action converts to star" do
       log = %{AuditLog.system() | action: "posts.delete", params: %{"item_id" => 3}}
       html = AuditLogComponent.audit_text(log, "/admin", %{}, "Post")
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "deleted a Post"
     end
 
@@ -337,7 +338,7 @@ defmodule Blank.Components.AuditLogComponentTest do
       log = %{AuditLog.system() | action: "accounts.login", params: %{}, user: user}
       schema_links = %{Blank.Accounts.User => "/admin/users"}
       html = AuditLogComponent.audit_text(log, "/admin", schema_links)
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "logged in"
       assert rendered =~ "/admin/users/"
     end
@@ -346,7 +347,7 @@ defmodule Blank.Components.AuditLogComponentTest do
       user = user_fixture()
       log = %{AuditLog.system() | action: "accounts.login", params: %{}, user: user}
       html = AuditLogComponent.audit_text(log, "/admin", %{})
-      rendered = Phoenix.HTML.Safe.to_iodata(html) |> IO.iodata_to_binary()
+      rendered = Safe.to_iodata(html) |> IO.iodata_to_binary()
       assert rendered =~ "logged in"
     end
   end
