@@ -49,6 +49,35 @@ defmodule Blank.ContextTest do
       assert not Enum.empty?(posts)
       assert %Flop.Meta{} = meta
     end
+
+    test "applies the requested order instead of Blank's primary key order" do
+      for views <- [10, 30, 20] do
+        Repo.insert!(%Post{title: "Views #{views}", views: views})
+      end
+
+      struct = %Post{}
+
+      fields = [
+        {:title, Blank.Schema.get_field(struct, :title)},
+        {:views, Blank.Schema.get_field(struct, :views)}
+      ]
+
+      params = %{"order_by" => ["views"], "order_directions" => ["desc"]}
+
+      assert {:ok, {posts, _meta}} =
+               Context.paginate_schema(TestApp.Repo, Post, params, fields)
+
+      assert Enum.map(posts, & &1.views) == [30, 20, 10]
+    end
+
+    test "keeps the derived order for a request without ordering" do
+      first = Repo.insert!(%Post{title: "First"})
+      second = Repo.insert!(%Post{title: "Second"})
+
+      assert {:ok, {posts, _meta}} = Context.paginate_schema(TestApp.Repo, Post, %{}, [])
+
+      assert Enum.map(posts, & &1.id) == [first.id, second.id]
+    end
   end
 
   # NOTE: options_query/4 is not tested here because it uses Ecto.Query.ilike/2

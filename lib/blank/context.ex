@@ -12,7 +12,12 @@ defmodule Blank.Context do
   @spec paginate_schema(Ecto.Repo.t(), Ecto.Schema.t(), map(), fields()) ::
           {:ok, {[any()], Flop.Meta.t()}} | {:error, Flop.Meta.t()}
   def paginate_schema(repo, schema, params, fields) do
+    # Flop appends its own order to the query, and Ecto cannot remove an order
+    # once added. Blank's order would then come first and win on a unique
+    # column, so the user's sort never takes effect. Flop's :default_order
+    # carries the same order for requests without one.
     list_query(schema, fields)
+    |> Ecto.Query.exclude(:order_by)
     |> Flop.validate_and_run(params, repo: repo, for: schema)
   rescue
     Ecto.NoResultsError ->

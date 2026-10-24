@@ -428,6 +428,7 @@ defmodule Blank.AdminPage do
 
   alias Blank.Context
   alias Blank.Errors.InvalidConfigError
+  alias Blank.Schema.FlopOptions
   alias Phoenix.LiveView.AsyncResult
   use Blank.Web, :live_view
 
@@ -766,11 +767,15 @@ defmodule Blank.AdminPage do
       !Map.has_key?(params, "filters") or
         Map.get(params, "filters", []) |> Enum.any?(fn {_, v} -> v["field"] == "search" end)
 
+    # A schema with no text-searchable field has no :search filter, so the
+    # simple search box would fail validation.
+    search_available = :search in Flop.Schema.flop_schema!(schema).filterable
+
     filter_fields =
-      if search do
+      if search and search_available do
         @search_field
       else
-        advanced_search(fields)
+        advanced_search(schema, fields)
       end
 
     index_buttons =
@@ -785,6 +790,7 @@ defmodule Blank.AdminPage do
     |> assign(:item, nil)
     |> assign(:fields, fields)
     |> assign(:filter_fields, filter_fields)
+    |> assign(:search_available, search_available)
     |> assign(:modal_fields, modal_fields)
     |> assign(:index_buttons, index_buttons)
     |> assign_stats(repo, schema, fields, admin_page)
@@ -1061,10 +1067,15 @@ defmodule Blank.AdminPage do
 
   def handle_event("toggle-search", _params, socket) do
     filter_fields =
-      if Keyword.has_key?(socket.assigns.filter_fields, :search) do
-        advanced_search(socket.assigns.fields)
-      else
-        @search_field
+      cond do
+        not socket.assigns.search_available ->
+          socket.assigns.filter_fields
+
+        Keyword.has_key?(socket.assigns.filter_fields, :search) ->
+          advanced_search(socket.assigns.schema, socket.assigns.fields)
+
+        true ->
+          @search_field
       end
 
     {:noreply, assign(socket, :filter_fields, filter_fields)}
@@ -1074,23 +1085,15 @@ defmodule Blank.AdminPage do
     {:noreply, apply_hook(socket, {:handle_event, key}, socket.view, params)}
   end
 
-  defp advanced_search(fields) do
+  defp advanced_search(schema, fields) do
     fields
     |> Stream.filter(fn {_, def} -> def.searchable end)
     |> Enum.map(fn
       {_name, %{filter_key: key, label: label}} ->
-        {key,
-         [
-           label: label,
-           op: :ilike_and
-         ]}
+        {key, [label: label, op: FlopOptions.operator(schema, key)]}
 
       {name, %{label: label}} ->
-        {name,
-         [
-           label: label,
-           op: :ilike_and
-         ]}
+        {name, [label: label, op: FlopOptions.operator(schema, name)]}
     end)
   end
 

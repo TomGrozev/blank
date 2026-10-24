@@ -235,7 +235,7 @@ defimpl Blank.Schema, for: Any do
     update_changeset =
       Keyword.get(options, :update_changeset, Function.capture(module, :changeset, 2))
 
-    flop_derive = get_flop_opts(module, __CALLER__.module, struct, options)
+    flop_derive = get_flop_opts(options)
     field_def_funcs = build_field_def_func(struct, options)
 
     identity_field = Keyword.fetch!(options, :identity_field)
@@ -320,7 +320,7 @@ defimpl Blank.Schema, for: Any do
 
   defp default_order(field) when is_atom(field), do: {field, :asc}
 
-  defp get_flop_opts(module, caller, struct, options) do
+  defp get_flop_opts(options) do
     {searchable, sortable, adapter_opts} =
       Keyword.get(options, :fields, [])
       |> get_filterable_fields()
@@ -333,112 +333,31 @@ defimpl Blank.Schema, for: Any do
         adapter_opts: adapter_opts
       )
 
-    adapter = Keyword.fetch!(flop_opts, :adapter)
+    # Flop 0.29 defaults :max_filters to 20, but Blank's advanced search submits
+    # one filter per searchable field, so a wider schema fails every submit.
+    # :search is the virtual full-text field, not a filter row, so it does not
+    # count. Keyword.put_new keeps an explicit :max_filters from the consumer.
+    filter_count = Enum.count(searchable, &(&1 != :search))
+    flop_opts = put_max_filters(flop_opts, filter_count)
 
-    adapter_opts = Keyword.fetch!(flop_opts, :adapter_opts)
-
-    adapter_opts =
-      adapter.init_schema_opts(flop_opts, adapter_opts, caller, struct)
-
-    flop_opts = Keyword.put(flop_opts, :adapter_opts, adapter_opts)
-
-    filterable_fields = Keyword.get(flop_opts, :filterable)
-    sortable_fields = Keyword.get(flop_opts, :sortable)
-    default_limit = Keyword.get(flop_opts, :default_limit)
-    max_limit = Keyword.get(flop_opts, :max_limit)
-    pagination_types = Keyword.get(flop_opts, :pagination_types)
-    default_pagination_type = Keyword.get(flop_opts, :default_pagination_type)
-    default_order = Keyword.get(flop_opts, :default_order)
-
-    field_info_func = build_field_info_func(adapter, adapter_opts, struct)
-    get_field_func = build_get_field_func(struct, adapter, adapter_opts)
-
+    # Flop 0.29 builds the schema config in its own __before_compile__ from
+    # @flop_options: it runs init_schema_opts/4, fields/2 and the option
+    # validation there, on the finished struct. Blank's hook runs first, so it
+    # can read the struct's field types and rewrite @flop_options before Flop
+    # sees it; see Blank.Schema.FlopOptions.
     quote do
-      defimpl Flop.Schema, for: unquote(module) do
-        import Ecto.Query
-
-        require Logger
-
-        def default_limit(_) do
-          unquote(default_limit)
-        end
-
-        def default_order(_) do
-          unquote(Macro.escape(default_order))
-        end
-
-        unquote(field_info_func)
-        unquote(get_field_func)
-
-        def filterable(_) do
-          unquote(filterable_fields)
-        end
-
-        def max_limit(_) do
-          unquote(max_limit)
-        end
-
-        def pagination_types(_) do
-          unquote(pagination_types)
-        end
-
-        def default_pagination_type(_) do
-          unquote(default_pagination_type)
-        end
-
-        def sortable(_) do
-          unquote(sortable_fields)
-        end
-      end
+      @behaviour Flop.Schema
+      @blank_order_field unquote(Macro.escape(Keyword.get(options, :order_field)))
+      @flop_options unquote(Macro.escape(flop_opts))
+      @before_compile Blank.Schema.FlopOptions
+      @before_compile Flop.Schema
     end
   end
 
-  def build_field_info_func(adapter, adapter_opts, struct) do
-    for {name, field_info} <- adapter.fields(struct, adapter_opts) do
-      case field_info do
-        %{ecto_type: {:from_schema, module, field}} ->
-          quote do
-            def field_info(_, unquote(name)) do
-              %{
-                unquote(Macro.escape(field_info))
-                | ecto_type: unquote(module).__schema__(:type, unquote(field))
-              }
-            end
-          end
+  defp put_max_filters(flop_opts, filter_count) when filter_count > 20,
+    do: Keyword.put_new(flop_opts, :max_filters, filter_count)
 
-        %{ecto_type: {:ecto_enum, values}} ->
-          type = Ecto.ParameterizedType.init(Ecto.Enum, values: values)
-          field_info = %{field_info | ecto_type: type}
-
-          quote do
-            def field_info(_, unquote(name)) do
-              unquote(Macro.escape(field_info))
-            end
-          end
-
-        _ ->
-          quote do
-            def field_info(_, unquote(name)) do
-              unquote(Macro.escape(field_info))
-            end
-          end
-      end
-    end
-  end
-
-  def build_get_field_func(struct, adapter, adapter_opts) do
-    for {field, field_info} <- adapter.fields(struct, adapter_opts) do
-      quote do
-        def get_field(struct, unquote(field)) do
-          unquote(adapter).get_field(
-            struct,
-            unquote(field),
-            unquote(Macro.escape(field_info))
-          )
-        end
-      end
-    end
-  end
+  defp put_max_filters(flop_opts, _filter_count), do: flop_opts
 
   defp get_filterable_fields([]), do: {[], [], []}
 

@@ -7,6 +7,10 @@ defmodule Blank.SchemaTest do
   alias Blank.Fields.List
   alias Blank.Fields.Text
   alias Blank.Schema.Any
+  alias Blank.Schema.FlopOptions
+  alias Blank.SchemaTest.BinaryIdOnlySearchSchema
+  alias Blank.SchemaTest.BinaryIdSearchSchema
+  alias Blank.SchemaTest.WideSearchSchema
   alias TestApp.Accounts.User
   alias TestApp.Blog.Article
   alias TestApp.Blog.Document
@@ -368,76 +372,83 @@ defmodule Blank.SchemaTest do
   # ─── Flop integration — Post ──────────────────────────────────────────
 
   describe "Flop.Schema integration (Post)" do
-    test "filterable/1 returns the searchable fields" do
-      filterable = Flop.Schema.filterable(%Post{})
+    test "flop_schema!/1 filterable includes the searchable fields" do
+      filterable = Flop.Schema.flop_schema!(Post).filterable
       assert :search in filterable
       assert :title in filterable
     end
 
-    test "sortable/1 returns the sortable fields" do
-      sortable = Flop.Schema.sortable(%Post{})
+    test "flop_schema!/1 sortable includes the sortable fields" do
+      sortable = Flop.Schema.flop_schema!(Post).sortable
       assert :title in sortable
       assert :published in sortable
       assert :views in sortable
     end
 
-    test "default_order/1 returns nil (no default_order in flop_opts)" do
-      assert Flop.Schema.default_order(%Post{}) == nil
+    test "flop_schema!/1 default_order mirrors order_field/1" do
+      # Post has no :order_field, so the derive uses the primary key.
+      assert Flop.Schema.flop_schema!(Post).default_order ==
+               %{order_by: [:id], order_directions: [:asc]}
     end
 
-    test "max_limit/1 returns nil or configured value" do
-      max = Flop.Schema.max_limit(%Post{})
+    test "flop_schema!/1 max_limit is nil when not configured" do
+      max = Flop.Schema.flop_schema!(Post).max_limit
       # Not explicitly configured in Post's @derive, so nil
       assert max == nil
     end
 
-    test "default_limit/1 returns nil or configured value" do
-      default = Flop.Schema.default_limit(%Post{})
+    test "flop_schema!/1 default_limit is nil when not configured" do
+      default = Flop.Schema.flop_schema!(Post).default_limit
       # Not explicitly configured in Post's @derive, so nil
       assert default == nil
     end
 
-    test "pagination_types/1 returns nil or configured list" do
-      types = Flop.Schema.pagination_types(%Post{})
+    test "flop_schema!/1 pagination_types is nil when not configured" do
+      types = Flop.Schema.flop_schema!(Post).pagination_types
       # Not explicitly configured in Post's @derive, so nil
       assert types == nil
     end
 
     test "field_info/2 returns a Flop.FieldInfo struct for a known field" do
-      info = Flop.Schema.field_info(%Post{}, :title)
+      info = Flop.Schema.field_info(Post, :title)
       assert %Flop.FieldInfo{} = info
       assert info.ecto_type == :string
     end
 
     test "field_info/2 returns ecto_type for boolean field" do
-      info = Flop.Schema.field_info(%Post{}, :published)
+      info = Flop.Schema.field_info(Post, :published)
       assert %Flop.FieldInfo{} = info
       assert info.ecto_type == :boolean
     end
 
     test "field_info/2 returns ecto_type for integer field" do
-      info = Flop.Schema.field_info(%Post{}, :views)
+      info = Flop.Schema.field_info(Post, :views)
       assert %Flop.FieldInfo{} = info
       assert info.ecto_type == :integer
+    end
+
+    test "get_field/3 resolves a join field through its path" do
+      post = post_fixture(%{author: %User{id: 10, name: "Alice", email: "a@example.com"}})
+      assert Flop.Schema.get_field(Post, post, :author_name) == "Alice"
     end
   end
 
   # ─── Flop integration — User ──────────────────────────────────────────
 
   describe "Flop.Schema integration (User)" do
-    test "filterable/1 includes :search and :email" do
-      filterable = Flop.Schema.filterable(%User{})
+    test "flop_schema!/1 filterable includes :search and :email" do
+      filterable = Flop.Schema.flop_schema!(User).filterable
       assert :search in filterable
       assert :email in filterable
     end
 
-    test "sortable/1 returns configured sortable fields" do
-      sortable = Flop.Schema.sortable(%User{})
+    test "flop_schema!/1 sortable returns configured sortable fields" do
+      sortable = Flop.Schema.flop_schema!(User).sortable
       assert is_list(sortable)
     end
 
     test "field_info/2 for email returns string ecto_type" do
-      info = Flop.Schema.field_info(%User{}, :email)
+      info = Flop.Schema.field_info(User, :email)
       assert info.ecto_type == :string
     end
   end
@@ -513,31 +524,31 @@ defmodule Blank.SchemaTest do
   # ─── Flop integration — Review ────────────────────────────────────────
 
   describe "Flop.Schema integration (Review)" do
-    test "filterable/1 includes :search and :reviewer_name" do
-      filterable = Flop.Schema.filterable(%Review{})
+    test "flop_schema!/1 filterable includes :search and :reviewer_name" do
+      filterable = Flop.Schema.flop_schema!(Review).filterable
       assert :search in filterable
       assert :reviewer_name in filterable
     end
 
-    test "sortable/1 includes :rating" do
-      sortable = Flop.Schema.sortable(%Review{})
+    test "flop_schema!/1 sortable includes :rating" do
+      sortable = Flop.Schema.flop_schema!(Review).sortable
       assert :rating in sortable
     end
 
-    test "default_order/1 returns nil (order_field is for Blank, not Flop)" do
-      # The Flop default_order comes from flop_opts, not from Blank's order_field config.
-      # Review has order_field: {:rating, :desc} but no flop_opts default_order.
-      default_order = Flop.Schema.default_order(%Review{})
-      assert default_order == nil
+    test "flop_schema!/1 default_order follows the :order_field option" do
+      # Review sets order_field: {:rating, :desc}, so an unsorted page keeps
+      # exactly the order Blank's list_query/2 applies.
+      assert Flop.Schema.flop_schema!(Review).default_order ==
+               %{order_by: [:rating], order_directions: [:desc]}
     end
 
     test "field_info/2 returns correct ecto_type for rating (integer)" do
-      info = Flop.Schema.field_info(%Review{}, :rating)
+      info = Flop.Schema.field_info(Review, :rating)
       assert info.ecto_type == :integer
     end
 
     test "field_info/2 returns correct ecto_type for rating_label (string)" do
-      info = Flop.Schema.field_info(%Review{}, :rating_label)
+      info = Flop.Schema.field_info(Review, :rating_label)
       assert info.ecto_type == :string
     end
   end
@@ -722,6 +733,78 @@ defmodule Blank.SchemaTest do
     end
   end
 
+  # ─── Flop integration — max_filters cap ────────────────────────────────
+
+  describe "Flop.Schema integration (max_filters cap)" do
+    test "raises max_filters above flop's default for a wide searchable schema" do
+      assert Flop.Schema.flop_schema!(WideSearchSchema).max_filters == 21
+
+      filters = wide_search_filters(21)
+
+      assert {:ok, %Flop{filters: cast_filters}} =
+               Flop.validate(%{filters: filters}, for: WideSearchSchema)
+
+      assert length(cast_filters) == 21
+    end
+
+    test "still rejects more filters than the raised cap" do
+      filters = wide_search_filters(21) ++ [%{field: :field_1, op: :ilike_and, value: "x"}]
+
+      assert {:error, changeset} = Flop.validate(%{filters: filters}, for: WideSearchSchema)
+
+      assert [{"must have at most %{count} items", opts}] = changeset.errors[:filters]
+      assert opts[:count] == 21
+    end
+
+    test "keeps flop's default max_filters for a schema at or below the default" do
+      assert Flop.Schema.flop_schema!(Post).max_filters == nil
+    end
+  end
+
+  defp wide_search_filters(count) do
+    WideSearchSchema.fields()
+    |> Enum.take(count)
+    |> Enum.map(&%{field: &1, op: :ilike_and, value: "x"})
+  end
+
+  # ─── :search narrowing and filter operators ───────────────────────────
+
+  describe "Flop.Schema integration (:search narrowing)" do
+    test "keeps only pattern-matchable members in the compound :search field" do
+      fields =
+        BinaryIdSearchSchema
+        |> Flop.Schema.field_info(:search)
+        |> Map.fetch!(:extra)
+        |> Map.fetch!(:fields)
+        |> Enum.sort()
+
+      assert fields == [:name]
+    end
+
+    test "accepts a :search filter when one member survives" do
+      params = %{filters: [%{field: :search, op: :ilike, value: "x"}]}
+
+      assert {:ok, _flop} = Flop.validate(params, for: BinaryIdSearchSchema)
+    end
+
+    test "removes :search when no member survives" do
+      refute :search in Flop.Schema.flop_schema!(BinaryIdOnlySearchSchema).filterable
+    end
+
+    test "still offers the non-text searchable column to advanced search" do
+      assert :uuid in Flop.Schema.flop_schema!(BinaryIdSearchSchema).filterable
+    end
+
+    test "operator/2 picks :== for a binary_id field" do
+      assert FlopOptions.operator(BinaryIdSearchSchema, :uuid) == :==
+    end
+
+    test "operator/2 picks :ilike_and for a string field" do
+      assert FlopOptions.operator(BinaryIdSearchSchema, :name) == :ilike_and
+      assert FlopOptions.operator(Post, :title) == :ilike_and
+    end
+  end
+
   # ─── Edge cases ────────────────────────────────────────────────────────
 
   describe "edge cases" do
@@ -761,4 +844,60 @@ defmodule Blank.SchemaTest do
       assert %Blank.Field{} = author_id_field
     end
   end
+end
+
+# 21 searchable fields: one more than flop 0.29's default :max_filters of 20.
+# Kept in the test file so the app fixtures keep asserting the default path.
+defmodule Blank.SchemaTest.WideSearchSchema do
+  @moduledoc false
+  use Ecto.Schema
+
+  @fields Enum.map(1..21, &:"field_#{&1}")
+
+  @derive {
+    Blank.Schema,
+    identity_field: :field_1, fields: Enum.map(@fields, &{&1, [searchable: true]})
+  }
+
+  schema "blank_wide_search_schemas" do
+    for field <- @fields do
+      field field, :string
+    end
+  end
+
+  def fields, do: @fields
+
+  def changeset(struct, _attrs), do: Ecto.Changeset.change(struct)
+end
+
+# A uuid column cannot be pattern-matched, so it must not reach the compound
+# :search field, while still being offered to advanced search.
+defmodule Blank.SchemaTest.BinaryIdSearchSchema do
+  @moduledoc false
+  use Ecto.Schema
+
+  @derive {
+    Blank.Schema,
+    identity_field: :name, fields: [name: [searchable: true], uuid: [searchable: true]]
+  }
+
+  schema "blank_binary_id_search_schemas" do
+    field :name, :string
+    field :uuid, :binary_id
+  end
+
+  def changeset(struct, _attrs), do: Ecto.Changeset.change(struct)
+end
+
+defmodule Blank.SchemaTest.BinaryIdOnlySearchSchema do
+  @moduledoc false
+  use Ecto.Schema
+
+  @derive {Blank.Schema, identity_field: :uuid, fields: [uuid: [searchable: true]]}
+
+  schema "blank_binary_id_only_search_schemas" do
+    field :uuid, :binary_id
+  end
+
+  def changeset(struct, _attrs), do: Ecto.Changeset.change(struct)
 end
