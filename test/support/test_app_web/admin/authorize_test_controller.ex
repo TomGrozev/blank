@@ -1,6 +1,7 @@
 defmodule TestAppWeb.Admin.AuthorizeTestController do
   @moduledoc false
-  use Phoenix.Controller
+  # Phoenix 1.8 requires :formats; these actions send raw text, so there are none.
+  use Phoenix.Controller, formats: []
   use Blank.Authorization, :test_resource
 
   plug Blank.Plugs.Authorize,

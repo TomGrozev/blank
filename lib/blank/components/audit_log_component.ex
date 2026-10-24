@@ -15,8 +15,7 @@ defmodule Blank.Components.AuditLogComponent do
             <span
               class="absolute group-last:hidden left-4 top-4 -ml-px h-full w-0.5 bg-base-200"
               aria-hidden="true"
-            >
-            </span>
+            ></span>
             <div class="relative flex space-x-3">
               <div>
                 <span class={"h-8 w-8 rounded-full #{audit_colour(log)} flex items-center justify-center"}>

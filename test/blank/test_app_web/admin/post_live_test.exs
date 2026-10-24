@@ -85,29 +85,35 @@ defmodule TestAppWeb.Admin.PostLiveTest do
       assert html =~ "Export posts"
     end
 
-    test "shows the total count stat", %{conn: conn} do
+    test "with two posts, shows the total count stat", %{conn: conn} do
       post_fixture(%{title: "Alpha"})
       post_fixture(%{title: "Beta"})
 
       {:ok, view, _html} = live(conn, "/admin/posts")
-      html = render(view)
+      # The stat value arrives from the start_async(:stats) task, so await it
+      # instead of rendering the loading state.
+      html = render_async(view)
 
       assert html =~ "Total posts"
       assert html =~ "2"
     end
 
-    test "shows an empty table when no posts exist", %{conn: conn} do
+    test "with no posts, shows an empty table", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/admin/posts")
-      html = render(view)
+      # The empty row set arrives from the start_async(:items) task, so await
+      # it instead of rendering the loading state.
+      html = render_async(view)
       assert html =~ "0"
     end
 
-    test "lists posts in the table", %{conn: conn} do
+    test "with existing posts, lists them in the table", %{conn: conn} do
       post_fixture(%{title: "Listed Post"})
       post_fixture(%{title: "Second Post"})
 
       {:ok, view, _html} = live(conn, "/admin/posts")
-      html = render(view)
+      # The table rows arrive from the start_async(:items) task, so await it
+      # instead of rendering the loading state.
+      html = render_async(view)
 
       assert html =~ "Listed Post"
       assert html =~ "Second Post"

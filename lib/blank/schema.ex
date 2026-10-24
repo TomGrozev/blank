@@ -260,30 +260,12 @@ defimpl Blank.Schema, for: Any do
 
         @impl Blank.Schema
         def identity_field(%{__struct__: schema} = struct) when is_atom(schema) do
-          with nil <- unquote(identity_field),
-               [pk | _] <- Blank.Schema.primary_keys(struct) do
-            pk
-          else
-            res when is_atom(res) ->
-              res
-
-            _ ->
-              raise ArgumentError, "No primary keys for module #{schema}"
-          end
+          unquote(identity_field_body(identity_field))
         end
 
         @impl Blank.Schema
         def order_field(%{__struct__: schema} = struct) when is_atom(schema) do
-          with nil <- unquote(order_field),
-               [pk | _] <- Blank.Schema.primary_keys(struct) do
-            {pk, :asc}
-          else
-            {_, _} = res ->
-              res
-
-            _ ->
-              raise ArgumentError, "No primary keys for module #{schema}"
-          end
+          unquote(order_field_body(order_field))
         end
 
         @impl Blank.Schema
@@ -312,6 +294,34 @@ defimpl Blank.Schema, for: Any do
   end
 
   defp get_name(val, _struct, _identity_field), do: val
+
+  # A configured identity field is a literal atom, so the generated clause returns
+  # it directly. Only the default `nil` needs the primary-key fallback, and building
+  # that branch only for `nil` keeps `with nil <- :email` out of the generated code.
+  defp identity_field_body(nil) do
+    quote do
+      case Blank.Schema.primary_keys(struct) do
+        [pk | _] -> pk
+        _ -> raise ArgumentError, "No primary keys for module #{schema}"
+      end
+    end
+  end
+
+  defp identity_field_body(field) when is_atom(field), do: field
+
+  # `default_order/1` already turned a configured atom into a tuple, so only `nil`
+  # needs the primary-key fallback. Generating that branch only for `nil` keeps
+  # `with nil <- {:rating, :desc}` out of the generated code.
+  defp order_field_body(nil) do
+    quote do
+      case Blank.Schema.primary_keys(struct) do
+        [pk | _] -> {pk, :asc}
+        _ -> raise ArgumentError, "No primary keys for module #{schema}"
+      end
+    end
+  end
+
+  defp order_field_body(field), do: field
 
   defp default_order(nil), do: nil
 

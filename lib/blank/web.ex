@@ -61,7 +61,6 @@ defmodule Blank.Web do
   @spec field() :: Macro.t()
   def field do
     quote do
-      use Phoenix.Component
       use Phoenix.LiveComponent
 
       unquote(html_helpers())

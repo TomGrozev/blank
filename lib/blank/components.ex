@@ -266,7 +266,7 @@ defmodule Blank.Components do
       <.button>Send!</.button>
       <.button phx-click="go" class="ml-2">Send!</.button>
   """
-  attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
+  attr :rest, :global, include: ~w(href navigate patch method download name value type disabled)
   attr :class, :any
   attr :variant, :string, values: ~w(primary neutral error)
   slot :inner_block, required: true

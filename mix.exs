@@ -37,6 +37,8 @@ defmodule Blank.MixProject do
   # The repo-owned gate: the pre-commit hook, CI and agents all run `mix precommit`.
   # `sobelow` keeps CI's form: the three low-confidence findings are triaged (commit 459f9f7).
   # `xref --fail-above 3` permits the three known cycles (issue #34) and fails on a fourth.
+  # `cmd env MIX_ENV=test` is required: an alias step runs in the env loaded for the alias
+  # (dev), and `mix test` refuses to run in dev.
   defp aliases do
     [
       precommit: [
@@ -46,7 +48,7 @@ defmodule Blank.MixProject do
         "doctor --summary",
         "sobelow",
         "xref graph --format cycles --fail-above 3",
-        "test --cover"
+        "cmd env MIX_ENV=test mix test --cover"
       ]
     ]
   end
@@ -63,7 +65,7 @@ defmodule Blank.MixProject do
   defp deps do
     [
       {:bcrypt_elixir, "~> 3.0"},
-      {:phoenix_live_view, "~> 1.1.0"},
+      {:phoenix_live_view, "~> 1.2"},
       {:phoenix_ecto, "~> 4.5"},
       {:arangox_ecto, "~> 2.0", optional: true},
       {:flop, "~> 0.29"},

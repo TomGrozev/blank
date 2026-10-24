@@ -130,8 +130,6 @@ defmodule Blank.Components.LocationSelect do
   defp value(%{value: %{"coordinates" => [lon, lat], "properties" => %{"address" => address}}}),
     do: {address, lon, lat}
 
-  defp value(nil), do: nil
-
   @impl true
   def mount(socket) do
     {:ok,

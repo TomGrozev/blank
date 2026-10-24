@@ -5,6 +5,7 @@
 ### Fixed
 
 - Boot-time config validation now raises `Blank.Errors.InvalidConfigError` instead of `RuntimeError` ([#21](https://github.com/TomGrozev/blank/issues/21)). The authorization and ueberauth checks fill `caller`, `module` and `usage`, so a host rescues one error type for every config mistake. The hint text each message carries is unchanged.
+- Blank now requires Phoenix LiveView `~> 1.2`. LiveView 1.2 compiles its HEEx output as generated code, so the Elixir 1.20 type checker no longer reports warnings inside Blank's own components.
 - Blank now compiles against Flop 0.29 and flop_phoenix 0.27 ([#37](https://github.com/TomGrozev/blank/issues/37)). The `Blank.Schema` derive now does what `use Flop.Schema` does (it sets `@flop_options` and lets Flop generate `__flop_schema__/0`), instead of generating a `Flop.Schema` protocol implementation.
 - Flop must resolve to `~> 0.29` and flop_phoenix to `~> 0.27`.
 - A schema that derives `Blank.Schema` no longer needs `use Flop.Schema`.

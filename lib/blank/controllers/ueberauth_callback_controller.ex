@@ -198,10 +198,6 @@ defmodule Blank.Controllers.UeberauthCallbackController do
     |> redirect_to_login()
   end
 
-  defp handle_failure(conn, _failure) do
-    handle_unknown(conn)
-  end
-
   defp handle_unknown(conn) do
     provider = conn.params["provider"] || "unknown"
 
