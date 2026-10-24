@@ -83,8 +83,11 @@ defmodule Blank.MixProject do
       {:git_hooks, "~> 0.8", only: [:dev], runtime: false},
       {:doctor, "~> 0.22.0", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.18", only: :test},
-      {:ecto_sql, "~> 3.10", only: :test},
-      {:ecto_sqlite3, "~> 0.15", only: :test},
+      {:ecto_sql, "~> 3.10", only: :test, runtime: false},
+      # Started explicitly in test/test_helper.exs. Without runtime: false the
+      # test adapter lands in blank.app's applications list, which then claims a
+      # dependency the library does not have.
+      {:ecto_sqlite3, "~> 0.15", only: :test, runtime: false},
       {:lazy_html, ">= 0.1.0", only: :test}
     ]
   end
