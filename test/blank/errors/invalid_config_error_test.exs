@@ -56,4 +56,80 @@ defmodule Blank.Errors.InvalidConfigErrorTest do
     assert err.key == :bad_key
     assert err.message =~ "unknown option"
   end
+
+  describe "from_app_env/1" do
+    test "returns a struct built from the app-env options" do
+      usage = """
+      The :roles key must be a list of atoms:
+
+          config :blank, :authorization, roles: [:payment_manager]
+      """
+
+      err =
+        InvalidConfigError.from_app_env(
+          caller: :authorization,
+          module: Blank.Authorization,
+          key: :roles,
+          value: "not_a_list",
+          usage: usage
+        )
+
+      assert %InvalidConfigError{} = err
+      assert err.caller == :authorization
+      assert err.module == Blank.Authorization
+      assert err.usage == usage
+      assert err.key == :roles
+      assert err.value == "not_a_list"
+      assert err.source == :app_env
+    end
+  end
+
+  describe "message/1" do
+    test "with an atom caller returns the dotted module, config key, usage and value" do
+      err =
+        InvalidConfigError.from_app_env(
+          caller: :authorization,
+          module: Blank.Authorization,
+          key: :roles,
+          value: "not_a_list",
+          usage: "The :roles key must be a list of atoms"
+        )
+
+      msg = Exception.message(err)
+      assert msg =~ "invalid Blank.Authorization configuration"
+      assert msg =~ "The `:authorization` config key is invalid."
+      assert msg =~ "The :roles key must be a list of atoms"
+      assert msg =~ "Got: \"not_a_list\""
+    end
+
+    test "returns the dotted module name and the caller label" do
+      err =
+        InvalidConfigError.from_app_env(
+          caller: Ueberauth,
+          module: Blank.Ueberauth,
+          key: :providers,
+          value: [],
+          usage: "Blank requires at least one Ueberauth provider"
+        )
+
+      msg = Exception.message(err)
+      assert msg =~ "invalid Blank.Ueberauth configuration"
+      assert msg =~ "The `Ueberauth` config key is invalid."
+      assert msg =~ "Blank requires at least one Ueberauth provider"
+      assert msg =~ "Got: []"
+    end
+
+    test "with a nil config value returns the nil in the Got line" do
+      err =
+        InvalidConfigError.from_app_env(
+          caller: :authorization,
+          module: Blank.Authorization,
+          key: :roles,
+          value: nil,
+          usage: "The :roles key must be a list of atoms"
+        )
+
+      assert Exception.message(err) =~ "Got: nil"
+    end
+  end
 end

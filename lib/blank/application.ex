@@ -3,7 +3,29 @@ defmodule Blank.Application do
 
   use Application
 
+  alias Blank.Errors.InvalidConfigError
   alias Blank.Plugs.Auth
+
+  # Boot-time configuration hints. Both are rendered by
+  # `Blank.Errors.InvalidConfigError.message/1` under its app-env header, so they
+  # carry only the hint text, not the offending value.
+  @authorization_usage """
+  The :roles key must be a list of atoms:
+
+      config :blank, :authorization, roles: [:payment_manager, :content_editor]
+  """
+
+  @ueberauth_usage """
+  Blank requires at least one Ueberauth provider to be configured when local auth is disabled.
+  Please add providers to your Ueberauth config:
+
+      config :ueberauth, Ueberauth,
+        providers: [google: {Ueberauth.Strategy.Google, []}]
+
+  Or enable local auth:
+
+      config :blank, :auth, local_login: :enabled
+  """
 
   @doc """
   Starts the blank application
@@ -29,15 +51,13 @@ defmodule Blank.Application do
     roles = Keyword.get(config, :roles, [])
 
     unless is_list(roles) and Enum.all?(roles, &is_atom/1) do
-      raise """
-      Blank authorization config is invalid.
-
-      The :roles key must be a list of atoms:
-
-          config :blank, :authorization, roles: [:payment_manager, :content_editor]
-
-      Got: #{inspect(roles)}
-      """
+      raise InvalidConfigError.from_app_env(
+              caller: :authorization,
+              module: Blank.Authorization,
+              key: :roles,
+              value: roles,
+              usage: @authorization_usage
+            )
     end
 
     # Compute and cache the allowed-set at boot
@@ -55,17 +75,13 @@ defmodule Blank.Application do
       providers = Keyword.get(config, :providers, [])
 
       if providers == [] do
-        raise """
-        Blank requires at least one Ueberauth provider to be configured when local auth is disabled.
-        Please add providers to your Ueberauth config:
-
-            config :ueberauth, Ueberauth,
-              providers: [google: {Ueberauth.Strategy.Google, []}]
-
-        Or enable local auth:
-
-            config :blank, :auth, local_login: :enabled
-        """
+        raise InvalidConfigError.from_app_env(
+                caller: Ueberauth,
+                module: Blank.Ueberauth,
+                key: :providers,
+                value: providers,
+                usage: @ueberauth_usage
+              )
       end
     end
   end

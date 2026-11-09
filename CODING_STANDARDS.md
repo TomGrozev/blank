@@ -6,7 +6,7 @@ alternatives live in `docs/adr/`.
 
 ## Extension seams
 
-1. Declare a consumer option set as a NimbleOptions `@schema`; interpolate `NimbleOptions.docs(@schema)` into the `@moduledoc`; raise `Blank.Errors.InvalidConfigError.from_nimble/2` on invalid config. (`lib/blank/field.ex:277`, `lib/blank/schema.ex:100`)
+1. Declare a consumer option set as a NimbleOptions `@schema`; interpolate `NimbleOptions.docs(@schema)` into the `@moduledoc`; raise `Blank.Errors.InvalidConfigError.from_nimble/2` on invalid config. For an application-config check that no NimbleOptions schema covers, raise `Blank.Errors.InvalidConfigError.from_app_env/1` with the config key as `caller:`. (`lib/blank/field.ex:277`, `lib/blank/schema.ex:100`, `lib/blank/application.ex:54`)
 2. Enter a Phoenix behaviour through `use Blank.Web` (`:live_view`, `:live_component`, `:controller`, `:html`, `:field`, `:stat`); never write a bare `use Phoenix.LiveView` or `use Phoenix.LiveComponent`. (`lib/blank/web.ex:60`)
 3. Define an extension point as a behaviour in `Blank.<Capability>`, whose `__using__` injects `@behaviour` and `use Blank.Web`; put implementations in the plural sub-namespace (`Blank.Fields.*`, `Blank.Exporters.*`, `Blank.Authorization.RoleMappers.*`). (`lib/blank/field.ex:285`, `lib/blank/exporter.ex:11`)
 4. Add a field adapter as `lib/blank/fields/<type>.ex` with `use Blank.Field`; implement `render_display/1` and `render_form/1` in `~H`, and `render_list/1` only when the display form is not enough. (`lib/blank/fields/text.ex:17`)

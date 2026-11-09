@@ -71,6 +71,6 @@ Blank validates config at application start. Invalid config raises at boot:
 | Condition | Behaviour |
 |---|---|
 | `:endpoint` or `:repo` not set | Compile-time error via `fetch_env!` |
-| `:roles` is not a list of atoms | Boot-time `raise` |
-| `:local_login` is `:disabled` with no ueberauth providers | Boot-time `raise` |
+| `:roles` is not a list of atoms | Boot-time `Blank.Errors.InvalidConfigError` |
+| `:local_login` is `:disabled` with no ueberauth providers | Boot-time `Blank.Errors.InvalidConfigError` |
 | Invalid role returned from a role mapper | Login failure (runtime, not boot failure) |

@@ -485,9 +485,13 @@ defmodule Blank.AuthFlowTest do
       Application.put_env(:blank, :auth, local_login: :disabled)
       Application.put_env(:ueberauth, Ueberauth, providers: [])
 
-      assert_raise RuntimeError, ~r/Blank requires at least one Ueberauth provider/, fn ->
-        BlankApp.start(:normal, [])
-      end
+      err =
+        assert_raise Blank.Errors.InvalidConfigError, fn ->
+          BlankApp.start(:normal, [])
+        end
+
+      assert err.caller == Ueberauth
+      assert err.usage =~ "at least one Ueberauth provider"
     end
 
     test "does not raise when providers are configured" do
