@@ -2,12 +2,13 @@ defmodule Blank.ApplicationTest do
   use ExUnit.Case, async: true
 
   alias Blank.Application, as: BlankApp
+  alias Blank.Errors.InvalidConfigError
   alias Blank.Plugs.Auth
 
   # ── validate_ueberauth_config!/0 (via start/2) ──
 
   describe "validate_ueberauth_config!/0" do
-    test "raises when local auth is disabled and no providers configured" do
+    test "with local auth disabled and no providers returns InvalidConfigError" do
       original_auth = Application.get_env(:blank, :auth, [])
       original_ueberauth = Application.get_env(:ueberauth, Ueberauth, [])
 
@@ -19,9 +20,18 @@ defmodule Blank.ApplicationTest do
       Application.put_env(:blank, :auth, local_login: :disabled)
       Application.put_env(:ueberauth, Ueberauth, providers: [])
 
-      assert_raise RuntimeError, ~r/Blank requires at least one Ueberauth provider/, fn ->
-        BlankApp.start(:normal, [])
-      end
+      err =
+        assert_raise InvalidConfigError, fn ->
+          BlankApp.start(:normal, [])
+        end
+
+      assert err.caller == Ueberauth
+      assert err.module == Blank.Ueberauth
+      assert err.key == :providers
+      assert err.value == []
+      assert err.source == :app_env
+      assert err.usage =~ "at least one Ueberauth provider"
+      assert Exception.message(err) =~ "The `Ueberauth` config key is invalid."
     end
 
     test "does not raise when local auth is enabled (skips ueberauth check)" do
@@ -57,7 +67,7 @@ defmodule Blank.ApplicationTest do
   # ── validate_authorization_config!/0 (via start/2) ──
 
   describe "validate_authorization_config!/0" do
-    test "raises when roles is not a list" do
+    test "with roles not a list returns InvalidConfigError" do
       original_authz = Application.get_env(:blank, :authorization, [])
 
       on_exit(fn ->
@@ -66,12 +76,21 @@ defmodule Blank.ApplicationTest do
 
       Application.put_env(:blank, :authorization, roles: "not_a_list")
 
-      assert_raise RuntimeError, ~r/The :roles key must be a list of atoms/, fn ->
-        BlankApp.start(:normal, [])
-      end
+      err =
+        assert_raise InvalidConfigError, fn ->
+          BlankApp.start(:normal, [])
+        end
+
+      assert err.caller == :authorization
+      assert err.module == Blank.Authorization
+      assert err.key == :roles
+      assert err.value == "not_a_list"
+      assert err.source == :app_env
+      assert err.usage =~ ":roles key must be a list of atoms"
+      assert Exception.message(err) =~ "The `:authorization` config key is invalid."
     end
 
-    test "raises when roles contains non-atoms" do
+    test "with non-atom roles returns InvalidConfigError" do
       original_authz = Application.get_env(:blank, :authorization, [])
 
       on_exit(fn ->
@@ -80,9 +99,17 @@ defmodule Blank.ApplicationTest do
 
       Application.put_env(:blank, :authorization, roles: [:valid_role, "not_an_atom"])
 
-      assert_raise RuntimeError, ~r/The :roles key must be a list of atoms/, fn ->
-        BlankApp.start(:normal, [])
-      end
+      err =
+        assert_raise InvalidConfigError, fn ->
+          BlankApp.start(:normal, [])
+        end
+
+      assert err.caller == :authorization
+      assert err.module == Blank.Authorization
+      assert err.key == :roles
+      assert err.value == [:valid_role, "not_an_atom"]
+      assert err.source == :app_env
+      assert err.usage =~ ":roles key must be a list of atoms"
     end
 
     test "does not raise with valid roles list" do
