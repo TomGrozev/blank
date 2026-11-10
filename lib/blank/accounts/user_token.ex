@@ -73,7 +73,7 @@ defmodule Blank.Accounts.UserToken do
   """
   @spec touch_last_activity(t()) :: {:ok, t()} | {:error, Ecto.Changeset.t()}
   def touch_last_activity(%UserToken{} = token) do
-    repo = Application.fetch_env!(:blank, :repo)
+    repo = Blank.Config.repo()
 
     token
     |> Ecto.Changeset.change(%{last_activity_at: DateTime.truncate(DateTime.utc_now(), :second)})

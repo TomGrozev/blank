@@ -157,7 +157,7 @@ defmodule Blank.Pages.HomeLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    repo = Application.fetch_env!(:blank, :repo)
+    repo = Blank.Config.repo()
 
     schema_links = Map.new(socket.assigns.main_links, &{Map.get(&1, :schema), &1.url})
 

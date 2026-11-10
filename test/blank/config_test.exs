@@ -7,6 +7,10 @@ defmodule Blank.ConfigTest.RuntimePolicy do
   def policy(_user, _action, _scope), do: true
 end
 
+defmodule Blank.ConfigTest.OtherRepo do
+  @moduledoc false
+end
+
 defmodule Blank.ConfigTest do
   # Not async: mutates :persistent_term global state
   use ExUnit.Case
@@ -169,6 +173,30 @@ defmodule Blank.ConfigTest do
       )
 
       assert Config.role_mapper_config() == {Blank.Authorization.RoleMappers.GitHub, []}
+    end
+  end
+
+  describe "repo/0" do
+    test "returns the configured repo" do
+      assert Config.repo() == TestApp.Repo
+    end
+
+    test "with a config change made after boot returns the new repo" do
+      original_repo = Application.get_env(:blank, :repo)
+      on_exit(fn -> Application.put_env(:blank, :repo, original_repo) end)
+
+      Application.put_env(:blank, :repo, Blank.ConfigTest.OtherRepo)
+
+      assert Config.repo() == Blank.ConfigTest.OtherRepo
+    end
+
+    test "with the :repo key unset raises ArgumentError" do
+      original_repo = Application.get_env(:blank, :repo)
+      on_exit(fn -> Application.put_env(:blank, :repo, original_repo) end)
+
+      Application.delete_env(:blank, :repo)
+
+      assert_raise ArgumentError, fn -> Config.repo() end
     end
   end
 end

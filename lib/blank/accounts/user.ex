@@ -123,7 +123,7 @@ defmodule Blank.Accounts.User do
 
   defp maybe_validate_unique_email(changeset, opts) do
     if Keyword.get(opts, :validate_email, true) do
-      repo = Keyword.get_lazy(opts, :repo, fn -> Application.fetch_env!(:blank, :repo) end)
+      repo = Keyword.get_lazy(opts, :repo, &Blank.Config.repo/0)
 
       changeset
       |> unsafe_validate_unique(:email, repo)

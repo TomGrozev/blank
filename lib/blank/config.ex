@@ -3,8 +3,9 @@ defmodule Blank.Config do
   Configuration management for Blank.
 
   `Blank.Config` is the single owner of Blank's config reads: nothing else reads
-  the `:blank, :authorization` key. It reads config through `Application` and
-  caches only the allowed-role set, through `:persistent_term`.
+  the `:blank, :authorization` key or the `:blank, :repo` key. It reads config
+  through `Application` and caches only the allowed-role set, through
+  `:persistent_term`.
 
   The allowed-role set is the only cached value. `policy_module/0` and
   `role_mapper_config/0` read config at call time, so a config change made after
@@ -100,6 +101,15 @@ defmodule Blank.Config do
         {module, []}
     end
   end
+
+  @doc """
+  Returns the configured Ecto repo from `config :blank, :repo`.
+
+  Reads at call time, so a config change made after boot is visible on the next
+  call. Raises `ArgumentError` when the key is unset.
+  """
+  @spec repo() :: Ecto.Repo.t()
+  def repo, do: Application.fetch_env!(:blank, :repo)
 
   # Sole direct read of the `:blank, :authorization` key. It sits here so the
   # rest of Blank reaches that key only through this module. Reading at call time

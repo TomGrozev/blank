@@ -492,11 +492,7 @@ defmodule Blank.AdminPage do
 
       @impl true
       def repo do
-        Keyword.get(
-          @config_opts,
-          :repo,
-          Application.fetch_env!(:blank, :repo)
-        )
+        Keyword.get_lazy(@config_opts, :repo, &Blank.Config.repo/0)
       end
     end
   end
