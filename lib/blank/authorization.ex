@@ -6,15 +6,8 @@ defmodule Blank.Authorization do
   and other authorization-aware code paths.
   """
 
-  @built_in_roles MapSet.new([:system_admin, :member])
-
   @doc """
-  Returns the full set of allowed role atoms.
-
-  The allowed-set is the union of the built-in roles (`:system_admin`, `:member`)
-  and any consumer-configured roles from `config :blank, :authorization, roles: [...]`.
-
-  The set is computed once at app boot and cached for the lifetime of the application.
+  Returns the full set of allowed role atoms, as cached by `Blank.Config`.
   """
   @spec allowed_roles() :: MapSet.t(atom())
   def allowed_roles do
@@ -29,7 +22,7 @@ defmodule Blank.Authorization do
 
   ## Examples
 
-      iex> validate_roles([:system_admin, :member])
+      iex> validate_roles([:member])
       :ok
 
       iex> validate_roles([:system_admin, :unknown_role])
@@ -51,60 +44,25 @@ defmodule Blank.Authorization do
   end
 
   @doc """
-  Returns the built-in roles that are always present regardless of config.
+  Returns the built-in roles that are always present regardless of config, as
+  defined by `Blank.Config`.
   """
   @spec built_in_roles() :: MapSet.t(atom())
-  def built_in_roles, do: @built_in_roles
+  def built_in_roles, do: Blank.Config.built_in_roles()
 
   @doc """
-  Returns the configured policy module, or `Blank.Authorization.DefaultPolicy`
-  if none is configured.
-
-  Reads from `config :blank, :authorization, policy_module: MyApp.Policy`.
+  Returns the configured policy module, as read by `Blank.Config`; defaults to
+  `Blank.Authorization.DefaultPolicy` (ADR-0006).
   """
   @spec policy_module() :: module()
-  def policy_module do
-    :blank
-    |> Application.get_env(:authorization, [])
-    |> Keyword.get(:policy_module, Blank.Authorization.DefaultPolicy)
-  end
+  def policy_module, do: Blank.Config.policy_module()
 
   @doc """
-  Returns the configured role mapper as `{module, opts}`, or `nil` if none is configured.
-
-  Reads from `config :blank, :authorization, role_mapper: ...`.
-
-  Supports two config shapes:
-    * `{Module, opts}` — module with explicit options
-    * `Module` — plain module shorthand (no-opts, equivalent to `{Module, []}`)
-
-  ## Examples
-
-      # config :blank, :authorization, role_mapper: {MyMapper, [key: :value]}
-      iex> role_mapper_config()
-      {MyMapper, [key: :value]}
-
-      # config :blank, :authorization, role_mapper: MyMapper
-      iex> role_mapper_config()
-      {MyMapper, []}
-
-      # no role_mapper configured
-      iex> role_mapper_config()
-      nil
+  Returns the configured role mapper as `{module, opts}`, or `nil` if none is
+  configured, as read by `Blank.Config`.
   """
   @spec role_mapper_config() :: {module(), keyword()} | nil
-  def role_mapper_config do
-    case :blank |> Application.get_env(:authorization, []) |> Keyword.get(:role_mapper) do
-      nil ->
-        nil
-
-      {module, opts} when is_atom(module) and is_list(opts) ->
-        {module, opts}
-
-      module when is_atom(module) ->
-        {module, []}
-    end
-  end
+  def role_mapper_config, do: Blank.Config.role_mapper_config()
 
   @doc """
   Checks whether a user can perform an action on a scope.

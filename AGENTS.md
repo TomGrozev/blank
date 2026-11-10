@@ -47,4 +47,5 @@ command, so keep hooks enabled and never pass `--no-verify`.
 
 `mix precommit` runs, in order: `format --check-formatted`, `compile --warnings-as-errors`,
 `credo --strict`, `doctor --summary`, `sobelow`,
-`xref graph --format cycles --fail-above 3`, `test --cover` (80% line floor).
+`xref graph --format cycles --fail-above 2`, `cmd env MIX_ENV=test mix test --cover`
+(80% line floor).

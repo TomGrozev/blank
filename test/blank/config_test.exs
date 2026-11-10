@@ -1,10 +1,19 @@
+defmodule Blank.ConfigTest.RuntimePolicy do
+  @moduledoc false
+
+  @behaviour Blank.Authorization.Policy
+
+  @impl true
+  def policy(_user, _action, _scope), do: true
+end
+
 defmodule Blank.ConfigTest do
   # Not async: mutates :persistent_term global state
   use ExUnit.Case
 
   alias Blank.Config
 
-  @persistent_term_key {Blank.Authorization, :allowed_roles}
+  @persistent_term_key :blank_allowed_roles
 
   setup do
     # Save the current persistent_term value (if any) so we can restore it
@@ -94,6 +103,72 @@ defmodule Blank.ConfigTest do
       cached = :persistent_term.get(@persistent_term_key)
       assert %MapSet{} = cached
       assert MapSet.member?(cached, :system_admin)
+    end
+  end
+
+  describe "built_in_roles/0" do
+    test "returns the built-in role set" do
+      assert MapSet.equal?(Config.built_in_roles(), MapSet.new([:system_admin, :member]))
+    end
+  end
+
+  describe "configured_roles/0" do
+    test "returns the roles from config" do
+      # Test config has authorization: [roles: [:content_editor]]
+      assert Config.configured_roles() == [:content_editor]
+    end
+
+    test "with a config change made after boot returns the new roles" do
+      original_config = Application.get_env(:blank, :authorization)
+      on_exit(fn -> Application.put_env(:blank, :authorization, original_config) end)
+
+      Application.put_env(:blank, :authorization, roles: [:runtime_role])
+
+      assert Config.configured_roles() == [:runtime_role]
+    end
+  end
+
+  describe "policy_module/0" do
+    test "returns the default policy when none is configured" do
+      assert Config.policy_module() == Blank.Authorization.DefaultPolicy
+    end
+
+    test "with a policy configured after boot returns that module" do
+      original_config = Application.get_env(:blank, :authorization)
+      on_exit(fn -> Application.put_env(:blank, :authorization, original_config) end)
+
+      Application.put_env(:blank, :authorization, policy_module: Blank.ConfigTest.RuntimePolicy)
+
+      assert Config.policy_module() == Blank.ConfigTest.RuntimePolicy
+    end
+  end
+
+  describe "role_mapper_config/0" do
+    test "returns nil when no role mapper is configured" do
+      assert Config.role_mapper_config() == nil
+    end
+
+    test "with a module and opts configured returns the tuple" do
+      original_config = Application.get_env(:blank, :authorization)
+      on_exit(fn -> Application.put_env(:blank, :authorization, original_config) end)
+
+      Application.put_env(:blank, :authorization,
+        role_mapper: {Blank.Authorization.RoleMappers.GitHub, key: :value}
+      )
+
+      assert Config.role_mapper_config() ==
+               {Blank.Authorization.RoleMappers.GitHub, [key: :value]}
+    end
+
+    test "with a plain module configured after boot returns the module with empty opts" do
+      original_config = Application.get_env(:blank, :authorization)
+      on_exit(fn -> Application.put_env(:blank, :authorization, original_config) end)
+
+      Application.put_env(:blank, :authorization,
+        role_mapper: Blank.Authorization.RoleMappers.GitHub
+      )
+
+      assert Config.role_mapper_config() == {Blank.Authorization.RoleMappers.GitHub, []}
     end
   end
 end
