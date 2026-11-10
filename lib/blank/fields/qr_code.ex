@@ -31,7 +31,7 @@ defmodule Blank.Fields.QRCode do
 
   alias Blank.Utils.QRCode
 
-  @impl Phoenix.LiveComponent
+  @impl true
   def update(%{value: value} = assigns, socket) do
     path = Map.get(assigns.definition, :path, "/")
     path_prefix = Map.get(assigns, :path_prefix, "/")
@@ -54,7 +54,7 @@ defmodule Blank.Fields.QRCode do
     {:ok, assign(socket, assigns)}
   end
 
-  @impl Blank.Field
+  @impl true
   def render_list(assigns) do
     ~H"""
     <div>
@@ -63,7 +63,7 @@ defmodule Blank.Fields.QRCode do
     """
   end
 
-  @impl Blank.Field
+  @impl true
   def render_display(assigns) do
     ~H"""
     <div class="mt-4">
@@ -82,7 +82,7 @@ defmodule Blank.Fields.QRCode do
     """
   end
 
-  @impl Blank.Field
+  @impl true
   def render_form(assigns) do
     ~H"""
     <div>

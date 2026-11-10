@@ -22,7 +22,7 @@ defmodule Blank.Fields.List do
 
   use Blank.Field
 
-  @impl Blank.Field
+  @impl true
   def render_display(assigns) do
     {:array, inner_type} = assigns.schema.__schema__(:type, assigns.definition.key)
 
@@ -49,7 +49,7 @@ defmodule Blank.Fields.List do
     """
   end
 
-  @impl Blank.Field
+  @impl true
   def render_form(assigns) do
     {:array, inner_type} = assigns.schema.__schema__(:type, assigns.definition.key)
 
@@ -112,12 +112,11 @@ defmodule Blank.Fields.List do
     })
   end
 
-  @impl Phoenix.LiveComponent
+  @impl true
   def handle_event("add-to-list", _params, socket) do
     {:noreply, assign(socket, :field, Map.update!(socket.assigns.field, :value, &(&1 ++ [nil])))}
   end
 
-  @impl Phoenix.LiveComponent
   def handle_event("remove-from-list", %{"index" => idx}, socket) do
     {:noreply,
      assign(

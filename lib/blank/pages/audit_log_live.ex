@@ -4,7 +4,7 @@ defmodule Blank.Pages.AuditLogLive do
 
   alias Blank.Components.AuditLogComponent
 
-  @impl Phoenix.LiveView
+  @impl true
   def render(assigns) do
     ~H"""
     <.header class="text-center">
@@ -24,7 +24,7 @@ defmodule Blank.Pages.AuditLogLive do
     """
   end
 
-  @impl Phoenix.LiveView
+  @impl true
   def mount(_params, _session, socket) do
     {:ok, Blank.AdminPage.put_time_zone(socket)}
   end

@@ -24,7 +24,7 @@ defmodule Blank.Fields.BelongsTo do
   alias Blank.Components.SearchableSelect
   alias Blank.Context
 
-  @impl Phoenix.LiveComponent
+  @impl true
   def update(%{type: :form} = assigns, socket) do
     %{schema: schema, field: field} = assigns
 
@@ -41,7 +41,7 @@ defmodule Blank.Fields.BelongsTo do
     {:ok, assign(socket, assigns)}
   end
 
-  @impl Blank.Field
+  @impl true
   def render_display(%{value: %Ecto.Association.NotLoaded{}} = assigns) do
     ~H"""
     nil
@@ -61,7 +61,7 @@ defmodule Blank.Fields.BelongsTo do
     """
   end
 
-  @impl Blank.Field
+  @impl true
   def render_form(assigns) do
     ~H"""
     <div>

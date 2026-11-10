@@ -19,7 +19,7 @@ defmodule Blank.Fields.Boolean do
 
   use Blank.Field
 
-  @impl Blank.Field
+  @impl true
   def render_display(assigns) do
     ~H"""
     <div>
@@ -29,7 +29,7 @@ defmodule Blank.Fields.Boolean do
     """
   end
 
-  @impl Blank.Field
+  @impl true
   def render_form(assigns) do
     ~H"""
     <div>

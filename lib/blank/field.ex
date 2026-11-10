@@ -302,7 +302,7 @@ defmodule Blank.Field do
 
   defmacro __before_compile__(_env) do
     quote do
-      @impl Phoenix.LiveComponent
+      @impl true
       def render(%{type: :list} = assigns) do
         if function_exported?(__MODULE__, :render_list, 1) do
           apply(__MODULE__, :render_list, [assigns])

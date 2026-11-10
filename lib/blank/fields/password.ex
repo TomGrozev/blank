@@ -20,14 +20,14 @@ defmodule Blank.Fields.Password do
 
   use Blank.Field
 
-  @impl Blank.Field
+  @impl true
   def render_display(assigns) do
     ~H"""
     <span>************</span>
     """
   end
 
-  @impl Blank.Field
+  @impl true
   def render_form(assigns) do
     ~H"""
     <div>

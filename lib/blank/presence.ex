@@ -37,36 +37,36 @@ defmodule Blank.Presence do
   @doc false
   def fetchers_pids
 
-  @impl Phoenix.Presence
+  @impl true
   def get_by_key(topic, key)
 
-  @impl Phoenix.Presence
+  @impl true
   def list(topic)
 
-  @impl Phoenix.Presence
+  @impl true
   def track(socket, key, meta)
 
-  @impl Phoenix.Presence
+  @impl true
   def track(pid, topic, key, meta)
 
-  @impl Phoenix.Presence
+  @impl true
   def untrack(socket, key)
 
-  @impl Phoenix.Presence
+  @impl true
   def untrack(pid, topic, key)
 
-  @impl Phoenix.Presence
+  @impl true
   def update(socket, key, meta)
 
-  @impl Phoenix.Presence
+  @impl true
   def update(pid, topic, key, meta)
 
-  @impl Phoenix.Presence
+  @impl true
   def init(_opts) do
     {:ok, %{}}
   end
 
-  @impl Phoenix.Presence
+  @impl true
   def fetch(_topic, presences) do
     for {key, %{metas: [meta | metas]}} <- presences, into: %{} do
       {key,
@@ -79,7 +79,7 @@ defmodule Blank.Presence do
     end
   end
 
-  @impl Phoenix.Presence
+  @impl true
   def handle_metas(topic, %{joins: joins, leaves: leaves}, presences, state) do
     for {user_id, presence} <- joins do
       user_data = %{

@@ -12,7 +12,7 @@ defmodule Blank.Pages.UsersLive do
 
   defoverridable mount: 3, render: 1, handle_event: 3
 
-  @impl Phoenix.LiveView
+  @impl true
   def mount(params, session, socket) do
     {:ok, socket} = super(params, session, socket)
 
@@ -30,7 +30,7 @@ defmodule Blank.Pages.UsersLive do
     end
   end
 
-  @impl Phoenix.LiveView
+  @impl true
   def render(%{live_action: :edit} = assigns) do
     ~H"""
     <h2>Edit roles for {@item.email}</h2>
@@ -55,7 +55,7 @@ defmodule Blank.Pages.UsersLive do
 
   def render(assigns), do: super(assigns)
 
-  @impl Phoenix.LiveView
+  @impl true
   def handle_event("save-roles", params, socket) do
     if can?(socket.assigns.current_user, :update, %Scope{resource_type: :user}) do
       roles =

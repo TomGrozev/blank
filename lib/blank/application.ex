@@ -32,6 +32,7 @@ defmodule Blank.Application do
   """
   @spec start(Application.start_type(), term()) ::
           {:ok, pid()} | {:error, {:already_started, pid()} | {:shutdown, term()} | term()}
+  @impl true
   def start(_, _) do
     validate_ueberauth_config!()
     validate_authorization_config!()
