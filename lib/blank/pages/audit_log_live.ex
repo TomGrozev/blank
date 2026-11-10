@@ -26,17 +26,7 @@ defmodule Blank.Pages.AuditLogLive do
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
-    time_zone =
-      with true <- connected?(socket),
-           true <- Application.get_env(:blank, :use_local_timezone, false),
-           %{"time_zone" => time_zone} <- get_connect_params(socket) do
-        time_zone
-      else
-        _ ->
-          "Etc/UTC"
-      end
-
-    {:ok, assign(socket, :time_zone, time_zone)}
+    {:ok, Blank.AdminPage.put_time_zone(socket)}
   end
 
   @impl true

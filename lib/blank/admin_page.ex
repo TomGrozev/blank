@@ -598,15 +598,15 @@ defmodule Blank.AdminPage do
   attr(:time_zone, :string, required: true)
   def admin_show(assigns)
 
-  @impl Phoenix.LiveView
-  def mount(params, session, socket) do
-    admin_page = socket.view
+  @doc """
+  Assigns the time zone the page renders dates and times in.
 
-    schema = admin_page.config(:schema)
-    struct = struct(schema)
-    primary_keys = Blank.Schema.primary_keys(struct)
-    identity_field = Blank.Schema.identity_field(struct)
-
+  Reads the browser's time zone from the connect params when the socket is
+  connected and `:use_local_timezone` is enabled in the `:blank` app config.
+  Otherwise assigns `"Etc/UTC"`.
+  """
+  @spec put_time_zone(Phoenix.LiveView.Socket.t()) :: Phoenix.LiveView.Socket.t()
+  def put_time_zone(socket) do
     time_zone =
       with true <- connected?(socket),
            true <- Application.get_env(:blank, :use_local_timezone, false),
@@ -617,9 +617,21 @@ defmodule Blank.AdminPage do
           "Etc/UTC"
       end
 
+    assign(socket, :time_zone, time_zone)
+  end
+
+  @impl Phoenix.LiveView
+  def mount(params, session, socket) do
+    admin_page = socket.view
+
+    schema = admin_page.config(:schema)
+    struct = struct(schema)
+    primary_keys = Blank.Schema.primary_keys(struct)
+    identity_field = Blank.Schema.identity_field(struct)
+
     socket =
       socket
-      |> assign(:time_zone, time_zone)
+      |> put_time_zone()
       |> assign(:admin_page, admin_page)
       |> assign(:key, admin_page.config(:key))
       |> assign(:name, admin_page.config(:name))

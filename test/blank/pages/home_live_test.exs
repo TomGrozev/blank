@@ -137,6 +137,15 @@ defmodule Blank.Pages.HomeLiveTest do
     end
   end
 
+  describe "put_time_zone/1" do
+    test "with local time zone enabled assigns the browser time zone", %{conn: conn} do
+      conn = with_browser_time_zone(conn)
+      {:ok, view, _html} = live(conn, "/admin")
+
+      assert :sys.get_state(view.pid).socket.assigns.time_zone == "America/New_York"
+    end
+  end
+
   describe "presence list rendering" do
     test "shows empty message when no users are online", %{conn: conn} do
       {:ok, _view, html} = live(conn, "/admin")
