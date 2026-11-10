@@ -4,31 +4,17 @@ defmodule Blank.Accounts.UpdateRolesTest do
   alias Blank.Accounts
   alias Blank.Audit.AuditLog
 
-  @valid_email "user@example.com"
-  @valid_password "Str0ng!Passw0rd"
+  import Blank.Fixtures
 
   defp audit_context do
     %AuditLog{user_agent: "test", ip_address: {127, 0, 0, 1}}
-  end
-
-  defp create_user(attrs \\ %{}) do
-    {:ok, user} =
-      Accounts.register_user(Map.merge(%{email: @valid_email, password: @valid_password}, attrs))
-
-    user
-  end
-
-  defp set_roles(user, roles) do
-    user
-    |> Ecto.Changeset.change(roles: roles)
-    |> TestApp.Repo.update!()
   end
 
   # ── update_roles/3 ──
 
   describe "update_roles/3" do
     test "successful role update returns updated user with new roles" do
-      user = create_user() |> set_roles([:member])
+      user = user_fixture(%{roles: [:member]})
 
       assert {:ok, updated_user} =
                Accounts.update_roles(user, [:system_admin, :member],
@@ -40,7 +26,7 @@ defmodule Blank.Accounts.UpdateRolesTest do
     end
 
     test "audit log is created with correct action" do
-      user = create_user() |> set_roles([:member])
+      user = user_fixture(%{roles: [:member]})
 
       {:ok, _} =
         Accounts.update_roles(user, [:system_admin, :member],
@@ -61,7 +47,7 @@ defmodule Blank.Accounts.UpdateRolesTest do
     end
 
     test "audit log params contain user_id, roles, before_roles, and source" do
-      user = create_user() |> set_roles([:member])
+      user = user_fixture(%{roles: [:member]})
 
       {:ok, _} =
         Accounts.update_roles(user, [:system_admin, :member],
@@ -85,7 +71,7 @@ defmodule Blank.Accounts.UpdateRolesTest do
     end
 
     test "invalid roles are rejected" do
-      user = create_user() |> set_roles([:member])
+      user = user_fixture(%{roles: [:member]})
 
       assert {:error, _changeset} =
                Accounts.update_roles(user, [:system_admin, :invalid_role],
@@ -95,7 +81,7 @@ defmodule Blank.Accounts.UpdateRolesTest do
     end
 
     test "empty roles list succeeds and leaves user with no roles" do
-      user = create_user() |> set_roles([:member, :system_admin])
+      user = user_fixture(%{roles: [:member, :system_admin]})
 
       assert {:ok, updated_user} =
                Accounts.update_roles(user, [],
@@ -107,7 +93,7 @@ defmodule Blank.Accounts.UpdateRolesTest do
     end
 
     test "source is preserved in the audit log params" do
-      user = create_user() |> set_roles([:member])
+      user = user_fixture(%{roles: [:member]})
 
       {:ok, _} =
         Accounts.update_roles(user, [:system_admin],

@@ -7,24 +7,6 @@ defmodule Blank.Pages.UsersLiveTest do
     {:ok, conn: log_in_user(conn)}
   end
 
-  defp create_target_user(attrs) do
-    defaults = %{
-      email: "target_#{System.unique_integer([:positive])}@example.com",
-      password: "Str0ng!Passw0rd"
-    }
-
-    {roles, attrs} = Map.pop(Map.merge(defaults, attrs), :roles, [:member])
-
-    {:ok, user} = Blank.Accounts.register_user(attrs)
-
-    {:ok, user} =
-      user
-      |> Ecto.Changeset.change(%{roles: roles})
-      |> TestApp.Repo.update()
-
-    user
-  end
-
   test "mounting shows the admins index page", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/admin/admins")
 
@@ -32,7 +14,7 @@ defmodule Blank.Pages.UsersLiveTest do
   end
 
   test "system_admin can access show page", %{conn: conn} do
-    target_user = create_target_user(%{roles: [:member]})
+    target_user = user_fixture(%{roles: [:member]})
 
     {:ok, _view, html} = live(conn, "/admin/admins/#{target_user.id}")
 
@@ -40,7 +22,7 @@ defmodule Blank.Pages.UsersLiveTest do
   end
 
   test "system_admin can access edit page", %{conn: conn} do
-    target_user = create_target_user(%{roles: [:member]})
+    target_user = user_fixture(%{roles: [:member]})
 
     {:ok, _view, html} = live(conn, "/admin/admins/#{target_user.id}/edit")
 
@@ -51,8 +33,8 @@ defmodule Blank.Pages.UsersLiveTest do
   end
 
   test "non-system_admin is denied access to edit page", %{conn: conn} do
-    target_user = create_target_user(%{roles: [:member]})
-    non_admin_user = create_target_user(%{roles: [:member]})
+    target_user = user_fixture(%{roles: [:member]})
+    non_admin_user = user_fixture(%{roles: [:member]})
 
     conn = log_in_user(conn, non_admin_user)
 
@@ -63,7 +45,7 @@ defmodule Blank.Pages.UsersLiveTest do
   end
 
   test "save-roles event updates roles and creates audit log", %{conn: conn} do
-    target_user = create_target_user(%{roles: [:member]})
+    target_user = user_fixture(%{roles: [:member]})
 
     {:ok, view, _html} = live(conn, "/admin/admins/#{target_user.id}/edit")
 
@@ -94,8 +76,8 @@ defmodule Blank.Pages.UsersLiveTest do
   end
 
   test "non-system_admin cannot invoke save-roles mutation", %{conn: conn} do
-    target_user = create_target_user(%{roles: [:member]})
-    non_admin_user = create_target_user(%{roles: [:member]})
+    target_user = user_fixture(%{roles: [:member]})
+    non_admin_user = user_fixture(%{roles: [:member]})
 
     conn = log_in_user(conn, non_admin_user)
 
@@ -108,7 +90,7 @@ defmodule Blank.Pages.UsersLiveTest do
   end
 
   test "save-roles with invalid roles shows error flash", %{conn: conn} do
-    target_user = create_target_user(%{roles: [:member]})
+    target_user = user_fixture(%{roles: [:member]})
 
     {:ok, view, _html} = live(conn, "/admin/admins/#{target_user.id}/edit")
 
@@ -122,7 +104,7 @@ defmodule Blank.Pages.UsersLiveTest do
   end
 
   test "save-roles with empty roles list succeeds", %{conn: conn} do
-    target_user = create_target_user(%{roles: [:member, :system_admin]})
+    target_user = user_fixture(%{roles: [:member, :system_admin]})
 
     {:ok, view, _html} = live(conn, "/admin/admins/#{target_user.id}/edit")
 

@@ -3,19 +3,10 @@ defmodule Blank.Accounts.UserTest do
 
   alias Blank.Accounts.User
 
+  import Blank.Fixtures
+
   @valid_email "user@example.com"
   @valid_password "Str0ng!Passw0rd"
-
-  defp user_fixture(attrs \\ %{}) do
-    {:ok, user} =
-      %User{}
-      |> User.registration_changeset(
-        Map.merge(%{email: @valid_email, password: @valid_password}, attrs)
-      )
-      |> TestApp.Repo.insert()
-
-    user
-  end
 
   # ── registration_changeset/2,3 ──
 
@@ -100,7 +91,7 @@ defmodule Blank.Accounts.UserTest do
     end
 
     test "duplicate email produces a unique constraint error" do
-      _user = user_fixture()
+      _user = user_fixture(%{email: @valid_email})
 
       changeset =
         User.registration_changeset(%User{}, %{email: @valid_email, password: @valid_password})
@@ -159,12 +150,12 @@ defmodule Blank.Accounts.UserTest do
 
   describe "valid_password?/2" do
     test "returns true with the correct password" do
-      user = user_fixture()
+      user = user_fixture(%{password: @valid_password})
       assert User.valid_password?(user, @valid_password)
     end
 
     test "returns false with the wrong password" do
-      user = user_fixture()
+      user = user_fixture(%{password: @valid_password})
       refute User.valid_password?(user, "WRONG_password123!")
     end
   end
@@ -173,14 +164,14 @@ defmodule Blank.Accounts.UserTest do
 
   describe "validate_current_password/2" do
     test "returns changeset without error when password is correct" do
-      user = user_fixture()
+      user = user_fixture(%{password: @valid_password})
       changeset = Ecto.Changeset.change(user)
       result = User.validate_current_password(changeset, @valid_password)
       refute result.errors[:current_password]
     end
 
     test "adds error to changeset when password is wrong" do
-      user = user_fixture()
+      user = user_fixture(%{password: @valid_password})
       changeset = Ecto.Changeset.change(user)
       result = User.validate_current_password(changeset, "WRONG_password123!")
       assert {"is not valid", _} = result.errors[:current_password]

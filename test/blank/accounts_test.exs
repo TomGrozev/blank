@@ -4,15 +4,10 @@ defmodule Blank.AccountsTest do
   alias Blank.Accounts
   alias Blank.Accounts.{User, UserToken}
 
+  import Blank.Fixtures
+
   @valid_email "user@example.com"
   @valid_password "Str0ng!Passw0rd"
-
-  defp user_fixture(attrs \\ %{}) do
-    {:ok, user} =
-      Accounts.register_user(Map.merge(%{email: @valid_email, password: @valid_password}, attrs))
-
-    user
-  end
 
   # ── list_users/0 ──
 
@@ -37,7 +32,7 @@ defmodule Blank.AccountsTest do
 
   describe "get_user_by_email/1" do
     test "returns the user with the given email" do
-      user = user_fixture()
+      user = user_fixture(%{email: @valid_email})
       result = Accounts.get_user_by_email(@valid_email)
 
       assert result.id == user.id
@@ -52,7 +47,7 @@ defmodule Blank.AccountsTest do
 
   describe "get_user_by_email_and_password/2" do
     test "returns the user with valid credentials" do
-      user = user_fixture()
+      user = user_fixture(%{email: @valid_email, password: @valid_password})
       result = Accounts.get_user_by_email_and_password(@valid_email, @valid_password)
 
       assert result.id == user.id
@@ -63,7 +58,7 @@ defmodule Blank.AccountsTest do
     end
 
     test "returns nil with invalid password" do
-      user_fixture()
+      user_fixture(%{email: @valid_email, password: @valid_password})
       assert is_nil(Accounts.get_user_by_email_and_password(@valid_email, "WRONG_password123!"))
     end
   end
@@ -138,7 +133,7 @@ defmodule Blank.AccountsTest do
 
   describe "update_user_password/3" do
     test "updates the password and deletes all tokens" do
-      user = user_fixture()
+      user = user_fixture(%{password: @valid_password})
 
       # Create a session token so we can verify it's deleted
       token = Accounts.generate_user_session_token(user)

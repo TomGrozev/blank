@@ -4,6 +4,8 @@ defmodule Blank.AuditTest do
   alias Blank.Audit
   alias Blank.Audit.AuditLog
 
+  import Blank.Fixtures
+
   describe "log!/3" do
     test "inserts a record and broadcasts" do
       Phoenix.PubSub.subscribe(Blank.PubSub, "audit:logs")
@@ -84,7 +86,7 @@ defmodule Blank.AuditTest do
 
   describe "list_all_for_user/2" do
     test "with a user struct" do
-      user = Repo.insert!(%Blank.Accounts.User{email: "audit@example.com", name: "Audit User"})
+      user = user_fixture(%{email: "audit@example.com", name: "Audit User"})
       context = %{AuditLog.system() | user_id: user.id}
 
       log = Audit.log!(context, "app.user_event", %{})
@@ -96,7 +98,7 @@ defmodule Blank.AuditTest do
     end
 
     test "with just an id" do
-      user = Repo.insert!(%Blank.Accounts.User{email: "audit2@example.com", name: "Audit User 2"})
+      user = user_fixture(%{email: "audit2@example.com", name: "Audit User 2"})
       context = %{AuditLog.system() | user_id: user.id}
 
       log = Audit.log!(context, "app.user_event_2", %{})
@@ -115,7 +117,7 @@ defmodule Blank.AuditTest do
       system_log = Audit.log!(context, "app.system_event", %{})
 
       # Non-system log (has a user)
-      user = Repo.insert!(%Blank.Accounts.User{email: "sys@example.com", name: "Sys User"})
+      user = user_fixture(%{email: "sys@example.com", name: "Sys User"})
       user_context = %{AuditLog.system() | user_id: user.id}
       Audit.log!(user_context, "app.user_event", %{})
 

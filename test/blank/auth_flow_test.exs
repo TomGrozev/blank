@@ -14,7 +14,7 @@ defmodule Blank.AuthFlowTest do
   @valid_password "Str0ng!Passw0rd"
 
   setup %{conn: conn} do
-    {:ok, user} = Accounts.register_user(%{email: @valid_email, password: @valid_password})
+    user = user_fixture(%{email: @valid_email, password: @valid_password, roles: []})
     %{conn: conn, user: user}
   end
 

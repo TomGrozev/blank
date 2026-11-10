@@ -11,6 +11,7 @@ defmodule Blank.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import Blank.ConnCase
+      import Blank.Fixtures
 
       @endpoint TestAppWeb.Endpoint
     end
@@ -22,26 +23,8 @@ defmodule Blank.ConnCase do
   end
 
   def log_in_user(conn, user \\ nil) do
-    user = user || user_fixture()
+    user = user || Blank.Fixtures.user_fixture()
     token = Blank.Accounts.generate_user_session_token(user)
     Plug.Test.init_test_session(conn, %{user_token: token})
-  end
-
-  def user_fixture(attrs \\ %{}) do
-    defaults = %{
-      email: "test_user_#{System.unique_integer([:positive])}@example.com",
-      password: "Str0ng!Passw0rd"
-    }
-
-    {roles, attrs} = Map.pop(Map.merge(defaults, attrs), :roles, [:system_admin])
-
-    {:ok, user} = Blank.Accounts.register_user(attrs)
-
-    {:ok, user} =
-      user
-      |> Ecto.Changeset.change(%{roles: roles})
-      |> TestApp.Repo.update()
-
-    user
   end
 end
