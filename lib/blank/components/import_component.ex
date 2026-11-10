@@ -21,7 +21,7 @@ defmodule Blank.Components.ImportComponent do
         for={to_form(%{})}
         id="csv-upload-form"
         phx-target={@myself}
-        phx-change="validate_upload"
+        phx-change="validate-upload"
         phx-submit="parse"
       >
         <label
@@ -196,7 +196,7 @@ defmodule Blank.Components.ImportComponent do
   end
 
   @impl true
-  def handle_event("validate_upload", _params, socket) do
+  def handle_event("validate-upload", _params, socket) do
     {:noreply, socket}
   end
 

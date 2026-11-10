@@ -34,7 +34,7 @@ defmodule Blank.Pages.UsersLive do
   def render(%{live_action: :edit} = assigns) do
     ~H"""
     <h2>Edit roles for {@item.email}</h2>
-    <.simple_form for={%{}} phx-submit="save_roles">
+    <.simple_form for={%{}} phx-submit="save-roles">
       <%= for role <- allowed_roles() do %>
         <label>
           <input
@@ -56,7 +56,7 @@ defmodule Blank.Pages.UsersLive do
   def render(assigns), do: super(assigns)
 
   @impl Phoenix.LiveView
-  def handle_event("save_roles", params, socket) do
+  def handle_event("save-roles", params, socket) do
     if can?(socket.assigns.current_user, :update, %Scope{resource_type: :user}) do
       roles =
         Map.get(params, "roles", [])

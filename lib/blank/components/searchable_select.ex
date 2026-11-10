@@ -48,7 +48,7 @@ defmodule Blank.Components.SearchableSelect do
           id={"#{@id}_options"}
           role="listbox"
           phx-click-away={
-            JS.push("hide_options", target: @myself)
+            JS.push("hide-options", target: @myself)
             |> JS.hide(
               to: "##{@id}_options",
               transition:
@@ -66,7 +66,7 @@ defmodule Blank.Components.SearchableSelect do
             id={"#{@id}_option-#{idx}"}
             role="option"
             tabindex="-1"
-            phx-click="option_selected"
+            phx-click="option-selected"
             phx-target={@myself}
             phx-value-option={idx}
             onclick={"setTimeout(() => document.getElementById('#{@id}#{if @id_field, do: "_id", else: ""}_input').dispatchEvent(new Event('input', {bubbles: true})), 100)"}
@@ -140,7 +140,7 @@ defmodule Blank.Components.SearchableSelect do
      |> assign(:hide_dropdown, false)}
   end
 
-  def handle_event("option_selected", %{"option" => idx}, socket) do
+  def handle_event("option-selected", %{"option" => idx}, socket) do
     option = Enum.at(socket.assigns.options, String.to_integer(idx))
 
     {:noreply,
@@ -149,7 +149,7 @@ defmodule Blank.Components.SearchableSelect do
      |> assign(:hide_dropdown, true)}
   end
 
-  def handle_event("hide_options", _, socket) do
+  def handle_event("hide-options", _, socket) do
     {:noreply, assign(socket, :hide_dropdown, true)}
   end
 

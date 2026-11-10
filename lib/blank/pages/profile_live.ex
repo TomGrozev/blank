@@ -54,8 +54,8 @@ defmodule Blank.Pages.ProfileLive do
             id="password_form"
             action={Path.join(@path_prefix, "/log_in?_action=password_updated")}
             method="post"
-            phx-change="validate_password"
-            phx-submit="update_password"
+            phx-change="validate-password"
+            phx-submit="update-password"
             phx-trigger-action={@trigger_submit}
           >
             <input
@@ -117,7 +117,7 @@ defmodule Blank.Pages.ProfileLive do
   end
 
   @doc false
-  def handle_event("validate_password", params, socket) do
+  def handle_event("validate-password", params, socket) do
     %{"current_password" => password, "user" => user_params} = params
 
     password_form =
@@ -129,7 +129,7 @@ defmodule Blank.Pages.ProfileLive do
     {:noreply, assign(socket, password_form: password_form, current_password: password)}
   end
 
-  def handle_event("update_password", params, socket) do
+  def handle_event("update-password", params, socket) do
     %{"current_password" => password, "user" => user_params} = params
     user = socket.assigns.current_user
 

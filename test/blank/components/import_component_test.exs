@@ -81,11 +81,11 @@ defmodule Blank.Components.ImportComponentTest do
     end
   end
 
-  describe "validate_upload event" do
-    test "validate_upload event does not crash", %{conn: conn} do
+  describe "validate-upload event" do
+    test "validate-upload event does not crash", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/admin/posts/import")
 
-      # validate_upload is a no-op handler, just ensure it doesn't crash
+      # validate-upload is a no-op handler, just ensure it doesn't crash
       html =
         view
         |> element("#csv-upload-form")
