@@ -62,13 +62,13 @@ defmodule Blank.Pages.UsersLiveTest do
     assert flash["error"] =~ "not authorized"
   end
 
-  test "save_roles event updates roles and creates audit log", %{conn: conn} do
+  test "save-roles event updates roles and creates audit log", %{conn: conn} do
     target_user = create_target_user(%{roles: [:member]})
 
     {:ok, view, _html} = live(conn, "/admin/admins/#{target_user.id}/edit")
 
     view
-    |> form("form[phx-submit=\"save_roles\"]", %{"roles" => ["system_admin", "member"]})
+    |> form("form[phx-submit=\"save-roles\"]", %{"roles" => ["system_admin", "member"]})
     |> render_submit()
 
     assert_flash_info(view, "Roles updated successfully")
@@ -93,7 +93,7 @@ defmodule Blank.Pages.UsersLiveTest do
     assert "member" in log.params["before_roles"]
   end
 
-  test "non-system_admin cannot invoke save_roles mutation", %{conn: conn} do
+  test "non-system_admin cannot invoke save-roles mutation", %{conn: conn} do
     target_user = create_target_user(%{roles: [:member]})
     non_admin_user = create_target_user(%{roles: [:member]})
 
@@ -107,7 +107,7 @@ defmodule Blank.Pages.UsersLiveTest do
     assert unchanged_user.roles == [:member]
   end
 
-  test "save_roles with invalid roles shows error flash", %{conn: conn} do
+  test "save-roles with invalid roles shows error flash", %{conn: conn} do
     target_user = create_target_user(%{roles: [:member]})
 
     {:ok, view, _html} = live(conn, "/admin/admins/#{target_user.id}/edit")
@@ -115,19 +115,19 @@ defmodule Blank.Pages.UsersLiveTest do
     # Submit with a role atom that exists but is not in the allowed set,
     # which causes a changeset validation error.
     # Use render_submit/3 to bypass form-level checkbox validation.
-    render_submit(view, "save_roles", %{"roles" => ["ok"]})
+    render_submit(view, "save-roles", %{"roles" => ["ok"]})
 
     html = render(view)
     assert html =~ "Failed to update roles"
   end
 
-  test "save_roles with empty roles list succeeds", %{conn: conn} do
+  test "save-roles with empty roles list succeeds", %{conn: conn} do
     target_user = create_target_user(%{roles: [:member, :system_admin]})
 
     {:ok, view, _html} = live(conn, "/admin/admins/#{target_user.id}/edit")
 
     view
-    |> form("form[phx-submit=\"save_roles\"]", %{"roles" => ["member"]})
+    |> form("form[phx-submit=\"save-roles\"]", %{"roles" => ["member"]})
     |> render_submit()
 
     assert_flash_info(view, "Roles updated successfully")
