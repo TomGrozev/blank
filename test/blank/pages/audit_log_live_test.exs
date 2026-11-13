@@ -16,4 +16,13 @@ defmodule Blank.Pages.AuditLogLiveTest do
     assert html =~ "Audit Logs"
     assert html =~ "Displays the activity log"
   end
+
+  describe "put_time_zone/1" do
+    test "with local time zone enabled assigns the browser time zone", %{conn: conn} do
+      conn = with_browser_time_zone(conn)
+      {:ok, view, _html} = live(conn, "/admin/audit")
+
+      assert :sys.get_state(view.pid).socket.assigns.time_zone == "America/New_York"
+    end
+  end
 end

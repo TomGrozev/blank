@@ -16,6 +16,8 @@ defmodule Blank.LiveViewCase do
     end
   end
 
+  import Phoenix.LiveViewTest, only: [put_connect_params: 2]
+
   setup tags do
     TestApp.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
@@ -43,5 +45,23 @@ defmodule Blank.LiveViewCase do
       |> TestApp.Repo.update()
 
     user
+  end
+
+  @doc """
+  Prepares a conn to mount with the given browser time zone.
+
+  Enables `:use_local_timezone` for the calling test (restored on exit) and puts
+  the zone into the connect params, so a connected LiveView resolves it in mount.
+  """
+  @spec with_browser_time_zone(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
+  def with_browser_time_zone(conn, time_zone \\ "America/New_York") do
+    previous = Application.get_env(:blank, :use_local_timezone, false)
+    Application.put_env(:blank, :use_local_timezone, true)
+
+    on_exit(fn ->
+      Application.put_env(:blank, :use_local_timezone, previous)
+    end)
+
+    put_connect_params(conn, %{"time_zone" => time_zone})
   end
 end

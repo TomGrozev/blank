@@ -174,19 +174,9 @@ defmodule Blank.Pages.HomeLive do
         stream(socket, :presences, [])
       end
 
-    time_zone =
-      with true <- connected?(socket),
-           true <- Application.get_env(:blank, :use_local_timezone, false),
-           %{"time_zone" => time_zone} <- get_connect_params(socket) do
-        time_zone
-      else
-        _ ->
-          "Etc/UTC"
-      end
-
     {:ok,
      socket
-     |> assign(:time_zone, time_zone)
+     |> Blank.AdminPage.put_time_zone()
      |> assign(:repo, repo)
      |> assign(:schema_links, schema_links)
      |> assign(:view_all_presences, false)}

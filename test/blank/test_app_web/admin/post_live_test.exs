@@ -11,6 +11,7 @@ defmodule TestAppWeb.Admin.PostLiveTest do
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
   import TestAppWeb.LiveViewCase
+  import Blank.LiveViewCase, only: [with_browser_time_zone: 1]
 
   alias Ecto.Adapters.SQL.Sandbox
   alias TestApp.Blog.Post
@@ -433,6 +434,19 @@ defmodule TestAppWeb.Admin.PostLiveTest do
         )
 
       assert html =~ "Posts"
+    end
+  end
+
+  # ===================================================================
+  # Time zone
+  # ===================================================================
+
+  describe "put_time_zone/1" do
+    test "with local time zone enabled assigns the browser time zone", %{conn: conn} do
+      conn = with_browser_time_zone(conn)
+      {:ok, view, _html} = live(conn, "/admin/posts")
+
+      assert :sys.get_state(view.pid).socket.assigns.time_zone == "America/New_York"
     end
   end
 
