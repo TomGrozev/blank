@@ -1,17 +1,11 @@
 defmodule Blank.Exporter do
-  @exporters [
-    Blank.Exporters.QRCode,
-    Blank.Exporters.CSV
-  ]
-
   @moduledoc """
   Exports a schema's data into specific formats
 
   This module will use an exporter module (a module that implements the behaviour
   in this module) to export a schema's data into some output format.
 
-  The built-in exporters are:
-  #{Enum.map_join(@exporters, "\n", &"  * #{&1}")}
+  The enabled exporters are listed by `Blank.Exporters.exporters/0`.
 
   ## Custom Exporters
 
@@ -143,23 +137,6 @@ defmodule Blank.Exporter do
   @callback save(stream :: Enumerable.t(), path :: Path.t()) :: :ok | {:error, any()}
 
   @optional_callbacks icon: 0
-
-  @doc """
-  Returns the enabled exporters
-
-  To add additional exporters you need to add them as a list to your application
-  config by setting the `:additional_exporters` option to a list of custom
-  exporters.
-
-      config :blank,
-        ...
-        additional_exporters: [MyApp.CustomExporter]
-        ...
-  """
-  @spec exporters() :: [atom()]
-  def exporters do
-    @exporters ++ Application.get_env(:blank, :additional_exporters, [])
-  end
 
   @doc """
   Exports using an exporter

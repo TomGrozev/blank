@@ -4,6 +4,7 @@
 
 ### Changed
 
+- The two remaining dependency cycles are gone, and the precommit xref gate is now `mix xref graph --format cycles --fail-above 0`. Five functions moved (only `Blank.Exporters.exporters/0` is documented; the rest are `@doc false`): `Blank.Exporter.exporters/0` → `Blank.Exporters.exporters/0`, `Blank.Field.new!/2` and `__aggregate_field_schemas__/0` → `Blank.Fields`, `module_for_type/1` → `Blank.Fields.Type`, and `Blank.Context.options_query/4` → `Blank.Field.Query.options_query/4`. The `Blank.Field` struct's `module` field now defaults to `nil` instead of `Blank.Fields.Text`; `Blank.Fields.new!/2` fills it. Callers of the moved functions switch to the new modules ([#34](https://github.com/TomGrozev/blank/issues/34)).
 - `Blank.Authorization.allowed_roles/0`, `built_in_roles/0`, `policy_module/0` and `role_mapper_config/0` are gone; the same functions live on `Blank.Config` only. `Blank.Authorization` keeps `can?/3`, `validate_roles/1` and the `on_mount` hook and calls `Blank.Config` itself. Callers of the removed functions switch to `Blank.Config`.
 - CI tests the declared Elixir floor (1.18.1 / OTP 27.2) and the current pair (1.20.3 / OTP 28.5.0.5). A new `.tool-versions` pins the current pair for local runs ([#33](https://github.com/TomGrozev/blank/issues/33)).
 

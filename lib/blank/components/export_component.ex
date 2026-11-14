@@ -78,7 +78,7 @@ defmodule Blank.Components.ExportComponent do
   end
 
   defp get_exporters(fields) do
-    Blank.Exporter.exporters()
+    Blank.Exporters.exporters()
     |> Enum.filter(fn mod ->
       mod.display?(fields)
     end)

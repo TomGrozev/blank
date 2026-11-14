@@ -22,7 +22,7 @@ defmodule Blank.Fields.BelongsTo do
   use Blank.Field
 
   alias Blank.Components.SearchableSelect
-  alias Blank.Context
+  alias Blank.Field.Query
 
   @impl true
   def update(%{type: :form} = assigns, socket) do
@@ -78,7 +78,7 @@ defmodule Blank.Fields.BelongsTo do
   end
 
   defp search(repo, schema, definition, query) do
-    Context.options_query(repo, schema, definition, query)
+    Query.options_query(repo, schema, definition, query)
     |> Enum.map(&SearchableSelect.value_mapper(&1, definition))
   end
 end
