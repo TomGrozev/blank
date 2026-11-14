@@ -3,7 +3,7 @@ defmodule Blank.Types.Role do
   Custom Ecto type for role atoms.
 
   Stores roles as strings in the database and casts them to/from atoms in memory.
-  Only roles in the configured allowed-set (see `Blank.Authorization.allowed_roles/0`)
+  Only roles in the configured allowed-set (see `Blank.Config.allowed_roles/0`)
   are accepted during cast. Built-in roles `:system_admin` and `:member` are always
   allowed.
 
@@ -27,7 +27,7 @@ defmodule Blank.Types.Role do
   """
   @spec cast(any()) :: {:ok, atom()} | :error
   def cast(value) when is_atom(value) do
-    if MapSet.member?(Blank.Authorization.allowed_roles(), value) do
+    if MapSet.member?(Blank.Config.allowed_roles(), value) do
       {:ok, value}
     else
       :error

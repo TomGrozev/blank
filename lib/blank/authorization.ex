@@ -2,17 +2,10 @@ defmodule Blank.Authorization do
   @moduledoc """
   Authorization utilities for Blank.
 
-  Provides role validation and the allowed-roles set used by `Blank.Types.Role`
-  and other authorization-aware code paths.
+  Provides role validation, the `can?/3` check and the `on_mount` authorizing
+  hook. The allowed-role set, the policy module and the role mapper are owned by
+  `Blank.Config`.
   """
-
-  @doc """
-  Returns the full set of allowed role atoms, as cached by `Blank.Config`.
-  """
-  @spec allowed_roles() :: MapSet.t(atom())
-  def allowed_roles do
-    Blank.Config.allowed_roles()
-  end
 
   @doc """
   Validates that all roles in the given list are in the allowed-set.
@@ -30,7 +23,7 @@ defmodule Blank.Authorization do
   """
   @spec validate_roles([atom()]) :: :ok | {:error, [atom()]}
   def validate_roles(roles) when is_list(roles) do
-    allowed = allowed_roles()
+    allowed = Blank.Config.allowed_roles()
 
     invalid =
       roles
@@ -42,27 +35,6 @@ defmodule Blank.Authorization do
       invalid -> {:error, invalid}
     end
   end
-
-  @doc """
-  Returns the built-in roles that are always present regardless of config, as
-  defined by `Blank.Config`.
-  """
-  @spec built_in_roles() :: MapSet.t(atom())
-  def built_in_roles, do: Blank.Config.built_in_roles()
-
-  @doc """
-  Returns the configured policy module, as read by `Blank.Config`; defaults to
-  `Blank.Authorization.DefaultPolicy` (ADR-0006).
-  """
-  @spec policy_module() :: module()
-  def policy_module, do: Blank.Config.policy_module()
-
-  @doc """
-  Returns the configured role mapper as `{module, opts}`, or `nil` if none is
-  configured, as read by `Blank.Config`.
-  """
-  @spec role_mapper_config() :: {module(), keyword()} | nil
-  def role_mapper_config, do: Blank.Config.role_mapper_config()
 
   @doc """
   Checks whether a user can perform an action on a scope.
@@ -85,7 +57,7 @@ defmodule Blank.Authorization do
     if :system_admin in List.wrap(user.roles) do
       true
     else
-      policy_module().policy(user, action, scope)
+      Blank.Config.policy_module().policy(user, action, scope)
     end
   end
 

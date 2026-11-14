@@ -292,7 +292,7 @@ can?(user, action, scope)
          │     └─ Yes ── return true (break-glass)
          │
          └─ No ──── delegate to configured policy module
-                      policy_module().policy(user, action, scope)
+                      Blank.Config.policy_module().policy(user, action, scope)
                       │
                       ├─ true  ── action allowed
                       └─ false ── action denied

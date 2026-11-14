@@ -82,7 +82,7 @@ def can?(user, action, scope) do
   if :system_admin in List.wrap(user.roles) do
     true
   else
-    policy_module().policy(user, action, scope)
+    Blank.Config.policy_module().policy(user, action, scope)
   end
 end
 ```
@@ -302,7 +302,7 @@ You normally do not need to call this yourself unless you are writing custom rol
 ## Where to next?
 
 - **Role Mappers** — map IdP claims (GitHub teams, OIDC groups) to Blank roles on every login. See the Role Mappers guide for `Blank.Authorization.RoleMapper` and the built-in GitHub and OIDCC mappers.
-- **`Blank.Authorization`** — module docs for the full API including `allowed_roles/0`, `policy_module/0`, and the `on_mount` hook details.
+- **`Blank.Authorization`** — module docs for `can?/3`, `validate_roles/1`, and the `on_mount` hook details. The allowed-role set, policy module and role mapper live on `Blank.Config`.
 - **`Blank.Scope`** — module docs for the Scope struct.
 - **`Blank.Authorization.Policy`** — behaviour docs for the `policy/3` callback contract.
 - **`guides/cheatsheets/Configuration.md`** — all authorization-related config keys at a glance.

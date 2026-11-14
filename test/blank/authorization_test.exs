@@ -3,39 +3,6 @@ defmodule Blank.AuthorizationTest do
 
   alias Blank.Authorization
 
-  describe "allowed_roles/0" do
-    test "includes built-in roles" do
-      allowed = Authorization.allowed_roles()
-      assert MapSet.member?(allowed, :system_admin)
-      assert MapSet.member?(allowed, :member)
-    end
-
-    test "includes configured roles" do
-      # Test config has roles: [:content_editor] in test.exs
-      allowed = Authorization.allowed_roles()
-      assert MapSet.member?(allowed, :content_editor)
-    end
-
-    test "returns a MapSet" do
-      assert %MapSet{} = Authorization.allowed_roles()
-    end
-  end
-
-  describe "allowed_roles/0 caching" do
-    test "returns the same MapSet on multiple calls" do
-      roles1 = Authorization.allowed_roles()
-      roles2 = Authorization.allowed_roles()
-      assert roles1 === roles2
-    end
-  end
-
-  describe "built_in_roles/0" do
-    test "returns the built-in roles" do
-      built_in = Authorization.built_in_roles()
-      assert MapSet.equal?(built_in, MapSet.new([:system_admin, :member]))
-    end
-  end
-
   describe "validate_roles/1" do
     test "returns :ok for all built-in roles" do
       assert :ok = Authorization.validate_roles([:system_admin])
@@ -111,75 +78,6 @@ defmodule Blank.AuthorizationTest do
         assert Authorization.can?(user, :create, scope) == false
       after
         # Restore original config
-        Application.put_env(:blank, :authorization, roles: [:content_editor])
-      end
-    end
-  end
-
-  describe "policy_module/0" do
-    test "returns DefaultPolicy when no :policy_module is configured" do
-      # Test config has no :policy_module
-      assert Authorization.policy_module() == Blank.Authorization.DefaultPolicy
-    end
-
-    test "returns configured module when :policy_module is set" do
-      Application.put_env(
-        :blank,
-        :authorization,
-        Keyword.put(
-          Application.get_env(:blank, :authorization, []),
-          :policy_module,
-          MyCustomPolicy
-        )
-      )
-
-      try do
-        assert Authorization.policy_module() == MyCustomPolicy
-      after
-        # Restore original config
-        Application.put_env(:blank, :authorization, roles: [:content_editor])
-      end
-    end
-  end
-
-  describe "role_mapper_config/0" do
-    test "returns nil when no :role_mapper is configured" do
-      # Test config has no :role_mapper
-      assert Authorization.role_mapper_config() == nil
-    end
-
-    test "returns {module, opts} when configured as tuple" do
-      Application.put_env(
-        :blank,
-        :authorization,
-        Keyword.put(
-          Application.get_env(:blank, :authorization, []),
-          :role_mapper,
-          {MyMapper, [key: :value]}
-        )
-      )
-
-      try do
-        assert Authorization.role_mapper_config() == {MyMapper, [key: :value]}
-      after
-        Application.put_env(:blank, :authorization, roles: [:content_editor])
-      end
-    end
-
-    test "returns {module, []} when configured as plain module (no-opts shorthand)" do
-      Application.put_env(
-        :blank,
-        :authorization,
-        Keyword.put(
-          Application.get_env(:blank, :authorization, []),
-          :role_mapper,
-          MyMapper
-        )
-      )
-
-      try do
-        assert Authorization.role_mapper_config() == {MyMapper, []}
-      after
         Application.put_env(:blank, :authorization, roles: [:content_editor])
       end
     end

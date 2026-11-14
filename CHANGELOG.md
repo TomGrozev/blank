@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- `Blank.Authorization.allowed_roles/0`, `built_in_roles/0`, `policy_module/0` and `role_mapper_config/0` are gone; the same functions live on `Blank.Config` only. `Blank.Authorization` keeps `can?/3`, `validate_roles/1` and the `on_mount` hook and calls `Blank.Config` itself. Callers of the removed functions switch to `Blank.Config`.
+
 ### Fixed
 
 - Boot-time config validation now raises `Blank.Errors.InvalidConfigError` instead of `RuntimeError` ([#21](https://github.com/TomGrozev/blank/issues/21)). The authorization and ueberauth checks fill `caller`, `module` and `usage`, so a host rescues one error type for every config mistake. The hint text each message carries is unchanged.

@@ -98,7 +98,7 @@ defmodule Blank.Pages.UsersLive do
   end
 
   defp allowed_roles do
-    Blank.Authorization.allowed_roles()
+    Blank.Config.allowed_roles()
     |> Enum.sort()
   end
 end

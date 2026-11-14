@@ -68,7 +68,7 @@ defmodule Blank.Controllers.UeberauthCallbackController do
   #   {:ok, [atom()]} — mapper returned roles (floor applied, validated)
   #   {:error, reason} — mapper returned invalid roles
   defp resolve_roles(auth) do
-    case Blank.Authorization.role_mapper_config() do
+    case Blank.Config.role_mapper_config() do
       nil ->
         {:ok, nil}
 
