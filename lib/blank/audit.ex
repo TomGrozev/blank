@@ -36,7 +36,7 @@ defmodule Blank.Audit do
   @doc group: "Query"
   @spec list_all(opts :: Keyword.t()) :: [AuditLog.t()]
   def list_all(opts \\ []) do
-    repo().all(
+    Blank.Config.repo().all(
       from(a in AuditLog,
         where: ^Keyword.get(opts, :where, []),
         order_by: [desc: :inserted_at],
@@ -64,7 +64,7 @@ defmodule Blank.Audit do
   end
 
   def list_all_for_user(id, opts) when is_binary(id) or is_integer(id) do
-    repo().all(
+    Blank.Config.repo().all(
       from(a in AuditLog,
         join: u in assoc(a, :user),
         where: field(u, :id) == ^id,
@@ -85,7 +85,7 @@ defmodule Blank.Audit do
   @doc group: "Query"
   @spec list_all_from_system(any()) :: [AuditLog.t()]
   def list_all_from_system(clauses \\ []) do
-    repo().all(
+    Blank.Config.repo().all(
       from(a in AuditLog,
         where: is_nil(a.user_id) and a.user_agent == "SYSTEM",
         where: ^clauses,
@@ -113,7 +113,7 @@ defmodule Blank.Audit do
     Ecto.Multi.new()
     |> Ecto.Multi.delete_all(:delete_all, AuditLog)
     |> multi(audit_context, "audit_logs.delete_all", %{})
-    |> repo().transaction()
+    |> Blank.Config.repo().transaction()
     |> case do
       {:ok, %{delete_all: {count, _}}} -> {:ok, count}
       error -> error
@@ -144,7 +144,7 @@ defmodule Blank.Audit do
       when is_binary(action) and
              is_map(params) do
     AuditLog.build!(audit_context, action, params)
-    |> repo().insert!()
+    |> Blank.Config.repo().insert!()
     |> tap(&push_pubsub(&1))
   end
 
@@ -212,8 +212,6 @@ defmodule Blank.Audit do
       {:ok, log}
     end)
   end
-
-  defp repo, do: Application.fetch_env!(:blank, :repo)
 
   defp push_pubsub(log) do
     Phoenix.PubSub.broadcast(Blank.PubSub, @pubsub_topic, {:audit_log, log})

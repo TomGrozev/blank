@@ -230,7 +230,9 @@ defmodule Blank.Plugs.Auth do
         assign(conn, :current_user, nil)
 
       token ->
-        token_record = repo().one(UserToken.by_token_and_context_query(token, "session"))
+        token_record =
+          Blank.Config.repo().one(UserToken.by_token_and_context_query(token, "session"))
+
         conn = handle_token_record(conn, token, token_record)
         conn
     end
@@ -257,8 +259,6 @@ defmodule Blank.Plugs.Auth do
         |> assign(:current_user, nil)
     end
   end
-
-  defp repo, do: Application.fetch_env!(:blank, :repo)
 
   defp ensure_user_token(conn) do
     if token = get_session(conn, :user_token) do
@@ -357,7 +357,7 @@ defmodule Blank.Plugs.Auth do
   end
 
   defp find_valid_user(user_token) do
-    case repo().one(UserToken.by_token_and_context_query(user_token, "session")) do
+    case Blank.Config.repo().one(UserToken.by_token_and_context_query(user_token, "session")) do
       nil -> nil
       token_record -> resolve_token(user_token, token_record)
     end

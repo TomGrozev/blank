@@ -11,7 +11,7 @@ defmodule Blank.Accounts do
   """
   @spec list_users() :: [User.t()]
   def list_users do
-    repo().all(User)
+    Blank.Config.repo().all(User)
   end
 
   @doc """
@@ -29,7 +29,7 @@ defmodule Blank.Accounts do
   """
   @spec get_user_by_email(String.t()) :: User.t() | nil
   def get_user_by_email(email) when is_binary(email) do
-    repo().get_by(User, email: email)
+    Blank.Config.repo().get_by(User, email: email)
   end
 
   @doc """
@@ -50,7 +50,7 @@ defmodule Blank.Accounts do
           | nil
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
-    user = repo().get_by(User, email: email)
+    user = Blank.Config.repo().get_by(User, email: email)
     if User.valid_password?(user, password), do: user
   end
 
@@ -67,7 +67,7 @@ defmodule Blank.Accounts do
 
   """
   @spec get_user!(integer()) :: User.t()
-  def get_user!(id), do: repo().get!(User, id)
+  def get_user!(id), do: Blank.Config.repo().get!(User, id)
 
   ## User Registration
 
@@ -92,7 +92,7 @@ defmodule Blank.Accounts do
   def register_user(attrs, opts \\ []) do
     %User{}
     |> User.registration_changeset(attrs, opts)
-    |> repo().insert()
+    |> Blank.Config.repo().insert()
   end
 
   @doc """
@@ -115,7 +115,10 @@ defmodule Blank.Accounts do
   @spec get_user_by_provider_and_uid(atom(), String.t()) :: User.t() | nil
   def get_user_by_provider_and_uid(provider, external_uid)
       when is_atom(provider) and is_binary(external_uid) do
-    repo().get_by(User, provider: Atom.to_string(provider), external_uid: external_uid)
+    Blank.Config.repo().get_by(User,
+      provider: Atom.to_string(provider),
+      external_uid: external_uid
+    )
   end
 
   @doc """
@@ -125,7 +128,7 @@ defmodule Blank.Accounts do
   def create_ueberauth_user(attrs) do
     %User{}
     |> User.ueberauth_changeset(attrs)
-    |> repo().insert()
+    |> Blank.Config.repo().insert()
   end
 
   @doc """
@@ -135,7 +138,7 @@ defmodule Blank.Accounts do
   def refresh_ueberauth_user(%User{} = user, attrs) do
     user
     |> User.ueberauth_changeset(attrs)
-    |> repo().update()
+    |> Blank.Config.repo().update()
   end
 
   @doc """
@@ -151,7 +154,7 @@ defmodule Blank.Accounts do
   """
   @spec delete_user(User.t()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def delete_user(%User{} = user) do
-    repo().delete(user)
+    Blank.Config.repo().delete(user)
   end
 
   ## Settings
@@ -193,7 +196,7 @@ defmodule Blank.Accounts do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:user, changeset)
     |> Ecto.Multi.delete_all(:tokens, UserToken.by_user_and_contexts_query(user, :all))
-    |> repo().transaction()
+    |> Blank.Config.repo().transaction()
     |> case do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
@@ -208,7 +211,7 @@ defmodule Blank.Accounts do
   @spec generate_user_session_token(User.t()) :: String.t()
   def generate_user_session_token(user) do
     {token, user_token} = UserToken.build_session_token(user)
-    repo().insert!(user_token)
+    Blank.Config.repo().insert!(user_token)
     token
   end
 
@@ -218,7 +221,7 @@ defmodule Blank.Accounts do
   @spec get_user_by_session_token(String.t()) :: User.t()
   def get_user_by_session_token(token) do
     {:ok, query} = UserToken.verify_session_token_query(token)
-    repo().one(query)
+    Blank.Config.repo().one(query)
   end
 
   @doc """
@@ -226,7 +229,7 @@ defmodule Blank.Accounts do
   """
   @spec delete_user_session_token(String.t()) :: :ok
   def delete_user_session_token(token) do
-    repo().delete_all(UserToken.by_token_and_context_query(token, "session"))
+    Blank.Config.repo().delete_all(UserToken.by_token_and_context_query(token, "session"))
     :ok
   end
 
@@ -268,12 +271,10 @@ defmodule Blank.Accounts do
           }
       }
     end)
-    |> repo().transaction()
+    |> Blank.Config.repo().transaction()
     |> case do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
     end
   end
-
-  defp repo, do: Application.fetch_env!(:blank, :repo)
 end
