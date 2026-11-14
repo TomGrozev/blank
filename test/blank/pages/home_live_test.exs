@@ -1,6 +1,8 @@
 defmodule Blank.Pages.HomeLiveTest do
   use Blank.LiveViewCase
 
+  alias Blank.Audit.AuditLog
+
   setup %{conn: conn} do
     {:ok, conn: log_in_user(conn)}
   end

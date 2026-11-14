@@ -1,21 +1,9 @@
 defmodule Blank.Accounts.UserTokenTest do
   use TestApp.DataCase
 
-  alias Blank.Accounts.{User, UserToken}
+  alias Blank.Accounts.UserToken
 
-  @valid_email "user@example.com"
-  @valid_password "Str0ng!Passw0rd"
-
-  defp user_fixture(attrs \\ %{}) do
-    {:ok, user} =
-      %User{}
-      |> User.registration_changeset(
-        Map.merge(%{email: @valid_email, password: @valid_password}, attrs)
-      )
-      |> TestApp.Repo.insert()
-
-    user
-  end
+  import Blank.Fixtures
 
   describe "build_session_token/1" do
     test "returns a {token_string, %UserToken{}} pair" do
@@ -54,10 +42,9 @@ defmodule Blank.Accounts.UserTokenTest do
 
     test "query can be executed to retrieve the user" do
       user = user_fixture()
-      {token, user_token_struct} = UserToken.build_session_token(user)
-      TestApp.Repo.insert!(user_token_struct)
+      user_token = user_token_fixture(user)
 
-      {:ok, query} = UserToken.verify_session_token_query(token)
+      {:ok, query} = UserToken.verify_session_token_query(user_token.token)
       result = TestApp.Repo.one(query)
 
       assert result.id == user.id
@@ -67,10 +54,9 @@ defmodule Blank.Accounts.UserTokenTest do
   describe "by_token_and_context_query/2" do
     test "finds an inserted token by token and context" do
       user = user_fixture()
-      {token, user_token_struct} = UserToken.build_session_token(user)
-      inserted = TestApp.Repo.insert!(user_token_struct)
+      inserted = user_token_fixture(user)
 
-      query = UserToken.by_token_and_context_query(token, "session")
+      query = UserToken.by_token_and_context_query(inserted.token, "session")
       result = TestApp.Repo.one(query)
 
       assert result.id == inserted.id
@@ -83,10 +69,9 @@ defmodule Blank.Accounts.UserTokenTest do
 
     test "returns nil when context does not match" do
       user = user_fixture()
-      {token, user_token_struct} = UserToken.build_session_token(user)
-      TestApp.Repo.insert!(user_token_struct)
+      user_token = user_token_fixture(user)
 
-      query = UserToken.by_token_and_context_query(token, "wrong_context")
+      query = UserToken.by_token_and_context_query(user_token.token, "wrong_context")
       assert is_nil(TestApp.Repo.one(query))
     end
   end
@@ -94,10 +79,8 @@ defmodule Blank.Accounts.UserTokenTest do
   describe "by_user_and_contexts_query/2 with :all" do
     test "returns all tokens for the user" do
       user = user_fixture()
-      {_token1, struct1} = UserToken.build_session_token(user)
-      {_token2, struct2} = UserToken.build_session_token(user)
-      TestApp.Repo.insert!(struct1)
-      TestApp.Repo.insert!(struct2)
+      user_token_fixture(user)
+      user_token_fixture(user)
 
       query = UserToken.by_user_and_contexts_query(user, :all)
       results = TestApp.Repo.all(query)
@@ -120,17 +103,10 @@ defmodule Blank.Accounts.UserTokenTest do
       user = user_fixture()
 
       # Insert a "session" token
-      {_token1, struct1} = UserToken.build_session_token(user)
-      TestApp.Repo.insert!(struct1)
+      user_token_fixture(user)
 
-      # Insert a token with a different context by constructing it manually
-      other_token_struct = %UserToken{
-        token: :crypto.strong_rand_bytes(32) |> Base.encode64(),
-        context: "password_reset",
-        user_id: user.id
-      }
-
-      TestApp.Repo.insert!(other_token_struct)
+      # Insert a token with a different context
+      user_token_fixture(user, %{context: "password_reset", last_activity_at: nil})
 
       query = UserToken.by_user_and_contexts_query(user, ["session"])
       results = TestApp.Repo.all(query)
@@ -142,13 +118,7 @@ defmodule Blank.Accounts.UserTokenTest do
     test "returns empty list when no tokens match the contexts" do
       user = user_fixture()
 
-      other_token_struct = %UserToken{
-        token: :crypto.strong_rand_bytes(32) |> Base.encode64(),
-        context: "password_reset",
-        user_id: user.id
-      }
-
-      TestApp.Repo.insert!(other_token_struct)
+      user_token_fixture(user, %{context: "password_reset", last_activity_at: nil})
 
       query = UserToken.by_user_and_contexts_query(user, ["session"])
       results = TestApp.Repo.all(query)

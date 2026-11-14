@@ -35,16 +35,12 @@ defmodule TestAppWeb.Admin.PostLiveTest do
     end
 
     # Register a user and build a logged-in conn
-    {:ok, user} =
-      Blank.Accounts.register_user(%{
+    user =
+      Blank.Fixtures.user_fixture(%{
         email: "user@example.com",
-        password: "Str0ng!Passw0rd"
+        password: "Str0ng!Passw0rd",
+        roles: [:system_admin]
       })
-
-    {:ok, user} =
-      user
-      |> Ecto.Changeset.change(%{roles: [:system_admin]})
-      |> TestApp.Repo.update()
 
     conn = Phoenix.ConnTest.build_conn()
     conn = log_in_user(conn, user)

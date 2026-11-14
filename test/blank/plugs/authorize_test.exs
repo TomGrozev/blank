@@ -33,16 +33,7 @@ defmodule Blank.Plugs.AuthorizeTest do
 
   describe "call/2 — system_admin users" do
     test "allows system_admin user through (break-glass)", %{conn: conn} do
-      {:ok, user} =
-        Blank.Accounts.register_user(%{
-          email: "admin_plug_#{System.unique_integer([:positive])}@example.com",
-          password: "Str0ng!Passw0rd"
-        })
-
-      {:ok, user} =
-        user
-        |> Ecto.Changeset.change(%{roles: [:system_admin]})
-        |> TestApp.Repo.update()
+      user = user_fixture(%{roles: [:system_admin]})
 
       conn = log_in_user(conn, user)
       conn = get(conn, "/admin/authorize_test")
@@ -56,16 +47,7 @@ defmodule Blank.Plugs.AuthorizeTest do
 
   describe "call/2 — non-system_admin users" do
     test "halts with 403 for member user", %{conn: conn} do
-      {:ok, user} =
-        Blank.Accounts.register_user(%{
-          email: "member_plug_#{System.unique_integer([:positive])}@example.com",
-          password: "Str0ng!Passw0rd"
-        })
-
-      {:ok, user} =
-        user
-        |> Ecto.Changeset.change(%{roles: [:member]})
-        |> TestApp.Repo.update()
+      user = user_fixture(%{roles: [:member]})
 
       conn = log_in_user(conn, user)
       conn = get(conn, "/admin/authorize_test")
@@ -75,16 +57,7 @@ defmodule Blank.Plugs.AuthorizeTest do
     end
 
     test "halts with 403 for user with no roles", %{conn: conn} do
-      {:ok, user} =
-        Blank.Accounts.register_user(%{
-          email: "noroles_plug_#{System.unique_integer([:positive])}@example.com",
-          password: "Str0ng!Passw0rd"
-        })
-
-      {:ok, user} =
-        user
-        |> Ecto.Changeset.change(%{roles: []})
-        |> TestApp.Repo.update()
+      user = user_fixture(%{roles: []})
 
       conn = log_in_user(conn, user)
       conn = get(conn, "/admin/authorize_test")
@@ -110,16 +83,7 @@ defmodule Blank.Plugs.AuthorizeTest do
 
   describe "call/2 — coarse action coverage" do
     test ":list action on :index route allows system_admin", %{conn: conn} do
-      {:ok, user} =
-        Blank.Accounts.register_user(%{
-          email: "list_plug_#{System.unique_integer([:positive])}@example.com",
-          password: "Str0ng!Passw0rd"
-        })
-
-      {:ok, user} =
-        user
-        |> Ecto.Changeset.change(%{roles: [:system_admin]})
-        |> TestApp.Repo.update()
+      user = user_fixture(%{roles: [:system_admin]})
 
       conn = log_in_user(conn, user)
       conn = get(conn, "/admin/authorize_test")
@@ -128,16 +92,7 @@ defmodule Blank.Plugs.AuthorizeTest do
     end
 
     test ":create action on :create route allows system_admin", %{conn: conn} do
-      {:ok, user} =
-        Blank.Accounts.register_user(%{
-          email: "create_plug_#{System.unique_integer([:positive])}@example.com",
-          password: "Str0ng!Passw0rd"
-        })
-
-      {:ok, user} =
-        user
-        |> Ecto.Changeset.change(%{roles: [:system_admin]})
-        |> TestApp.Repo.update()
+      user = user_fixture(%{roles: [:system_admin]})
 
       conn = log_in_user(conn, user)
       conn = post(conn, "/admin/authorize_test")
@@ -147,16 +102,7 @@ defmodule Blank.Plugs.AuthorizeTest do
     end
 
     test ":create action on :create route denies member user", %{conn: conn} do
-      {:ok, user} =
-        Blank.Accounts.register_user(%{
-          email: "create_deny_#{System.unique_integer([:positive])}@example.com",
-          password: "Str0ng!Passw0rd"
-        })
-
-      {:ok, user} =
-        user
-        |> Ecto.Changeset.change(%{roles: [:member]})
-        |> TestApp.Repo.update()
+      user = user_fixture(%{roles: [:member]})
 
       conn = log_in_user(conn, user)
       conn = post(conn, "/admin/authorize_test")
@@ -170,16 +116,7 @@ defmodule Blank.Plugs.AuthorizeTest do
 
   describe "use Blank.Authorization in controllers" do
     test "can?/3 is available unqualified in controller actions", %{conn: conn} do
-      {:ok, user} =
-        Blank.Accounts.register_user(%{
-          email: "unq_plug_#{System.unique_integer([:positive])}@example.com",
-          password: "Str0ng!Passw0rd"
-        })
-
-      {:ok, user} =
-        user
-        |> Ecto.Changeset.change(%{roles: [:system_admin]})
-        |> TestApp.Repo.update()
+      user = user_fixture(%{roles: [:system_admin]})
 
       conn = log_in_user(conn, user)
       conn = get(conn, "/admin/authorize_test")

@@ -163,16 +163,7 @@ defmodule Blank.Authorization.OnMountTest do
 
   describe "integration with live router" do
     test "system_admin user can mount admin page", %{conn: conn} do
-      {:ok, user} =
-        Blank.Accounts.register_user(%{
-          email: "admin_integration@example.com",
-          password: "Str0ng!Passw0rd"
-        })
-
-      {:ok, user} =
-        user
-        |> Ecto.Changeset.change(%{roles: [:system_admin]})
-        |> TestApp.Repo.update()
+      user = user_fixture(%{roles: [:system_admin]})
 
       conn = log_in_user(conn, user)
       {:ok, _view, html} = live(conn, "/admin/posts")
@@ -180,16 +171,7 @@ defmodule Blank.Authorization.OnMountTest do
     end
 
     test "member user is denied at the boundary", %{conn: conn} do
-      {:ok, user} =
-        Blank.Accounts.register_user(%{
-          email: "member_integration@example.com",
-          password: "Str0ng!Passw0rd"
-        })
-
-      {:ok, user} =
-        user
-        |> Ecto.Changeset.change(%{roles: [:member]})
-        |> TestApp.Repo.update()
+      user = user_fixture(%{roles: [:member]})
 
       conn = log_in_user(conn, user)
 

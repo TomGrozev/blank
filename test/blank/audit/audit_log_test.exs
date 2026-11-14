@@ -3,6 +3,8 @@ defmodule Blank.Audit.AuditLogTest do
 
   alias Blank.Audit.AuditLog
 
+  import Blank.Fixtures
+
   describe "system/0" do
     test "returns a struct with user: nil and user_agent: SYSTEM" do
       log = AuditLog.system()
@@ -218,7 +220,7 @@ defmodule Blank.Audit.AuditLogTest do
 
   describe "belongs_to :user" do
     test "inserts audit log with associated user" do
-      user = Repo.insert!(%Blank.Accounts.User{email: "test@example.com", name: "Test User"})
+      user = user_fixture(%{email: "test@example.com", name: "Test User"})
 
       log = AuditLog.system()
       log = %{log | action: "app.test", user_id: user.id}
