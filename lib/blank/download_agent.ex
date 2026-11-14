@@ -40,7 +40,6 @@ defmodule Blank.DownloadAgent do
     end
   end
 
-  @impl true
   def handle_call({:add, id, path, ttl}, _from, state) do
     Process.send_after(self(), {:expire, id}, ttl)
 

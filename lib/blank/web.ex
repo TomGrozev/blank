@@ -51,6 +51,7 @@ defmodule Blank.Web do
   @spec flash_helpers() :: Macro.t()
   def flash_helpers do
     quote do
+      @impl true
       def handle_info(:clear_flash, socket) do
         {:noreply, clear_flash(socket)}
       end

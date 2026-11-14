@@ -39,7 +39,7 @@ if Code.ensure_loaded?(Geo) do
 
     alias Blank.Components.LocationSelect
 
-    @impl Blank.Field
+    @impl true
     def render_list(assigns) do
       ~H"""
       <div>
@@ -48,7 +48,7 @@ if Code.ensure_loaded?(Geo) do
       """
     end
 
-    @impl Blank.Field
+    @impl true
     def render_display(assigns) do
       ~H"""
       <div>
@@ -101,7 +101,7 @@ if Code.ensure_loaded?(Geo) do
       |> Decimal.to_string()
     end
 
-    @impl Blank.Field
+    @impl true
     def render_form(%{field: field} = assigns) do
       {lon, lat, address} = get_lon_lat_addr(assigns.field.value)
 
@@ -162,14 +162,14 @@ if !Code.ensure_loaded?(Geo) do
 
     use Blank.Field
 
-    @impl Blank.Field
+    @impl true
     def render_display(assigns) do
       ~H"""
       <span>GEO DEPENDENCY NOT INSTALLED</span>
       """
     end
 
-    @impl Blank.Field
+    @impl true
     def render_form(assigns) do
       ~H"""
       <span>GEO DEPENDENCY NOT INSTALLED</span>

@@ -9,7 +9,7 @@ defmodule Blank.Stats.Value do
 
   attr :name, :string, required: true
   attr :value, AsyncResult, required: true
-  @impl Blank.Stats
+  @impl true
   def render(assigns) do
     ~H"""
     <dt class="truncate text-sm font-medium text-base-content/50">{@name}</dt>
@@ -25,7 +25,7 @@ defmodule Blank.Stats.Value do
     """
   end
 
-  @impl Blank.Stats
+  @impl true
   def query(multi, {key, _def}, query) do
     Ecto.Multi.one(multi, key, query)
   end

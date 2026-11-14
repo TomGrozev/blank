@@ -31,8 +31,8 @@ defmodule Blank.Authorization.RoleMappers.OIDCC do
 
   use Blank.Authorization.RoleMapper
 
-  @impl Blank.Authorization.RoleMapper
   @spec map_claims(Ueberauth.Auth.t(), keyword()) :: [atom()]
+  @impl true
   def map_claims(%Ueberauth.Auth{} = auth, opts) do
     groups_to_roles = Keyword.get(opts, :groups_to_roles)
 

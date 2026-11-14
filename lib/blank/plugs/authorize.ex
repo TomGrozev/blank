@@ -34,14 +34,14 @@ defmodule Blank.Plugs.Authorize do
 
   import Plug.Conn
 
-  @impl Plug
+  @impl true
   def init(opts) do
     action = Keyword.fetch!(opts, :action)
     resource_type = Keyword.fetch!(opts, :resource_type)
     %{action: action, resource_type: resource_type}
   end
 
-  @impl Plug
+  @impl true
   def call(conn, %{action: action, resource_type: resource_type}) do
     user = conn.assigns[:current_user]
 

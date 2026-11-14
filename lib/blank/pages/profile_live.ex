@@ -4,7 +4,7 @@ defmodule Blank.Pages.ProfileLive do
 
   alias Blank.Accounts
 
-  @doc false
+  @impl true
   def render(assigns) do
     ~H"""
     <.header class="text-center">
@@ -94,7 +94,7 @@ defmodule Blank.Pages.ProfileLive do
     """
   end
 
-  @doc false
+  @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
 
@@ -116,7 +116,7 @@ defmodule Blank.Pages.ProfileLive do
     {:ok, socket}
   end
 
-  @doc false
+  @impl true
   def handle_event("validate-password", params, socket) do
     %{"current_password" => password, "user" => user_params} = params
 

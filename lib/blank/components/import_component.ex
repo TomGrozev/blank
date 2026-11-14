@@ -200,7 +200,6 @@ defmodule Blank.Components.ImportComponent do
     {:noreply, socket}
   end
 
-  @impl true
   def handle_event("validate", %{"csv_form" => params}, socket) do
     changeset = change(socket.assigns.form.data, params, Keyword.keys(socket.assigns.fields))
 
@@ -220,7 +219,6 @@ defmodule Blank.Components.ImportComponent do
     end
   end
 
-  @impl true
   def handle_event("import", %{"csv_form" => params}, socket) do
     changeset = change(socket.assigns.form.data, params, Keyword.keys(socket.assigns.fields))
 
@@ -269,12 +267,10 @@ defmodule Blank.Components.ImportComponent do
     end
   end
 
-  @impl true
   def handle_event("cancel-upload", %{"ref" => ref}, socket) do
     {:noreply, cancel_upload(socket, :csv_file, ref)}
   end
 
-  @impl true
   def handle_event("parse", _params, socket) do
     rows = parse_csv(socket)
 

@@ -468,29 +468,29 @@ defmodule Blank.AdminPage do
 
       @config_opts unquote(opts)
 
-      @impl Phoenix.LiveView
+      @impl true
       def mount(params, session, socket), do: AdminPage.mount(params, session, socket)
 
-      @impl Phoenix.LiveView
+      @impl true
       def handle_params(params, url, socket), do: AdminPage.handle_params(params, url, socket)
 
-      @impl Phoenix.LiveView
+      @impl true
       def handle_async(name, async_fun_result, socket),
         do: AdminPage.handle_async(name, async_fun_result, socket)
 
-      @impl Phoenix.LiveView
+      @impl true
       def handle_event(event, params, socket), do: AdminPage.handle_event(event, params, socket)
 
-      @impl Phoenix.LiveView
+      @impl true
       def handle_info(event, socket), do: AdminPage.handle_info(event, socket)
 
-      @impl Phoenix.LiveView
+      @impl true
       def render(assigns), do: AdminPage.render(assigns)
 
-      @impl Blank.AdminPage
+      @impl true
       def config(key), do: Keyword.fetch!(@config_opts, key)
 
-      @impl Blank.AdminPage
+      @impl true
       def repo do
         Keyword.get(
           @config_opts,
@@ -620,7 +620,7 @@ defmodule Blank.AdminPage do
     assign(socket, :time_zone, time_zone)
   end
 
-  @impl Phoenix.LiveView
+  @impl true
   def mount(params, session, socket) do
     admin_page = socket.view
 
@@ -662,7 +662,7 @@ defmodule Blank.AdminPage do
       socket
   end
 
-  @impl Phoenix.LiveView
+  @impl true
   def render(%{live_action: :show} = assigns) do
     admin_show(assigns)
   end
@@ -682,7 +682,7 @@ defmodule Blank.AdminPage do
     admin_edit(assigns)
   end
 
-  @impl Phoenix.LiveView
+  @impl true
   def handle_params(params, url, socket) do
     socket =
       socket
@@ -981,7 +981,7 @@ defmodule Blank.AdminPage do
     |> Enum.filter(&Map.get(elem(&1, 1), :viewable, true))
   end
 
-  @impl Phoenix.LiveView
+  @impl true
   def handle_async(:items, {:ok, {:ok, {items, meta}}}, socket) do
     {:noreply,
      socket
@@ -1021,7 +1021,7 @@ defmodule Blank.AdminPage do
     {:noreply, apply_hook(socket, {:handle_async, key}, socket.view, params)}
   end
 
-  @impl Phoenix.LiveView
+  @impl true
   def handle_event("idx-btn-click", %{"key" => key}, socket) do
     button = Keyword.fetch!(socket.assigns.index_buttons, String.to_existing_atom(key))
 
@@ -1151,7 +1151,7 @@ defmodule Blank.AdminPage do
     end
   end
 
-  @impl Phoenix.LiveView
+  @impl true
   def handle_info(key, socket) do
     {:noreply, apply_hook(socket, {:handle_info, key}, socket.view, nil)}
   end

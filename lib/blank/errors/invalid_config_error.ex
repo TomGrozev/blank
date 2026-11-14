@@ -23,6 +23,7 @@ defmodule Blank.Errors.InvalidConfigError do
           source: :nimble | :app_env
         }
 
+  @impl true
   def message(%{source: :app_env} = err) do
     """
     invalid #{atom_label(err.module)} configuration

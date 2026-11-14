@@ -248,27 +248,27 @@ defimpl Blank.Schema, for: Any do
       unquote(flop_derive)
 
       defimpl Blank.Schema, for: unquote(module) do
-        @impl Blank.Schema
+        @impl true
         def name(struct) do
           unquote(__MODULE__).__name__(struct, unquote(identity_field))
         end
 
-        @impl Blank.Schema
+        @impl true
         def primary_keys(%{__struct__: schema}) when is_atom(schema) do
           schema.__schema__(:primary_key)
         end
 
-        @impl Blank.Schema
+        @impl true
         def identity_field(%{__struct__: schema} = struct) when is_atom(schema) do
           unquote(identity_field_body(identity_field))
         end
 
-        @impl Blank.Schema
+        @impl true
         def order_field(%{__struct__: schema} = struct) when is_atom(schema) do
           unquote(order_field_body(order_field))
         end
 
-        @impl Blank.Schema
+        @impl true
         def changeset(struct, :new), do: unquote(create_changeset)
         def changeset(struct, :edit), do: unquote(update_changeset)
 
@@ -437,7 +437,7 @@ defimpl Blank.Schema, for: Any do
         |> static_field_def(field)
 
       quote do
-        @impl Blank.Schema
+        @impl true
         def get_field(struct, unquote(field)) do
           {module, opts} =
             unquote(__MODULE__).put_field_module(
@@ -510,6 +510,7 @@ defimpl Blank.Schema, for: Any do
     |> Enum.map(&elem(&1, 0))
   end
 
+  @impl true
   def name(struct) do
     raise Protocol.UndefinedError,
       protocol: @protocol,
@@ -517,6 +518,7 @@ defimpl Blank.Schema, for: Any do
       description: @instructions
   end
 
+  @impl true
   def primary_keys(struct) do
     raise Protocol.UndefinedError,
       protocol: @protocol,
@@ -524,6 +526,7 @@ defimpl Blank.Schema, for: Any do
       description: @instructions
   end
 
+  @impl true
   def changeset(struct, _) do
     raise Protocol.UndefinedError,
       protocol: @protocol,
@@ -531,6 +534,7 @@ defimpl Blank.Schema, for: Any do
       description: @instructions
   end
 
+  @impl true
   def get_field(struct, _) do
     raise Protocol.UndefinedError,
       protocol: @protocol,
@@ -538,6 +542,7 @@ defimpl Blank.Schema, for: Any do
       description: @instructions
   end
 
+  @impl true
   def identity_field(struct) do
     raise Protocol.UndefinedError,
       protocol: @protocol,
@@ -545,6 +550,7 @@ defimpl Blank.Schema, for: Any do
       description: @instructions
   end
 
+  @impl true
   def order_field(struct) do
     raise Protocol.UndefinedError,
       protocol: @protocol,

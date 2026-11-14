@@ -20,7 +20,7 @@ defmodule Blank.Authorization.Policy do
 
       alias Blank.Authorization.DefaultPolicy
 
-      @doc false
+      @impl true
       def policy(user, action, scope),
         do: DefaultPolicy.policy(user, action, scope)
 

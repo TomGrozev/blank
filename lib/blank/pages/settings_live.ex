@@ -2,7 +2,7 @@ defmodule Blank.Pages.SettingsLive do
   @moduledoc false
   use Blank.Web, :live_view
 
-  @impl Phoenix.LiveView
+  @impl true
   def render(assigns) do
     ~H"""
     <.header class="text-center">
@@ -43,12 +43,12 @@ defmodule Blank.Pages.SettingsLive do
     """
   end
 
-  @impl Phoenix.LiveView
+  @impl true
   def mount(_params, _session, socket) do
     {:ok, socket}
   end
 
-  @impl Phoenix.LiveView
+  @impl true
   def handle_event("reset-audit-logs", _params, socket) do
     {count, _} = Blank.Audit.delete_all(socket.assigns.audit_context)
 

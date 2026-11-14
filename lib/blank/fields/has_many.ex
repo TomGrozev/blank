@@ -42,7 +42,7 @@ defmodule Blank.Fields.HasMany do
 
   use Blank.Field, schema: @schema
 
-  @impl Phoenix.LiveComponent
+  @impl true
   def update(%{type: :form} = assigns, socket) do
     %{schema: schema, field: field} = assigns
 
@@ -59,7 +59,7 @@ defmodule Blank.Fields.HasMany do
     {:ok, assign(socket, assigns)}
   end
 
-  @impl Blank.Field
+  @impl true
   def render_display(%{value: []} = assigns) do
     render_display(%{assigns | value: %Ecto.Association.NotLoaded{}})
   end
@@ -85,7 +85,7 @@ defmodule Blank.Fields.HasMany do
     """
   end
 
-  @impl Blank.Field
+  @impl true
   def render_form(assigns) do
     ~H"""
     <div>

@@ -31,8 +31,8 @@ defmodule Blank.Authorization.RoleMappers.GitHub do
 
   use Blank.Authorization.RoleMapper
 
-  @impl Blank.Authorization.RoleMapper
   @spec map_claims(Ueberauth.Auth.t(), keyword()) :: [atom()]
+  @impl true
   def map_claims(%Ueberauth.Auth{} = auth, opts) do
     team_slug_to_role = Keyword.get(opts, :team_slug_to_role)
 

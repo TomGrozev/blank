@@ -19,7 +19,7 @@ defmodule Blank.Fields.Currency do
 
   use Blank.Field
 
-  @impl Blank.Field
+  @impl true
   def render_display(assigns) do
     ~H"""
     <span>
@@ -28,7 +28,7 @@ defmodule Blank.Fields.Currency do
     """
   end
 
-  @impl Blank.Field
+  @impl true
   def render_form(assigns) do
     ~H"""
     <div>

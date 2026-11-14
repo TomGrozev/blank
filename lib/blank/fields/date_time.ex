@@ -22,7 +22,7 @@ defmodule Blank.Fields.DateTime do
 
   use Blank.Field
 
-  @impl Blank.Field
+  @impl true
   def render_display(assigns) do
     format = "%Y-%m-%d %I:%M %p %Z"
 
@@ -37,7 +37,7 @@ defmodule Blank.Fields.DateTime do
     """
   end
 
-  @impl Blank.Field
+  @impl true
   def render_form(assigns) do
     ~H"""
     <div>
