@@ -1,6 +1,6 @@
 {
   "name": "blank",
-  "image": "ghcr.io/tomgrozev/devcontainer-elixir:v0.2.7-elixir-1.19.4-otp-28.5.0.1",
+  "image": "ghcr.io/tomgrozev/devcontainer-elixir:v0.21.1-elixir-1.20.3-otp-28.5.0.5",
   "remoteEnv": {
     "MIX_BUILD_PATH": "/workspace/_build/devcontainer",
     "MIX_DEPS_PATH": "/workspace/deps/devcontainer"
