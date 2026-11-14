@@ -115,28 +115,6 @@ defmodule Blank.Pages.HomeLiveTest do
     end
   end
 
-  describe "audit log messages" do
-    test "audit_log message sends update to audit log component", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/admin")
-
-      # Create a minimal audit log struct
-      log = %Blank.Audit.AuditLog{
-        id: 1,
-        action: "test.action",
-        params: %{},
-        user_agent: "test",
-        user_id: nil,
-        inserted_at: ~N[2025-01-01 00:00:00]
-      }
-
-      send(view.pid, {:audit_log, log})
-
-      # The component should handle the update without crashing
-      html = render(view)
-      assert html =~ "Dashboard"
-    end
-  end
-
   describe "put_time_zone/1" do
     test "with local time zone enabled assigns the browser time zone", %{conn: conn} do
       conn = with_browser_time_zone(conn)

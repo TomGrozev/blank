@@ -121,7 +121,8 @@ defmodule TestAppWeb.Admin.PostLiveTest do
 
     test "table headers match index_fields", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/admin/posts")
-      html = render(view)
+      # Headers come from the start_async(:items) task, so await it before asserting.
+      html = render_async(view)
       assert html =~ "Title"
     end
 
@@ -157,7 +158,8 @@ defmodule TestAppWeb.Admin.PostLiveTest do
           do: post_fixture(%{title: "Post #{String.pad_leading(to_string(i), 2, "0")}"})
 
       {:ok, view, _html} = live(conn, "/admin/posts")
-      html = render(view)
+      # The total comes from the start_async(:items) task, so await it first.
+      html = render_async(view)
 
       assert html =~ "15"
     end
@@ -359,7 +361,8 @@ defmodule TestAppWeb.Admin.PostLiveTest do
 
       {:ok, view, _html} = live(conn, "/admin/posts")
 
-      html = render(view)
+      # Rows arrive from the start_async(:items) task, so await them.
+      html = render_async(view)
       assert html =~ "To Delete"
 
       render_click(view, "delete", %{"id" => to_string(post.id)})
