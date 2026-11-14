@@ -593,51 +593,6 @@ defmodule Blank.SchemaTest do
     end
   end
 
-  # ─── put_field_module/3 ─────────────────────────────────────────────
-
-  describe "put_field_module/3" do
-    test "returns BelongsTo for belongs_to association" do
-      {module, _opts} = Any.put_field_module([], :author, Post)
-      assert module == BelongsTo
-    end
-
-    test "returns BelongsTo for Review's post association" do
-      {module, _opts} = Any.put_field_module([], :post, Review)
-      assert module == BelongsTo
-    end
-
-    test "returns HasMany for has_many association" do
-      {module, _opts} = Any.put_field_module([], :tags, Post)
-      assert module == HasMany
-    end
-
-    test "returns HasMany for Review's comments association" do
-      {module, _opts} = Any.put_field_module([], :comments, Post)
-      assert module == HasMany
-    end
-
-    test "returns List for array field" do
-      {module, _opts} = Any.put_field_module([], :tag_names, Article)
-      assert module == List
-    end
-
-    test "returns Text for :string type field" do
-      {module, _opts} = Any.put_field_module([], :title, Post)
-      assert module == Blank.Fields.Text
-    end
-
-    test "returns Boolean for :boolean type field" do
-      {module, _opts} = Any.put_field_module([], :published, Post)
-      assert module == Blank.Fields.Boolean
-    end
-
-    test "returns module from field_def when already set" do
-      {module, opts} = Any.put_field_module([module: Blank.Fields.Boolean], :title, Post)
-      assert module == Blank.Fields.Boolean
-      assert opts[:module] == Blank.Fields.Boolean
-    end
-  end
-
   # ─── default_for_field/1 (indirectly via get_field) ──────────────────
 
   describe "default_for_field/1 via get_field" do

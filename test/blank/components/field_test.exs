@@ -4,6 +4,7 @@ defmodule Blank.Components.FieldTest do
   import Phoenix.LiveViewTest
 
   alias Blank.Field
+  alias Blank.Fields
 
   # Minimal wrapper modules for testing field_list, field_display, field_form
   # These render live_components, so we need a Phoenix.Component context
@@ -174,25 +175,25 @@ defmodule Blank.Components.FieldTest do
 
   describe "field definition struct" do
     test "creates a field with default module" do
-      field = Field.new!(:name, [])
+      field = Fields.new!(:name, [])
       assert field.key == :name
       assert field.module == Blank.Fields.Text
       assert field.label == "Name"
     end
 
     test "creates a field with custom module" do
-      field = Field.new!(:active, module: Blank.Fields.Boolean)
+      field = Fields.new!(:active, module: Blank.Fields.Boolean)
       assert field.key == :active
       assert field.module == Blank.Fields.Boolean
     end
 
     test "creates a field with label override" do
-      field = Field.new!(:name, label: "Full Name")
+      field = Fields.new!(:name, label: "Full Name")
       assert field.label == "Full Name"
     end
 
     test "field has correct default values" do
-      field = Field.new!(:title, [])
+      field = Fields.new!(:title, [])
       assert field.viewable == true
       assert field.searchable == false
       assert field.sortable == false

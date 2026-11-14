@@ -1,60 +1,4 @@
 defmodule Blank.Field do
-  @field_schema [
-    filter_key: [
-      type: :atom,
-      doc: "Key for filtering (auto generated)"
-    ],
-    module: [
-      type: :atom,
-      doc: "The rendering module, see `Blank.Field` for more info"
-    ],
-    label: [
-      type: :string,
-      doc: "The label to use when rendering"
-    ],
-    placeholder: [
-      type: :string,
-      doc: "The placeholder to use when rendering"
-    ],
-    searchable: [
-      type: :boolean,
-      doc: "Defines whether the field is searchable"
-    ],
-    sortable: [
-      type: :boolean,
-      doc: "Defines whether the field can be sorted by"
-    ],
-    viewable: [
-      type: :boolean,
-      doc: "Defines whether a field can be viewed on admin pages"
-    ],
-    readonly: [
-      type: :boolean,
-      doc: "Makes the field readonly and cannot be edited"
-    ],
-    display_field: [
-      type: :atom,
-      doc: "The field to use when displaying an association"
-    ],
-    select: [
-      type: :any,
-      # type: {:struct, Ecto.Query.DynamicExpr},
-      doc: "Defines a select to be added when the field is loaded"
-    ]
-  ]
-
-  @fields [
-    Blank.Fields.BelongsTo,
-    Blank.Fields.Boolean,
-    Blank.Fields.DateTime,
-    Blank.Fields.HasMany,
-    Blank.Fields.Location,
-    Blank.Fields.List,
-    Blank.Fields.Password,
-    Blank.Fields.QRCode,
-    Blank.Fields.Text
-  ]
-
   @moduledoc """
   Field definition for rendering fields
 
@@ -70,20 +14,20 @@ defmodule Blank.Field do
 
   ## Using fields
 
-  The built-in fields are:
+  The built-in field adapters live under `Blank.Fields`. They are:
 
-    * Blank.Fields.BelongsTo - for a belongs to definition it will show a
+    * `BelongsTo` - for a belongs to definition it will show a
       searchable select to select the element
-    * Blank.Fields.Boolean - a simple checkbox
-    * Blank.Fields.DateTime - a datetime picker
-    * Blank.Fields.HasMany - a has many that has the ability to add and remove
+    * `Boolean` - a simple checkbox
+    * `DateTime` - a datetime picker
+    * `HasMany` - a has many that has the ability to add and remove
       items
-    * Blank.Fields.Location - a geo location field input (with ability for
+    * `Location` - a geo location field input (with ability for
       searching)
-    * Blank.Fields.List - a list of other fields
-    * Blank.Fields.Password - a password input
-    * Blank.Fields.QRCode - a text field that is turned into a qr code
-    * Blank.Fields.Text - a simple text input (the default for all regular fields)
+    * `List` - a list of other fields
+    * `Password` - a password input
+    * `QRCode` - a text field that is turned into a qr code
+    * `Text` - a simple text input (the default for all regular fields)
 
   Blank will do its best to automatically choose the right field module but you
   can override it by setting the `:module` option in the field definition.
@@ -171,7 +115,7 @@ defmodule Blank.Field do
   ## Schema
 
   The default field schema is:
-  #{NimbleOptions.docs(@field_schema)}
+  #{NimbleOptions.docs(Blank.Field.Options.__schema__())}
 
   A field's definition is validated using the field schema merged with
   the default field schema.
@@ -195,7 +139,7 @@ defmodule Blank.Field do
 
   defstruct key: nil,
             filter_key: nil,
-            module: Blank.Fields.Text,
+            module: nil,
             label: nil,
             placeholder: nil,
             viewable: true,
@@ -211,7 +155,7 @@ defmodule Blank.Field do
   @type t :: %__MODULE__{
           key: atom(),
           filter_key: atom(),
-          module: module(),
+          module: module() | nil,
           label: String.t() | nil,
           placeholder: String.t() | nil,
           viewable: boolean(),
@@ -251,23 +195,16 @@ defmodule Blank.Field do
   @optional_callbacks render_list: 1
 
   alias Blank.Errors.InvalidConfigError
+  alias Blank.Field.Options
 
   @doc false
   @spec field_schema() :: keyword()
-  def field_schema, do: @field_schema
-
-  @doc false
-  @spec __aggregate_field_schemas__() :: keyword()
-  def __aggregate_field_schemas__ do
-    @fields
-    |> Stream.map(& &1.__schema__())
-    |> Enum.concat()
-  end
+  def field_schema, do: Options.__schema__()
 
   @doc false
   @spec validate_field!(keyword(), module(), keyword()) :: keyword()
   def validate_field!(schema, caller, opts) do
-    field_schema = Keyword.merge(@field_schema, schema)
+    field_schema = Keyword.merge(Options.__schema__(), schema)
 
     case NimbleOptions.validate(opts, field_schema) do
       {:ok, opts} ->
@@ -320,27 +257,4 @@ defmodule Blank.Field do
       end
     end
   end
-
-  @doc false
-  @spec new!(atom(), Keyword.t()) :: t()
-  def new!(key, field_def) do
-    attrs =
-      field_def
-      |> Keyword.put(:key, key)
-      |> Keyword.put_new(:module, Blank.Fields.Text)
-      |> Keyword.put_new(:label, Atom.to_string(key) |> Phoenix.Naming.humanize())
-      |> Keyword.update(:children, [], fn children ->
-        Enum.map(children, fn {k, v} ->
-          {k, new!(k, v)}
-        end)
-      end)
-
-    struct(__MODULE__, attrs)
-  end
-
-  @doc false
-  @spec module_for_type(atom()) :: module()
-  def module_for_type(:boolean), do: Blank.Fields.Boolean
-  def module_for_type(:utc_datetime), do: Blank.Fields.DateTime
-  def module_for_type(_), do: Blank.Fields.Text
 end

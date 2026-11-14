@@ -36,9 +36,8 @@ defmodule Blank.MixProject do
 
   # The repo-owned gate: the pre-commit hook, CI and agents all run `mix precommit`.
   # `sobelow` keeps CI's form: the three low-confidence findings are triaged (commit 459f9f7).
-  # Two known cycles remain, both tracked in issue #34: the 15-module macro cycle
-  # and the exporter cycle. The authorization/config cycle is gone (issue #22), so
-  # `xref --fail-above 2` permits the two known cycles and fails on a third.
+  # Field adapters depend on `Blank.Field`, `Blank.Field.Options` and the `Blank.Schema`
+  # protocol, never back through `Blank.Context` or `Blank.Fields` (ADR-0007).
   # `cmd env MIX_ENV=test` is required: an alias step runs in the env loaded for the alias
   # (dev), and `mix test` refuses to run in dev.
   defp aliases do
@@ -49,7 +48,7 @@ defmodule Blank.MixProject do
         "credo --strict",
         "doctor --summary",
         "sobelow",
-        "xref graph --format cycles --fail-above 2",
+        "xref graph --format cycles --fail-above 0",
         "cmd env MIX_ENV=test mix test --cover"
       ]
     ]

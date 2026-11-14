@@ -22,11 +22,13 @@ defmodule Blank.Fields.List do
 
   use Blank.Field
 
+  alias Blank.Fields.Type
+
   @impl true
   def render_display(assigns) do
     {:array, inner_type} = assigns.schema.__schema__(:type, assigns.definition.key)
 
-    module = Blank.Field.module_for_type(inner_type)
+    module = Type.module_for_type(inner_type)
 
     assigns = assign(assigns, :module, module)
 
@@ -53,7 +55,7 @@ defmodule Blank.Fields.List do
   def render_form(assigns) do
     {:array, inner_type} = assigns.schema.__schema__(:type, assigns.definition.key)
 
-    module = Blank.Field.module_for_type(inner_type)
+    module = Type.module_for_type(inner_type)
 
     assigns =
       assign(assigns,

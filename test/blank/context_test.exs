@@ -80,9 +80,6 @@ defmodule Blank.ContextTest do
     end
   end
 
-  # NOTE: options_query/4 is not tested here because it uses Ecto.Query.ilike/2
-  # which is not supported by the SQLite3 adapter used in the test environment.
-
   describe "get!/3" do
     test "returns a single record by id" do
       post = Repo.insert!(%Post{title: "Fetch Me"})

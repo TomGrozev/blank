@@ -16,7 +16,7 @@ defmodule Blank.Schema.OptionsTest do
     assert Keyword.has_key?(schema, :include_foreign_keys)
   end
 
-  test "validate!/2 with valid options" do
+  test "validate!/3 with valid options" do
     opts = [
       identity_field: :email,
       create_changeset: &__MODULE__.changeset/2,
@@ -26,20 +26,20 @@ defmodule Blank.Schema.OptionsTest do
     ]
 
     # Should not raise
-    result = Options.validate!(opts, __MODULE__)
+    result = Options.validate!(opts, __MODULE__, [])
     assert is_list(result)
     assert Keyword.get(result, :identity_field) == :email
   end
 
-  test "validate!/2 with unknown key raises InvalidConfigError" do
+  test "validate!/3 with unknown key raises InvalidConfigError" do
     assert_raise InvalidConfigError, fn ->
-      Options.validate!([unknown_key: :bad], __MODULE__)
+      Options.validate!([unknown_key: :bad], __MODULE__, [])
     end
   end
 
-  test "validate!/2 rejects non-atom identity_field" do
+  test "validate!/3 rejects non-atom identity_field" do
     assert_raise InvalidConfigError, fn ->
-      Options.validate!([identity_field: "string"], __MODULE__)
+      Options.validate!([identity_field: "string"], __MODULE__, [])
     end
   end
 
