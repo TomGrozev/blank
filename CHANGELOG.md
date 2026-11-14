@@ -5,6 +5,7 @@
 ### Changed
 
 - `Blank.Authorization.allowed_roles/0`, `built_in_roles/0`, `policy_module/0` and `role_mapper_config/0` are gone; the same functions live on `Blank.Config` only. `Blank.Authorization` keeps `can?/3`, `validate_roles/1` and the `on_mount` hook and calls `Blank.Config` itself. Callers of the removed functions switch to `Blank.Config`.
+- CI tests the declared Elixir floor (1.18.1 / OTP 27.2) and the current pair (1.20.3 / OTP 28.5.0.5). A new `.tool-versions` pins the current pair for local runs ([#33](https://github.com/TomGrozev/blank/issues/33)).
 
 ### Fixed
 
