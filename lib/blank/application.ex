@@ -47,8 +47,7 @@ defmodule Blank.Application do
   end
 
   defp validate_authorization_config! do
-    config = Application.get_env(:blank, :authorization, [])
-    roles = Keyword.get(config, :roles, [])
+    roles = Blank.Config.configured_roles()
 
     unless is_list(roles) and Enum.all?(roles, &is_atom/1) do
       raise InvalidConfigError.from_app_env(

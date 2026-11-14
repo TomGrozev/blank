@@ -2,24 +2,10 @@ defmodule Blank.Authorization do
   @moduledoc """
   Authorization utilities for Blank.
 
-  Provides role validation and the allowed-roles set used by `Blank.Types.Role`
-  and other authorization-aware code paths.
+  Provides role validation, the `can?/3` check and the `on_mount` authorizing
+  hook. The allowed-role set, the policy module and the role mapper are owned by
+  `Blank.Config`.
   """
-
-  @built_in_roles MapSet.new([:system_admin, :member])
-
-  @doc """
-  Returns the full set of allowed role atoms.
-
-  The allowed-set is the union of the built-in roles (`:system_admin`, `:member`)
-  and any consumer-configured roles from `config :blank, :authorization, roles: [...]`.
-
-  The set is computed once at app boot and cached for the lifetime of the application.
-  """
-  @spec allowed_roles() :: MapSet.t(atom())
-  def allowed_roles do
-    Blank.Config.allowed_roles()
-  end
 
   @doc """
   Validates that all roles in the given list are in the allowed-set.
@@ -29,7 +15,7 @@ defmodule Blank.Authorization do
 
   ## Examples
 
-      iex> validate_roles([:system_admin, :member])
+      iex> validate_roles([:member])
       :ok
 
       iex> validate_roles([:system_admin, :unknown_role])
@@ -37,7 +23,7 @@ defmodule Blank.Authorization do
   """
   @spec validate_roles([atom()]) :: :ok | {:error, [atom()]}
   def validate_roles(roles) when is_list(roles) do
-    allowed = allowed_roles()
+    allowed = Blank.Config.allowed_roles()
 
     invalid =
       roles
@@ -47,62 +33,6 @@ defmodule Blank.Authorization do
     case invalid do
       [] -> :ok
       invalid -> {:error, invalid}
-    end
-  end
-
-  @doc """
-  Returns the built-in roles that are always present regardless of config.
-  """
-  @spec built_in_roles() :: MapSet.t(atom())
-  def built_in_roles, do: @built_in_roles
-
-  @doc """
-  Returns the configured policy module, or `Blank.Authorization.DefaultPolicy`
-  if none is configured.
-
-  Reads from `config :blank, :authorization, policy_module: MyApp.Policy`.
-  """
-  @spec policy_module() :: module()
-  def policy_module do
-    :blank
-    |> Application.get_env(:authorization, [])
-    |> Keyword.get(:policy_module, Blank.Authorization.DefaultPolicy)
-  end
-
-  @doc """
-  Returns the configured role mapper as `{module, opts}`, or `nil` if none is configured.
-
-  Reads from `config :blank, :authorization, role_mapper: ...`.
-
-  Supports two config shapes:
-    * `{Module, opts}` — module with explicit options
-    * `Module` — plain module shorthand (no-opts, equivalent to `{Module, []}`)
-
-  ## Examples
-
-      # config :blank, :authorization, role_mapper: {MyMapper, [key: :value]}
-      iex> role_mapper_config()
-      {MyMapper, [key: :value]}
-
-      # config :blank, :authorization, role_mapper: MyMapper
-      iex> role_mapper_config()
-      {MyMapper, []}
-
-      # no role_mapper configured
-      iex> role_mapper_config()
-      nil
-  """
-  @spec role_mapper_config() :: {module(), keyword()} | nil
-  def role_mapper_config do
-    case :blank |> Application.get_env(:authorization, []) |> Keyword.get(:role_mapper) do
-      nil ->
-        nil
-
-      {module, opts} when is_atom(module) and is_list(opts) ->
-        {module, opts}
-
-      module when is_atom(module) ->
-        {module, []}
     end
   end
 
@@ -127,7 +57,7 @@ defmodule Blank.Authorization do
     if :system_admin in List.wrap(user.roles) do
       true
     else
-      policy_module().policy(user, action, scope)
+      Blank.Config.policy_module().policy(user, action, scope)
     end
   end
 
